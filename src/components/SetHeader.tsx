@@ -50,18 +50,18 @@ export function SetHeader({ set, folders }: { set: FlashcardSet; folders: Folder
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="rounded-xl border border-neutral-700 bg-neutral-900 px-3.5 py-2 text-xl font-semibold outline-none focus:border-indigo-400"
+          className="rounded-xl border border-amber-900/20 bg-white px-3.5 py-2 text-xl font-semibold outline-none focus:border-rose-400"
         />
         <input
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Description (optional)"
-          className="rounded-xl border border-neutral-700 bg-neutral-900 px-3.5 py-2 text-sm outline-none focus:border-indigo-400"
+          className="rounded-xl border border-amber-900/20 bg-white px-3.5 py-2 text-sm outline-none focus:border-rose-400"
         />
         <select
           value={folderId}
           onChange={(e) => setFolderId(e.target.value)}
-          className="rounded-xl border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+          className="rounded-xl border border-amber-900/20 bg-white px-3 py-2 text-sm outline-none focus:border-rose-400"
         >
           <option value="">No folder</option>
           {[...folders]
@@ -77,7 +77,7 @@ export function SetHeader({ set, folders }: { set: FlashcardSet; folders: Folder
           <button
             onClick={save}
             disabled={pending}
-            className="rounded-xl bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-indigo-400 disabled:opacity-50"
+            className="rounded-xl bg-rose-400 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-rose-300 disabled:opacity-50"
           >
             Save
           </button>
@@ -88,7 +88,7 @@ export function SetHeader({ set, folders }: { set: FlashcardSet; folders: Folder
               setFolderId(set.folder_id ?? "");
               setEditing(false);
             }}
-            className="rounded-xl border border-neutral-700 px-3 py-1.5 text-sm font-medium text-neutral-300 transition hover:bg-neutral-900"
+            className="rounded-xl border border-amber-900/20 px-3 py-1.5 text-sm font-medium text-amber-950/80 transition hover:bg-neutral-900"
           >
             Cancel
           </button>
@@ -102,20 +102,20 @@ export function SetHeader({ set, folders }: { set: FlashcardSet; folders: Folder
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">{set.title}</h1>
         {set.description ? (
-          <p className="mt-1 text-sm text-neutral-400">{set.description}</p>
+          <p className="mt-1 text-sm text-amber-950/60">{set.description}</p>
         ) : null}
       </div>
       <div className="flex shrink-0 gap-1">
         <button
           onClick={() => setEditing(true)}
-          className="rounded-lg px-2.5 py-1.5 text-sm text-neutral-400 transition hover:bg-white/5 hover:text-white"
+          className="rounded-lg px-2.5 py-1.5 text-sm text-amber-950/60 transition hover:bg-orange-100/70 hover:text-amber-950"
         >
           Edit
         </button>
         <button
           onClick={remove}
           disabled={pending}
-          className="rounded-lg px-2.5 py-1.5 text-sm text-neutral-400 transition hover:bg-red-950 hover:text-red-400"
+          className="rounded-lg px-2.5 py-1.5 text-sm text-amber-950/60 transition hover:bg-red-50 hover:text-red-500"
         >
           Delete
         </button>

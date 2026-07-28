@@ -57,7 +57,7 @@ export function FolderControls({ folder }: { folder: Folder }) {
         }}
         disabled={pending}
         placeholder={mode === "subfolder" ? "Subfolder name…" : "New name…"}
-        className="rounded-lg border border-indigo-500/40 bg-transparent px-3 py-1.5 text-sm outline-none placeholder:text-neutral-600"
+        className="rounded-lg border border-rose-300 bg-transparent px-3 py-1.5 text-sm outline-none placeholder:text-amber-950/60"
       />
     );
   }
@@ -70,7 +70,7 @@ export function FolderControls({ folder }: { folder: Folder }) {
           setValue("");
           setMode("subfolder");
         }}
-        className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm text-neutral-400 transition hover:bg-white/5 hover:text-neutral-200"
+        className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm text-amber-950/60 transition hover:bg-orange-100/70 hover:text-amber-950/90"
       >
         <PlusIcon className="h-3.5 w-3.5" />
         Subfolder
@@ -81,7 +81,7 @@ export function FolderControls({ folder }: { folder: Folder }) {
           setValue(folder.name);
           setMode("rename");
         }}
-        className="rounded-lg px-2.5 py-1.5 text-sm text-neutral-400 transition hover:bg-white/5 hover:text-neutral-200"
+        className="rounded-lg px-2.5 py-1.5 text-sm text-amber-950/60 transition hover:bg-orange-100/70 hover:text-amber-950/90"
       >
         Rename
       </button>
@@ -89,7 +89,7 @@ export function FolderControls({ folder }: { folder: Folder }) {
         type="button"
         onClick={remove}
         disabled={pending}
-        className="rounded-lg px-2.5 py-1.5 text-sm text-neutral-400 transition hover:bg-red-950 hover:text-red-400"
+        className="rounded-lg px-2.5 py-1.5 text-sm text-amber-950/60 transition hover:bg-red-50 hover:text-red-500"
       >
         Delete
       </button>

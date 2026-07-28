@@ -26,32 +26,32 @@ function ModeCard({
   return (
     <Link
       href={href}
-      className="relative flex flex-col gap-2 rounded-2xl border border-white/5 bg-white/[0.03] p-4 transition hover:border-indigo-500/30 hover:bg-white/[0.05]"
+      className="relative flex flex-col gap-2 rounded-2xl border border-amber-900/10 bg-white p-4 transition hover:border-rose-200 hover:bg-orange-50"
     >
       {recommended ? (
-        <span className="absolute right-3 top-3 rounded-full bg-indigo-500 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+        <span className="absolute right-3 top-3 rounded-full bg-rose-400 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
           Recommended
         </span>
       ) : null}
       <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${tint}`}>{icon}</span>
       <span className="mt-1 text-sm font-semibold">{name}</span>
-      <span className="text-xs text-neutral-500">{description}</span>
-      <span className="text-xs font-medium text-neutral-400">{stat}</span>
+      <span className="text-xs text-amber-950/50">{description}</span>
+      <span className="text-xs font-medium text-amber-950/60">{stat}</span>
     </Link>
   );
 }
 
 function ComingSoonCard({ name, description }: { name: string; description: string }) {
   return (
-    <div className="relative flex flex-col gap-2 rounded-2xl border border-dashed border-white/10 p-4 opacity-60">
-      <span className="absolute right-3 top-3 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-neutral-400">
+    <div className="relative flex flex-col gap-2 rounded-2xl border border-dashed border-amber-900/15 p-4 opacity-60">
+      <span className="absolute right-3 top-3 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-950/60">
         Soon
       </span>
-      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-neutral-500">
+      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100/70 text-amber-950/50">
         <SparkleIcon className="h-5 w-5" />
       </span>
-      <span className="mt-1 text-sm font-semibold text-neutral-400">{name}</span>
-      <span className="text-xs text-neutral-600">{description}</span>
+      <span className="mt-1 text-sm font-semibold text-amber-950/60">{name}</span>
+      <span className="text-xs text-amber-950/60">{description}</span>
     </div>
   );
 }
@@ -100,7 +100,7 @@ export default async function SetDetailPage({
           <ModeCard
             href={`/sets/${id}/learn`}
             icon={<BoltIcon className="h-5 w-5" />}
-            tint="bg-indigo-500/15 text-indigo-300"
+            tint="bg-rose-100 text-rose-500"
             name="Learn"
             description="Adaptive review that tracks each card"
             stat={
@@ -113,7 +113,7 @@ export default async function SetDetailPage({
           <ModeCard
             href={`/sets/${id}/test`}
             icon={<GearIcon className="h-5 w-5" />}
-            tint="bg-violet-500/15 text-violet-300"
+            tint="bg-amber-200/70 text-amber-700"
             name="Test"
             description="Quiz yourself with your own settings"
             stat={cardList.length >= 2 ? "Configurable" : "Needs 2+ cards"}

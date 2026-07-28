@@ -199,3 +199,28 @@ export async function moveSetToFolder(setId: string, folderId: string | null) {
   if (error) throw new Error(error.message);
   revalidatePath("/", "layout");
 }
+
+export async function moveFolder(folderId: string, newParentId: string | null) {
+  if (folderId === newParentId) return;
+
+  const supabase = await createClient();
+
+  // Reject moves that would create a cycle (dropping a folder into its own
+  // subtree). Walk up from the target until the root.
+  if (newParentId) {
+    const { data: folders } = await supabase.from("folders").select("id, parent_id");
+    const parentById = new Map((folders ?? []).map((f) => [f.id as string, f.parent_id as string | null]));
+    let cursor: string | null = newParentId;
+    while (cursor) {
+      if (cursor === folderId) return;
+      cursor = parentById.get(cursor) ?? null;
+    }
+  }
+
+  const { error } = await supabase
+    .from("folders")
+    .update({ parent_id: newParentId })
+    .eq("id", folderId);
+  if (error) throw new Error(error.message);
+  revalidatePath("/", "layout");
+}

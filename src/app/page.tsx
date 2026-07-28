@@ -14,13 +14,13 @@ export default async function Home() {
 
       {/* Placeholder for the mascot gif — swap MascotPlaceholder for a real
           animated asset later. */}
-      <MascotPlaceholder variant="wave" className="mt-8 h-32 w-32 animate-bounce sm:h-40 sm:w-40" />
+      <MascotPlaceholder variant="idle" className="mt-8 h-32 w-32 sm:h-40 sm:w-40" />
 
       <div className="mt-10 flex items-center gap-3">
         {user ? (
           <Link
             href="/home"
-            className="rounded-xl bg-indigo-500 px-6 py-3 text-base font-medium text-white transition hover:bg-indigo-400"
+            className="rounded-xl bg-rose-400 px-6 py-3 text-base font-medium text-white transition hover:bg-rose-300"
           >
             Get started
           </Link>
@@ -28,13 +28,13 @@ export default async function Home() {
           <>
             <Link
               href="/login"
-              className="rounded-xl border border-neutral-700 px-6 py-3 text-base font-medium text-neutral-300 transition hover:bg-white/5"
+              className="rounded-xl border border-amber-900/20 px-6 py-3 text-base font-medium text-amber-950/80 transition hover:bg-orange-100/70"
             >
               Log in
             </Link>
             <Link
               href="/signup"
-              className="rounded-xl bg-indigo-500 px-6 py-3 text-base font-medium text-white transition hover:bg-indigo-400"
+              className="rounded-xl bg-rose-400 px-6 py-3 text-base font-medium text-white transition hover:bg-rose-300"
             >
               Sign up
             </Link>

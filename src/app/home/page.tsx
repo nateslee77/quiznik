@@ -28,10 +28,10 @@ export default async function HomePage() {
   return (
     <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-8">
       <div className="flex items-center gap-4">
-        <MascotPlaceholder variant="happy" className="h-14 w-14 shrink-0" />
+        <MascotPlaceholder variant="idle" className="h-14 w-14 shrink-0" />
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
-          <p className="mt-0.5 text-sm text-neutral-400">
+          <p className="mt-0.5 text-sm text-amber-950/60">
             {totalDue > 0
               ? `${totalDue} card${totalDue === 1 ? "" : "s"} ready for review.`
               : "You're all caught up. Nice."}
@@ -42,18 +42,18 @@ export default async function HomePage() {
       {totalDue > 0 ? (
         <Link
           href="/learn"
-          className="mt-6 flex items-center gap-3 rounded-2xl border border-indigo-500/30 bg-indigo-500/10 p-4 transition hover:bg-indigo-500/15"
+          className="mt-6 flex items-center gap-3 rounded-2xl border border-rose-200 bg-rose-100 p-4 transition hover:bg-rose-100"
         >
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/20 text-indigo-300">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-500">
             <BoltIcon className="h-5 w-5" />
           </span>
           <span className="flex-1">
             <span className="block text-sm font-medium">Start reviewing</span>
-            <span className="block text-xs text-neutral-400">
+            <span className="block text-xs text-amber-950/60">
               {totalDue} due card{totalDue === 1 ? "" : "s"} across your decks
             </span>
           </span>
-          <span className="rounded-full bg-indigo-500 px-2.5 py-0.5 text-xs font-semibold text-white">
+          <span className="rounded-full bg-rose-400 px-2.5 py-0.5 text-xs font-semibold text-white">
             {totalDue}
           </span>
         </Link>
@@ -61,18 +61,18 @@ export default async function HomePage() {
 
       <div className="mt-10">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-medium text-neutral-400">Continue studying</h2>
-          <Link href="/sets" className="text-xs text-indigo-400 hover:text-indigo-300">
+          <h2 className="text-sm font-medium text-amber-950/60">Continue studying</h2>
+          <Link href="/sets" className="text-xs text-rose-500 hover:text-rose-400">
             View library →
           </Link>
         </div>
 
         {recent.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-white/10 py-14 text-center">
-            <p className="text-sm text-neutral-400">No decks yet — make your first one.</p>
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-amber-900/15 py-14 text-center">
+            <p className="text-sm text-amber-950/60">No decks yet — make your first one.</p>
             <Link
               href="/sets/new"
-              className="flex items-center gap-2 rounded-xl bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-400"
+              className="flex items-center gap-2 rounded-xl bg-rose-400 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-300"
             >
               <PlusIcon className="h-4 w-4" />
               New deck
@@ -86,19 +86,19 @@ export default async function HomePage() {
                 <Link
                   key={set.id}
                   href={`/sets/${set.id}`}
-                  className="flex items-center gap-3 rounded-2xl border border-white/5 bg-white/[0.03] p-4 transition hover:border-white/10 hover:bg-white/[0.05]"
+                  className="flex items-center gap-3 rounded-2xl border border-amber-900/10 bg-white p-4 transition hover:border-amber-900/15 hover:bg-orange-50"
                 >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/15 text-indigo-300">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-500">
                     <DeckIcon className="h-5 w-5" />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-medium">{set.title}</span>
-                    <span className="block text-xs text-neutral-500">
+                    <span className="block text-xs text-amber-950/50">
                       {set.card_count} card{set.card_count === 1 ? "" : "s"}
                     </span>
                   </span>
                   {due > 0 ? (
-                    <span className="rounded-full bg-indigo-500 px-2 py-0.5 text-xs font-semibold text-white">
+                    <span className="rounded-full bg-rose-400 px-2 py-0.5 text-xs font-semibold text-white">
                       {due}
                     </span>
                   ) : null}

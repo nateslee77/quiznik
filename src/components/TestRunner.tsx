@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { generateQuiz, type QuizQuestion, type QuizSettings, type Direction, type QuestionType } from "@/lib/generateQuiz";
 import { isCloseEnough } from "@/lib/fuzzyMatch";
 import { SegmentedControl } from "@/components/SegmentedControl";
+import { useMascot } from "@/components/mascot/MascotContext";
 import { GearIcon } from "@/components/icons";
 import type { Card } from "@/lib/types";
 
@@ -52,10 +53,22 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
   const question = questions[index];
   const done = phase === "running" && index >= questions.length;
 
+  const { setState: setMascot } = useMascot();
+  const scoredWell =
+    questions.length > 0 && answers.filter((a) => a.correct).length / questions.length >= 0.6;
+  useEffect(() => {
+    if (phase === "setup") setMascot("idle");
+    else if (done) setMascot(scoredWell ? "celebrate" : "crying");
+    else setMascot("testing");
+    return () => setMascot("idle");
+  }, [phase, done, scoredWell, setMascot]);
+
   function chooseMc(choiceIndex: number) {
     if (selected !== null) return;
     setSelected(choiceIndex);
-    setAnswers((prev) => [...prev, { question, correct: choiceIndex === question.correctIndex }]);
+    const correct = choiceIndex === question.correctIndex;
+    setMascot(correct ? "testing" : "crying");
+    setAnswers((prev) => [...prev, { question, correct }]);
   }
 
   function checkWritten() {
@@ -63,6 +76,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
     const correct = isCloseEnough(writtenInput, question.answer);
     setWrittenChecked(true);
     setWrittenCorrect(correct);
+    setMascot(correct ? "testing" : "crying");
     setAnswers((prev) => [...prev, { question, correct }]);
   }
 
@@ -70,34 +84,35 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
     setSelected(null);
     setWrittenInput("");
     setWrittenChecked(false);
+    setMascot("testing");
     setIndex((i) => i + 1);
   }
 
   if (phase === "setup") {
     return (
-      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="rounded-2xl border border-amber-900/10 bg-white p-6 shadow-sm dark:border-amber-900/10 dark:bg-neutral-900">
         <div className="mb-6 flex items-center gap-2">
-          <GearIcon className="h-5 w-5 text-neutral-400" />
+          <GearIcon className="h-5 w-5 text-amber-950/60" />
           <h2 className="text-lg font-medium">Test settings</h2>
         </div>
 
         <div className="flex flex-col gap-5">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-neutral-600 dark:text-neutral-400">
+            <label className="mb-1.5 block text-sm font-medium text-amber-950/60 dark:text-amber-950/60">
               Question type
             </label>
             <SegmentedControl options={QUESTION_TYPE_OPTIONS} value={questionType} onChange={setQuestionType} />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-neutral-600 dark:text-neutral-400">
+            <label className="mb-1.5 block text-sm font-medium text-amber-950/60 dark:text-amber-950/60">
               Direction
             </label>
             <SegmentedControl options={DIRECTION_OPTIONS} value={direction} onChange={setDirection} />
           </div>
 
           <div className="flex items-center justify-between">
-            <label htmlFor="test-count" className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
+            <label htmlFor="test-count" className="text-sm font-medium text-amber-950/60 dark:text-amber-950/60">
               Number of questions
             </label>
             <input
@@ -109,24 +124,24 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
               onChange={(e) =>
                 setCount(Math.max(1, Math.min(cards.length, Number(e.target.value) || 1)))
               }
-              className="w-20 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-400 dark:border-neutral-700 dark:bg-neutral-900"
+              className="w-20 rounded-lg border border-amber-900/20 bg-white px-3 py-1.5 text-sm outline-none focus:border-rose-400 dark:border-amber-900/20 dark:bg-neutral-900"
             />
           </div>
 
-          <label className="flex items-center justify-between text-sm font-medium text-neutral-600 dark:text-neutral-400">
+          <label className="flex items-center justify-between text-sm font-medium text-amber-950/60 dark:text-amber-950/60">
             Shuffle question order
             <input
               type="checkbox"
               checked={shuffleOn}
               onChange={(e) => setShuffleOn(e.target.checked)}
-              className="h-4 w-4 accent-indigo-500"
+              className="h-4 w-4 accent-rose-400"
             />
           </label>
         </div>
 
         <button
           onClick={startTest}
-          className="mt-6 w-full rounded-lg bg-indigo-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-400"
+          className="mt-6 w-full rounded-lg bg-rose-400 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-rose-300"
         >
           Start test
         </button>
@@ -141,25 +156,25 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
 
     return (
       <div className="flex flex-1 flex-col items-center py-8 text-center">
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">Your score</p>
+        <p className="text-sm text-amber-950/50 dark:text-amber-950/60">Your score</p>
         <p className="mt-1 text-5xl font-semibold tracking-tight">{pct}%</p>
-        <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+        <p className="mt-2 text-sm text-amber-950/50 dark:text-amber-950/60">
           {correctCount} of {questions.length} correct
         </p>
 
         {missed.length > 0 ? (
           <div className="mt-8 w-full max-w-md text-left">
-            <h2 className="mb-3 text-sm font-medium text-neutral-500 dark:text-neutral-400">
+            <h2 className="mb-3 text-sm font-medium text-amber-950/50 dark:text-amber-950/60">
               Review missed cards
             </h2>
             <div className="flex flex-col gap-2">
               {missed.map(({ question: q }) => (
                 <div
                   key={q.card.id}
-                  className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm dark:border-red-900 dark:bg-red-950/40"
+                  className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm dark:border-red-200 dark:bg-red-50"
                 >
                   <p className="font-medium">{q.prompt}</p>
-                  <p className="mt-0.5 text-neutral-600 dark:text-neutral-400">{q.answer}</p>
+                  <p className="mt-0.5 text-amber-950/60 dark:text-amber-950/60">{q.answer}</p>
                 </div>
               ))}
             </div>
@@ -169,20 +184,20 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
         <div className="mt-8 flex w-full max-w-md gap-3">
           <button
             onClick={startTest}
-            className="flex-1 rounded-lg bg-indigo-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-400"
+            className="flex-1 rounded-lg bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300"
           >
             Retake (same settings)
           </button>
           <button
             onClick={() => setPhase("setup")}
-            className="flex-1 rounded-lg border border-neutral-300 px-4 py-3 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-900"
+            className="flex-1 rounded-lg border border-amber-900/20 px-4 py-3 text-sm font-medium text-amber-950/80 transition hover:bg-orange-100/70 dark:border-amber-900/20 dark:text-amber-950/80 dark:hover:bg-neutral-900"
           >
             Change settings
           </button>
         </div>
         <Link
           href={`/sets/${setId}`}
-          className="mt-3 text-sm text-neutral-500 underline hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+          className="mt-3 text-sm text-amber-950/50 underline hover:text-amber-950 dark:text-amber-950/60 dark:hover:text-amber-950"
         >
           Back to set
         </Link>
@@ -192,17 +207,17 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800">
+      <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-amber-200/60 dark:bg-amber-200/60">
         <div
-          className="h-full rounded-full bg-indigo-500 transition-all"
+          className="h-full rounded-full bg-rose-400 transition-all"
           style={{ width: `${(index / questions.length) * 100}%` }}
         />
       </div>
-      <p className="mb-2 text-sm text-neutral-500 dark:text-neutral-400">
+      <p className="mb-2 text-sm text-amber-950/50 dark:text-amber-950/60">
         Question {index + 1} of {questions.length}
       </p>
 
-      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="rounded-2xl border border-amber-900/10 bg-white p-6 shadow-sm dark:border-amber-900/10 dark:bg-neutral-900">
         <h2 className="mb-6 text-xl font-medium sm:text-2xl">{question.prompt}</h2>
 
         {question.type === "multiple_choice" ? (
@@ -214,12 +229,12 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
                 const showState = selected !== null;
 
                 let stateClasses =
-                  "border-neutral-300 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-900";
+                  "border-amber-900/20 hover:bg-orange-100/70 dark:border-amber-900/20 dark:hover:bg-neutral-900";
                 if (showState && isCorrectChoice) {
                   stateClasses =
-                    "border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300";
+                    "border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-50 dark:text-emerald-700";
                 } else if (showState && isSelected && !isCorrectChoice) {
-                  stateClasses = "border-red-500 bg-red-50 text-red-900 dark:bg-red-950/40 dark:text-red-300";
+                  stateClasses = "border-red-500 bg-red-50 text-red-900 dark:bg-red-50 dark:text-red-600";
                 }
 
                 return (
@@ -238,7 +253,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
             {selected !== null ? (
               <button
                 onClick={nextQuestion}
-                className="mt-6 w-full rounded-lg bg-indigo-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-400"
+                className="mt-6 w-full rounded-lg bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300"
               >
                 {index + 1 === questions.length ? "See results" : "Next question →"}
               </button>
@@ -252,11 +267,11 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
               onChange={(e) => setWrittenInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && checkWritten()}
               placeholder="Type your answer…"
-              className="w-full rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-base outline-none focus:border-indigo-400 dark:border-neutral-700 dark:bg-neutral-900"
+              className="w-full rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 text-base outline-none focus:border-rose-400 dark:border-amber-900/20 dark:bg-neutral-900"
             />
             <button
               onClick={checkWritten}
-              className="rounded-lg bg-indigo-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-400"
+              className="rounded-lg bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300"
             >
               Check answer
             </button>
@@ -266,8 +281,8 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
             <div
               className={`rounded-lg border p-3 text-sm ${
                 writtenCorrect
-                  ? "border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300"
-                  : "border-red-500 bg-red-50 text-red-900 dark:bg-red-950/40 dark:text-red-300"
+                  ? "border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-50 dark:text-emerald-700"
+                  : "border-red-500 bg-red-50 text-red-900 dark:bg-red-50 dark:text-red-600"
               }`}
             >
               {writtenCorrect ? "Correct!" : (
@@ -278,7 +293,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
             </div>
             <button
               onClick={nextQuestion}
-              className="rounded-lg bg-indigo-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-400"
+              className="rounded-lg bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300"
             >
               {index + 1 === questions.length ? "See results" : "Next question →"}
             </button>

@@ -7,7 +7,7 @@ export default function SignupPage() {
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-semibold tracking-tight">Create your account</h1>
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+          <p className="mt-1 text-sm text-amber-950/50 dark:text-amber-950/60">
             Free to use. Your sets are saved to your account.
           </p>
         </div>

@@ -1,10 +1,8 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
-
 :root {
-  --background: #111114;
-  --foreground: #ededf0;
+  --background: #fff7f0;
+  --foreground: #45322b;
 }
 
 @theme inline {
@@ -26,4 +24,54 @@ body {
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* Mascot animations */
+@keyframes mascot-sway {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+@keyframes mascot-hop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-14px) rotate(-4deg);
+  }
+  60% {
+    transform: translateY(0);
+  }
+  80% {
+    transform: translateY(-7px) rotate(4deg);
+  }
+}
+@keyframes mascot-shiver {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px) rotate(-2deg);
+  }
+  75% {
+    transform: translateX(2px) rotate(2deg);
+  }
+}
+.mascot-idle {
+  animation: mascot-sway 4s ease-in-out infinite;
+}
+.mascot-celebrate {
+  animation: mascot-hop 0.9s ease-in-out infinite;
+}
+.mascot-crying {
+  animation: mascot-shiver 0.5s ease-in-out infinite;
+}
+.mascot-testing {
+  animation: mascot-sway 6s ease-in-out infinite;
 }
