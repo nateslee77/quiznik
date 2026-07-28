@@ -7,6 +7,7 @@ import {
   ChatIcon,
   HomeIcon,
   LibraryIcon,
+  MenuIcon,
   PlusIcon,
   SparkleIcon,
 } from "@/components/icons";
@@ -40,22 +41,40 @@ function NavLink({
   );
 }
 
-export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
+export function Sidebar({
+  onNavigate,
+  onCollapse,
+}: {
+  onNavigate?: () => void;
+  onCollapse?: () => void;
+}) {
   const pathname = usePathname();
 
   return (
     <div className="no-scrollbar flex h-full flex-col gap-1 overflow-y-auto px-3 py-4">
-      {/* Logo — returns to the landing page */}
-      <Link
-        href="/"
-        onClick={onNavigate}
-        className="mb-2 flex items-center gap-2.5 rounded-xl px-2 py-2 transition hover:bg-orange-100/70"
-      >
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-400 text-sm font-semibold text-white">
-          Q
-        </span>
-        <span className="flex-1 truncate text-sm font-semibold">Quiznik</span>
-      </Link>
+      <div className="mb-2 flex items-center gap-1">
+        {/* Logo — returns to the landing page */}
+        <Link
+          href="/"
+          onClick={onNavigate}
+          className="flex flex-1 items-center gap-2.5 rounded-xl px-2 py-2 transition hover:bg-orange-100/70"
+        >
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-400 text-sm font-semibold text-white">
+            Q
+          </span>
+          <span className="flex-1 truncate text-sm font-semibold">Quiznik</span>
+        </Link>
+        {onCollapse ? (
+          <button
+            type="button"
+            onClick={onCollapse}
+            aria-label="Collapse sidebar"
+            className="rounded-lg p-2 text-amber-950/50 transition hover:bg-orange-100/70 hover:text-amber-950"
+          >
+            <MenuIcon className="h-4 w-4" />
+          </button>
+        ) : null}
+      </div>
 
       <NavLink
         href="/home"

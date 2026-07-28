@@ -249,7 +249,16 @@ export function LibraryBrowser({
 
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-semibold tracking-tight">{activeFolder.name}</h1>
-          <FolderControls folder={activeFolder} />
+          <div className="flex flex-wrap items-center gap-2">
+            <FolderControls folder={activeFolder} />
+            <Link
+              href={`/sets/new?folder=${activeFolder.id}`}
+              className="flex shrink-0 items-center gap-1.5 rounded-xl bg-rose-400 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-rose-300"
+            >
+              <PlusIcon className="h-4 w-4" />
+              New deck
+            </Link>
+          </div>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -260,10 +269,17 @@ export function LibraryBrowser({
             <DeckRow key={deck.id} deck={deck} />
           ))}
           {subfolders.length === 0 && folderDecks.length === 0 ? (
-            <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-amber-900/15 py-14 text-center">
+            <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-amber-900/15 py-14 text-center">
               <p className="text-sm text-amber-950/60">This folder is empty.</p>
+              <Link
+                href={`/sets/new?folder=${activeFolder.id}`}
+                className="flex items-center gap-2 rounded-xl bg-rose-400 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-300"
+              >
+                <PlusIcon className="h-4 w-4" />
+                Create flashcards
+              </Link>
               <p className="text-xs text-amber-950/40">
-                Drag decks or folders here from the library, or add a subfolder above.
+                Or drag decks and folders here from the library.
               </p>
             </div>
           ) : null}

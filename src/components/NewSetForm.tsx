@@ -12,7 +12,7 @@ function emptyRow(): Row {
   return { id: crypto.randomUUID(), term: "", definition: "" };
 }
 
-export function NewSetForm() {
+export function NewSetForm({ folderId }: { folderId?: string | null }) {
   const [state, formAction, pending] = useActionState(createSet, initialState);
   const idBase = useId();
 
@@ -69,6 +69,7 @@ export function NewSetForm() {
   return (
     <form action={formAction} className="flex flex-col gap-6">
       <input type="hidden" name="cards" value={cardsJson} />
+      {folderId ? <input type="hidden" name="folder_id" value={folderId} /> : null}
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor={`${idBase}-title`} className="text-sm font-medium">

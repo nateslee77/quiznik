@@ -8,14 +8,26 @@ import { MenuIcon } from "@/components/icons";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <MascotProvider>
       <div className="relative z-10 flex min-h-full flex-1">
-        {/* Desktop sidebar */}
-        <aside className="sticky top-0 hidden h-screen w-60 shrink-0 border-r border-amber-900/10 bg-white/60 lg:block">
-          <Sidebar />
-        </aside>
+        {/* Desktop sidebar (collapsible) */}
+        {!collapsed ? (
+          <aside className="sticky top-0 hidden h-screen w-60 shrink-0 border-r border-amber-900/10 bg-white/60 lg:block">
+            <Sidebar onCollapse={() => setCollapsed(true)} />
+          </aside>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setCollapsed(false)}
+            aria-label="Open sidebar"
+            className="fixed left-3 top-3 z-30 hidden rounded-xl border border-amber-900/10 bg-white/90 p-2 text-amber-950/60 shadow-sm transition hover:bg-orange-50 hover:text-amber-950 lg:flex"
+          >
+            <MenuIcon className="h-5 w-5" />
+          </button>
+        )}
 
         {/* Mobile top bar + slide-over drawer */}
         <div className="fixed inset-x-0 top-0 z-30 flex h-14 items-center gap-3 border-b border-amber-900/10 bg-white/80 px-4 backdrop-blur lg:hidden">

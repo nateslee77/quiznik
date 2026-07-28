@@ -36,11 +36,67 @@ export function useMascotWhileMounted(state: MascotState) {
   }, [state, setState]);
 }
 
-// The always-visible companion docked in the corner of the app.
+const MASCOT_POS_KEY = "quiznik-mascot-pos";
+const MASCOT_SIZE = 80;
+
+// The always-visible companion. Drag it anywhere; the spot is remembered.
 export function DockedMascot() {
   const { state } = useMascot();
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const saved = localStorage.getItem(MASCOT_POS_KEY);
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [dragging, setDragging] = useState(false);
+
+  function clamp(x: number, y: number) {
+    return {
+      x: Math.min(Math.max(0, x), window.innerWidth - MASCOT_SIZE),
+      y: Math.min(Math.max(0, y), window.innerHeight - MASCOT_SIZE),
+    };
+  }
+
+  function onPointerDown(e: React.PointerEvent) {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const offsetX = startX - rect.left;
+    const offsetY = startY - rect.top;
+    setDragging(true);
+
+    function onMove(ev: PointerEvent) {
+      setPos(clamp(ev.clientX - offsetX, ev.clientY - offsetY));
+    }
+    function onUp(ev: PointerEvent) {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      setDragging(false);
+      const finalPos = clamp(ev.clientX - offsetX, ev.clientY - offsetY);
+      setPos(finalPos);
+      try {
+        localStorage.setItem(MASCOT_POS_KEY, JSON.stringify(finalPos));
+      } catch {
+        // storage unavailable — position just won't persist
+      }
+    }
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  }
+
   return (
-    <div className="pointer-events-none fixed bottom-3 right-3 z-20 sm:bottom-5 sm:right-5">
+    <div
+      suppressHydrationWarning
+      onPointerDown={onPointerDown}
+      style={pos ? { left: pos.x, top: pos.y } : undefined}
+      className={`fixed z-20 touch-none select-none ${
+        pos ? "" : "bottom-3 right-3 sm:bottom-5 sm:right-5"
+      } ${dragging ? "cursor-grabbing" : "cursor-grab"}`}
+    >
       <MascotPlaceholder variant={state} className="h-16 w-16 drop-shadow-md sm:h-20 sm:w-20" />
     </div>
   );

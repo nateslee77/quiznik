@@ -14,6 +14,7 @@ export async function createSet(
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const cardsJson = String(formData.get("cards") ?? "[]");
+  const requestedFolderId = String(formData.get("folder_id") ?? "").trim() || null;
 
   if (!title) {
     return { error: "Give your set a title." };
@@ -37,9 +38,21 @@ export async function createSet(
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  // Only honor the folder if it exists and is visible to this user (RLS
+  // scopes the lookup, so a foreign id resolves to null).
+  let folderId: string | null = null;
+  if (requestedFolderId) {
+    const { data: folder } = await supabase
+      .from("folders")
+      .select("id")
+      .eq("id", requestedFolderId)
+      .maybeSingle();
+    folderId = folder?.id ?? null;
+  }
+
   const { data: set, error: setError } = await supabase
     .from("sets")
-    .insert({ title, description: description || null, user_id: user.id })
+    .insert({ title, description: description || null, user_id: user.id, folder_id: folderId })
     .select("id")
     .single();
 
