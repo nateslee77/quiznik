@@ -90,7 +90,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
 
   if (phase === "setup") {
     return (
-      <div className="rounded-2xl border border-amber-900/10 bg-white p-6 shadow-sm dark:border-amber-900/10 dark:bg-neutral-900">
+      <div className="rounded-2xl border border-amber-900/10 bg-white p-6 shadow-sm">
         <div className="mb-6 flex items-center gap-2">
           <GearIcon className="h-5 w-5 text-amber-950/60" />
           <h2 className="text-lg font-medium">Test settings</h2>
@@ -98,21 +98,21 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
 
         <div className="flex flex-col gap-5">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-amber-950/60 dark:text-amber-950/60">
+            <label className="mb-1.5 block text-sm font-medium text-amber-950/60">
               Question type
             </label>
             <SegmentedControl options={QUESTION_TYPE_OPTIONS} value={questionType} onChange={setQuestionType} />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-amber-950/60 dark:text-amber-950/60">
+            <label className="mb-1.5 block text-sm font-medium text-amber-950/60">
               Direction
             </label>
             <SegmentedControl options={DIRECTION_OPTIONS} value={direction} onChange={setDirection} />
           </div>
 
           <div className="flex items-center justify-between">
-            <label htmlFor="test-count" className="text-sm font-medium text-amber-950/60 dark:text-amber-950/60">
+            <label htmlFor="test-count" className="text-sm font-medium text-amber-950/60">
               Number of questions
             </label>
             <input
@@ -124,11 +124,11 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
               onChange={(e) =>
                 setCount(Math.max(1, Math.min(cards.length, Number(e.target.value) || 1)))
               }
-              className="w-20 rounded-lg border border-amber-900/20 bg-white px-3 py-1.5 text-sm outline-none focus:border-rose-400 dark:border-amber-900/20 dark:bg-neutral-900"
+              className="w-20 rounded-lg border border-amber-900/20 bg-white px-3 py-1.5 text-sm outline-none focus:border-rose-400"
             />
           </div>
 
-          <label className="flex items-center justify-between text-sm font-medium text-amber-950/60 dark:text-amber-950/60">
+          <label className="flex items-center justify-between text-sm font-medium text-amber-950/60">
             Shuffle question order
             <input
               type="checkbox"
@@ -156,25 +156,25 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
 
     return (
       <div className="flex flex-1 flex-col items-center py-8 text-center">
-        <p className="text-sm text-amber-950/50 dark:text-amber-950/60">Your score</p>
+        <p className="text-sm text-amber-950/50">Your score</p>
         <p className="mt-1 text-5xl font-semibold tracking-tight">{pct}%</p>
-        <p className="mt-2 text-sm text-amber-950/50 dark:text-amber-950/60">
+        <p className="mt-2 text-sm text-amber-950/50">
           {correctCount} of {questions.length} correct
         </p>
 
         {missed.length > 0 ? (
           <div className="mt-8 w-full max-w-md text-left">
-            <h2 className="mb-3 text-sm font-medium text-amber-950/50 dark:text-amber-950/60">
+            <h2 className="mb-3 text-sm font-medium text-amber-950/50">
               Review missed cards
             </h2>
             <div className="flex flex-col gap-2">
               {missed.map(({ question: q }) => (
                 <div
                   key={q.card.id}
-                  className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm dark:border-red-200 dark:bg-red-50"
+                  className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm"
                 >
                   <p className="font-medium">{q.prompt}</p>
-                  <p className="mt-0.5 text-amber-950/60 dark:text-amber-950/60">{q.answer}</p>
+                  <p className="mt-0.5 text-amber-950/60">{q.answer}</p>
                 </div>
               ))}
             </div>
@@ -190,14 +190,14 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
           </button>
           <button
             onClick={() => setPhase("setup")}
-            className="flex-1 rounded-lg border border-amber-900/20 px-4 py-3 text-sm font-medium text-amber-950/80 transition hover:bg-orange-100/70 dark:border-amber-900/20 dark:text-amber-950/80 dark:hover:bg-neutral-900"
+            className="flex-1 rounded-lg border border-amber-900/20 px-4 py-3 text-sm font-medium text-amber-950/80 transition hover:bg-orange-100/70"
           >
             Change settings
           </button>
         </div>
         <Link
           href={`/sets/${setId}`}
-          className="mt-3 text-sm text-amber-950/50 underline hover:text-amber-950 dark:text-amber-950/60 dark:hover:text-amber-950"
+          className="mt-3 text-sm text-amber-950/50 underline hover:text-amber-950"
         >
           Back to set
         </Link>
@@ -207,17 +207,17 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-amber-200/60 dark:bg-amber-200/60">
+      <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-amber-200/60">
         <div
           className="h-full rounded-full bg-rose-400 transition-all"
           style={{ width: `${(index / questions.length) * 100}%` }}
         />
       </div>
-      <p className="mb-2 text-sm text-amber-950/50 dark:text-amber-950/60">
+      <p className="mb-2 text-sm text-amber-950/50">
         Question {index + 1} of {questions.length}
       </p>
 
-      <div className="rounded-2xl border border-amber-900/10 bg-white p-6 shadow-sm dark:border-amber-900/10 dark:bg-neutral-900">
+      <div className="rounded-2xl border border-amber-900/10 bg-white p-6 shadow-sm">
         <h2 className="mb-6 text-xl font-medium sm:text-2xl">{question.prompt}</h2>
 
         {question.type === "multiple_choice" ? (
@@ -229,12 +229,12 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
                 const showState = selected !== null;
 
                 let stateClasses =
-                  "border-amber-900/20 hover:bg-orange-100/70 dark:border-amber-900/20 dark:hover:bg-neutral-900";
+                  "border-amber-900/20 hover:bg-orange-100/70";
                 if (showState && isCorrectChoice) {
                   stateClasses =
-                    "border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-50 dark:text-emerald-700";
+                    "border-emerald-500 bg-emerald-50 text-emerald-900";
                 } else if (showState && isSelected && !isCorrectChoice) {
-                  stateClasses = "border-red-500 bg-red-50 text-red-900 dark:bg-red-50 dark:text-red-600";
+                  stateClasses = "border-red-500 bg-red-50 text-red-900";
                 }
 
                 return (
@@ -267,7 +267,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
               onChange={(e) => setWrittenInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && checkWritten()}
               placeholder="Type your answer…"
-              className="w-full rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 text-base outline-none focus:border-rose-400 dark:border-amber-900/20 dark:bg-neutral-900"
+              className="w-full rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 text-base outline-none focus:border-rose-400"
             />
             <button
               onClick={checkWritten}
@@ -281,8 +281,8 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
             <div
               className={`rounded-lg border p-3 text-sm ${
                 writtenCorrect
-                  ? "border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-50 dark:text-emerald-700"
-                  : "border-red-500 bg-red-50 text-red-900 dark:bg-red-50 dark:text-red-600"
+                  ? "border-emerald-500 bg-emerald-50 text-emerald-900"
+                  : "border-red-500 bg-red-50 text-red-900"
               }`}
             >
               {writtenCorrect ? "Correct!" : (

@@ -26,7 +26,7 @@ export default async function LearnPage({
   if (cardList.length < 2) {
     return (
       <main className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center px-4 py-16 text-center">
-        <p className="text-amber-950/50 dark:text-amber-950/60">
+        <p className="text-amber-950/50">
           Add at least 2 cards to this set to use Learn mode.
         </p>
         <Link href={`/sets/${id}`} className="mt-4 text-sm font-medium underline">
@@ -46,7 +46,7 @@ export default async function LearnPage({
       <div className="mb-4 flex items-center justify-between">
         <Link
           href={`/sets/${id}`}
-          className="text-sm text-amber-950/50 hover:text-amber-950 dark:text-amber-950/60 dark:hover:text-amber-950"
+          className="text-sm text-amber-950/50 hover:text-amber-950"
         >
           ← {set.title}
         </Link>

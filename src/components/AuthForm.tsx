@@ -21,7 +21,7 @@ export function AuthForm({ action, mode, next }: Props) {
       {next ? <input type="hidden" name="next" value={next} /> : null}
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="email" className="text-sm font-medium text-amber-950/80 dark:text-amber-950/80">
+        <label htmlFor="email" className="text-sm font-medium text-amber-950/80">
           Email
         </label>
         <input
@@ -30,13 +30,13 @@ export function AuthForm({ action, mode, next }: Props) {
           type="email"
           required
           autoComplete="email"
-          className="w-full rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 text-base outline-none transition focus:border-rose-400 dark:border-amber-900/20 dark:bg-neutral-900"
+          className="w-full rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 text-base outline-none transition focus:border-rose-400"
           placeholder="you@example.com"
         />
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="password" className="text-sm font-medium text-amber-950/80 dark:text-amber-950/80">
+        <label htmlFor="password" className="text-sm font-medium text-amber-950/80">
           Password
         </label>
         <input
@@ -46,19 +46,19 @@ export function AuthForm({ action, mode, next }: Props) {
           required
           minLength={8}
           autoComplete={isLogin ? "current-password" : "new-password"}
-          className="w-full rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 text-base outline-none transition focus:border-rose-400 dark:border-amber-900/20 dark:bg-neutral-900"
+          className="w-full rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 text-base outline-none transition focus:border-rose-400"
           placeholder="••••••••"
         />
       </div>
 
       {state.error ? (
-        <p className="text-sm text-red-600 dark:text-red-500" role="alert">
+        <p className="text-sm text-red-600" role="alert">
           {state.error}
         </p>
       ) : null}
 
       {state.message ? (
-        <p className="text-sm text-emerald-600 dark:text-emerald-400" role="status">
+        <p className="text-sm text-emerald-600" role="status">
           {state.message}
         </p>
       ) : null}
@@ -71,18 +71,18 @@ export function AuthForm({ action, mode, next }: Props) {
         {pending ? "Please wait…" : isLogin ? "Log in" : "Create account"}
       </button>
 
-      <p className="text-center text-sm text-amber-950/50 dark:text-amber-950/60">
+      <p className="text-center text-sm text-amber-950/50">
         {isLogin ? (
           <>
             New to Quiznik?{" "}
-            <Link href="/signup" className="font-medium text-amber-950 underline dark:text-white">
+            <Link href="/signup" className="font-medium text-amber-950 underline">
               Create an account
             </Link>
           </>
         ) : (
           <>
             Already have an account?{" "}
-            <Link href="/login" className="font-medium text-amber-950 underline dark:text-white">
+            <Link href="/login" className="font-medium text-amber-950 underline">
               Log in
             </Link>
           </>

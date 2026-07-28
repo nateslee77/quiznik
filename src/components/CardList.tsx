@@ -27,16 +27,16 @@ function EditableCard({ card, setId }: { card: Card; setId: string }) {
 
   if (editing) {
     return (
-      <div className="flex items-start gap-2 rounded-lg border border-amber-900/20 p-2 dark:border-amber-900/20">
+      <div className="flex items-start gap-2 rounded-lg border border-amber-900/20 p-2">
         <input
           value={term}
           onChange={(e) => setTerm(e.target.value)}
-          className="w-full min-w-0 flex-1 rounded-md border border-amber-900/20 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-rose-400 dark:border-amber-900/20 dark:bg-neutral-900"
+          className="w-full min-w-0 flex-1 rounded-md border border-amber-900/20 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-rose-400"
         />
         <input
           value={definition}
           onChange={(e) => setDefinition(e.target.value)}
-          className="w-full min-w-0 flex-1 rounded-md border border-amber-900/20 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-rose-400 dark:border-amber-900/20 dark:bg-neutral-900"
+          className="w-full min-w-0 flex-1 rounded-md border border-amber-900/20 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-rose-400"
         />
         <button
           onClick={save}
@@ -47,7 +47,7 @@ function EditableCard({ card, setId }: { card: Card; setId: string }) {
         </button>
         <button
           onClick={() => setEditing(false)}
-          className="shrink-0 rounded-md px-2 py-1.5 text-xs text-amber-950/50 hover:bg-orange-100/70 dark:hover:bg-amber-200/60"
+          className="shrink-0 rounded-md px-2 py-1.5 text-xs text-amber-950/50 hover:bg-orange-100/70"
         >
           Cancel
         </button>
@@ -56,22 +56,22 @@ function EditableCard({ card, setId }: { card: Card; setId: string }) {
   }
 
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-amber-900/10 p-3 dark:border-amber-900/10">
+    <div className="flex items-center gap-3 rounded-lg border border-amber-900/10 p-3">
       <div className="grid min-w-0 flex-1 grid-cols-2 gap-3">
         <p className="truncate text-sm font-medium">{card.term}</p>
-        <p className="truncate text-sm text-amber-950/50 dark:text-amber-950/60">{card.definition}</p>
+        <p className="truncate text-sm text-amber-950/50">{card.definition}</p>
       </div>
       <div className="flex shrink-0 gap-1">
         <button
           onClick={() => setEditing(true)}
-          className="rounded-md px-2 py-1 text-xs text-amber-950/50 hover:bg-orange-100/70 dark:hover:bg-amber-200/60"
+          className="rounded-md px-2 py-1 text-xs text-amber-950/50 hover:bg-orange-100/70"
         >
           Edit
         </button>
         <button
           onClick={remove}
           disabled={pending}
-          className="rounded-md px-2 py-1 text-xs text-amber-950/50 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-50"
+          className="rounded-md px-2 py-1 text-xs text-amber-950/50 hover:bg-red-50 hover:text-red-600"
         >
           Delete
         </button>
@@ -95,19 +95,19 @@ function AddCardRow({ setId }: { setId: string }) {
   }
 
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-dashed border-amber-900/20 p-3 dark:border-amber-900/20">
+    <div className="flex items-center gap-2 rounded-lg border border-dashed border-amber-900/20 p-3">
       <input
         value={term}
         onChange={(e) => setTerm(e.target.value)}
         placeholder="Term"
-        className="w-full min-w-0 flex-1 rounded-md border border-amber-900/20 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-rose-400 dark:border-amber-900/20 dark:bg-neutral-900"
+        className="w-full min-w-0 flex-1 rounded-md border border-amber-900/20 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-rose-400"
       />
       <input
         value={definition}
         onChange={(e) => setDefinition(e.target.value)}
         placeholder="Definition"
         onKeyDown={(e) => e.key === "Enter" && submit()}
-        className="w-full min-w-0 flex-1 rounded-md border border-amber-900/20 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-rose-400 dark:border-amber-900/20 dark:bg-neutral-900"
+        className="w-full min-w-0 flex-1 rounded-md border border-amber-900/20 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-rose-400"
       />
       <button
         onClick={submit}
@@ -149,16 +149,16 @@ function PasteCardsPanel({ setId, onDone }: { setId: string; onDone: () => void 
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-dashed border-amber-900/20 p-3 dark:border-amber-900/20">
+    <div className="flex flex-col gap-3 rounded-lg border border-dashed border-amber-900/20 p-3">
       <div className="flex items-center gap-2 text-sm">
-        <label htmlFor="cardlist-sep" className="text-amber-950/50 dark:text-amber-950/60">
+        <label htmlFor="cardlist-sep" className="text-amber-950/50">
           Between term and definition:
         </label>
         <select
           id="cardlist-sep"
           value={separator}
           onChange={(e) => setSeparator(e.target.value as TermSeparator)}
-          className="rounded-md border border-amber-900/20 bg-white px-2 py-1 text-sm dark:border-amber-900/20 dark:bg-neutral-900"
+          className="rounded-md border border-amber-900/20 bg-white px-2 py-1 text-sm"
         >
           {Object.entries(TERM_SEPARATORS).map(([key, { label }]) => (
             <option key={key} value={key}>
@@ -173,7 +173,7 @@ function PasteCardsPanel({ setId, onDone }: { setId: string; onDone: () => void 
         onKeyDown={insertTab}
         rows={6}
         placeholder={"mitochondria\tthe powerhouse of the cell\nphotosynthesis\thow plants convert light into energy"}
-        className="w-full resize-y rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 font-mono text-sm outline-none focus:border-rose-400 dark:border-amber-900/20 dark:bg-neutral-900"
+        className="w-full resize-y rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 font-mono text-sm outline-none focus:border-rose-400"
       />
       <div className="flex items-center justify-between">
         <p className="text-xs text-amber-950/60">
@@ -201,14 +201,14 @@ function AddCardsSection({ setId }: { setId: string }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex gap-1 self-start rounded-lg bg-amber-200/50 p-1 text-xs dark:bg-neutral-900">
+      <div className="flex gap-1 self-start rounded-lg bg-amber-200/50 p-1 text-xs">
         <button
           type="button"
           onClick={() => setTab("add")}
           className={`rounded-md px-2.5 py-1 font-medium transition ${
             tab === "add"
               ? "bg-rose-400 text-white shadow-sm"
-              : "text-amber-950/50 dark:text-amber-950/60"
+              : "text-amber-950/50"
           }`}
         >
           Add card
@@ -219,7 +219,7 @@ function AddCardsSection({ setId }: { setId: string }) {
           className={`rounded-md px-2.5 py-1 font-medium transition ${
             tab === "paste"
               ? "bg-rose-400 text-white shadow-sm"
-              : "text-amber-950/50 dark:text-amber-950/60"
+              : "text-amber-950/50"
           }`}
         >
           Paste text
@@ -238,7 +238,7 @@ function AddCardsSection({ setId }: { setId: string }) {
 export function CardList({ setId, cards }: { setId: string; cards: Card[] }) {
   return (
     <div>
-      <h2 className="mb-3 text-sm font-medium text-amber-950/50 dark:text-amber-950/60">
+      <h2 className="mb-3 text-sm font-medium text-amber-950/50">
         {cards.length} {cards.length === 1 ? "card" : "cards"}
       </h2>
       <div className="flex flex-col gap-2">

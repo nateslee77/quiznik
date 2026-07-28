@@ -78,7 +78,7 @@ export function NewSetForm() {
           id={`${idBase}-title`}
           name="title"
           required
-          className="w-full rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 text-base outline-none focus:border-rose-400 dark:border-amber-900/20 dark:bg-neutral-900"
+          className="w-full rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 text-base outline-none focus:border-rose-400"
           placeholder="e.g. Spanish Verbs — Unit 3"
         />
       </div>
@@ -90,20 +90,20 @@ export function NewSetForm() {
         <input
           id={`${idBase}-desc`}
           name="description"
-          className="w-full rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 text-base outline-none focus:border-rose-400 dark:border-amber-900/20 dark:bg-neutral-900"
+          className="w-full rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 text-base outline-none focus:border-rose-400"
           placeholder="What's this set for?"
         />
       </div>
 
       <div>
-        <div className="mb-3 flex gap-1 rounded-lg bg-amber-200/50 p-1 dark:bg-neutral-900">
+        <div className="mb-3 flex gap-1 rounded-lg bg-amber-200/50 p-1">
           <button
             type="button"
             onClick={() => setTab("manual")}
             className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition ${
               tab === "manual"
                 ? "bg-rose-400 text-white shadow-sm"
-                : "text-amber-950/50 dark:text-amber-950/60"
+                : "text-amber-950/50"
             }`}
           >
             Type manually
@@ -114,7 +114,7 @@ export function NewSetForm() {
             className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition ${
               tab === "paste"
                 ? "bg-rose-400 text-white shadow-sm"
-                : "text-amber-950/50 dark:text-amber-950/60"
+                : "text-amber-950/50"
             }`}
           >
             Paste text
@@ -132,19 +132,19 @@ export function NewSetForm() {
                   value={row.term}
                   onChange={(e) => updateRow(row.id, "term", e.target.value)}
                   placeholder="Term"
-                  className="w-full min-w-0 flex-1 rounded-lg border border-amber-900/20 bg-white px-3 py-2 text-sm outline-none focus:border-rose-400 dark:border-amber-900/20 dark:bg-neutral-900"
+                  className="w-full min-w-0 flex-1 rounded-lg border border-amber-900/20 bg-white px-3 py-2 text-sm outline-none focus:border-rose-400"
                 />
                 <input
                   value={row.definition}
                   onChange={(e) => updateRow(row.id, "definition", e.target.value)}
                   placeholder="Definition"
-                  className="w-full min-w-0 flex-1 rounded-lg border border-amber-900/20 bg-white px-3 py-2 text-sm outline-none focus:border-rose-400 dark:border-amber-900/20 dark:bg-neutral-900"
+                  className="w-full min-w-0 flex-1 rounded-lg border border-amber-900/20 bg-white px-3 py-2 text-sm outline-none focus:border-rose-400"
                 />
                 <button
                   type="button"
                   onClick={() => removeRow(row.id)}
                   aria-label="Remove card"
-                  className="mt-1 shrink-0 rounded-md px-2 py-1 text-amber-950/60 hover:bg-orange-100/70 hover:text-red-600 dark:hover:bg-neutral-900"
+                  className="mt-1 shrink-0 rounded-md px-2 py-1 text-amber-950/60 hover:bg-orange-100/70 hover:text-red-600"
                 >
                   ✕
                 </button>
@@ -153,7 +153,7 @@ export function NewSetForm() {
             <button
               type="button"
               onClick={() => setRows((prev) => [...prev, emptyRow()])}
-              className="mt-1 self-start rounded-lg border border-amber-900/20 px-3 py-1.5 text-sm font-medium text-amber-950/60 hover:bg-orange-100/70 dark:border-amber-900/20 dark:text-amber-950/80 dark:hover:bg-neutral-900"
+              className="mt-1 self-start rounded-lg border border-amber-900/20 px-3 py-1.5 text-sm font-medium text-amber-950/60 hover:bg-orange-100/70"
             >
               + Add card
             </button>
@@ -161,14 +161,14 @@ export function NewSetForm() {
         ) : (
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2 text-sm">
-              <label htmlFor={`${idBase}-sep`} className="text-amber-950/50 dark:text-amber-950/60">
+              <label htmlFor={`${idBase}-sep`} className="text-amber-950/50">
                 Between term and definition:
               </label>
               <select
                 id={`${idBase}-sep`}
                 value={separator}
                 onChange={(e) => setSeparator(e.target.value as TermSeparator)}
-                className="rounded-md border border-amber-900/20 bg-white px-2 py-1 text-sm dark:border-amber-900/20 dark:bg-neutral-900"
+                className="rounded-md border border-amber-900/20 bg-white px-2 py-1 text-sm"
               >
                 {Object.entries(TERM_SEPARATORS).map(([key, { label }]) => (
                   <option key={key} value={key}>
@@ -183,7 +183,7 @@ export function NewSetForm() {
               onKeyDown={insertTab}
               rows={8}
               placeholder={"mitochondria\tthe powerhouse of the cell\nphotosynthesis\thow plants convert light into energy"}
-              className="w-full resize-y rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 font-mono text-sm outline-none focus:border-rose-400 dark:border-amber-900/20 dark:bg-neutral-900"
+              className="w-full resize-y rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 font-mono text-sm outline-none focus:border-rose-400"
             />
             <div className="flex items-center justify-between">
               <p className="text-xs text-amber-950/60">
@@ -208,7 +208,7 @@ export function NewSetForm() {
       </div>
 
       {state.error ? (
-        <p className="text-sm text-red-600 dark:text-red-500" role="alert">
+        <p className="text-sm text-red-600" role="alert">
           {state.error}
         </p>
       ) : null}
