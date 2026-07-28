@@ -125,3 +125,33 @@ export async function deleteCard(cardId: string, setId: string) {
   if (error) throw new Error(error.message);
   revalidatePath(`/sets/${setId}`);
 }
+
+export async function addCardsBulk(setId: string, cards: ParsedCard[]) {
+  const validCards = cards.filter((c) => c.term?.trim() && c.definition?.trim());
+  if (validCards.length === 0) return;
+
+  const supabase = await createClient();
+  const { count } = await supabase
+    .from("cards")
+    .select("*", { count: "exact", head: true })
+    .eq("set_id", setId);
+
+  const base = count ?? 0;
+  const { error } = await supabase.from("cards").insert(
+    validCards.map((card, i) => ({
+      set_id: setId,
+      term: card.term.trim(),
+      definition: card.definition.trim(),
+      position: base + i,
+    })),
+  );
+  if (error) throw new Error(error.message);
+  revalidatePath(`/sets/${setId}`);
+}
+
+export async function resetStudyProgress(setId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("study_progress").delete().eq("set_id", setId);
+  if (error) throw new Error(error.message);
+  revalidatePath(`/sets/${setId}/learn`);
+}

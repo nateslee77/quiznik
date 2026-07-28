@@ -2,43 +2,136 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { generateQuiz, type QuizQuestion } from "@/lib/generateQuiz";
+import { generateQuiz, type QuizQuestion, type QuizSettings, type Direction, type QuestionType } from "@/lib/generateQuiz";
+import { isCloseEnough } from "@/lib/fuzzyMatch";
+import { SegmentedControl } from "@/components/SegmentedControl";
+import { GearIcon } from "@/components/icons";
 import type { Card } from "@/lib/types";
 
-type Answered = { question: QuizQuestion; selectedIndex: number; correct: boolean };
+type Answered = { question: QuizQuestion; correct: boolean };
+type Phase = "setup" | "running";
+
+const QUESTION_TYPE_OPTIONS: { value: QuestionType | "mixed"; label: string }[] = [
+  { value: "multiple_choice", label: "Multiple choice" },
+  { value: "written", label: "Written" },
+  { value: "mixed", label: "Mixed" },
+];
+
+const DIRECTION_OPTIONS: { value: Direction | "mixed"; label: string }[] = [
+  { value: "term-to-definition", label: "Term → Def" },
+  { value: "definition-to-term", label: "Def → Term" },
+  { value: "mixed", label: "Mixed" },
+];
 
 export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
-  const [questions, setQuestions] = useState(() => generateQuiz(cards));
+  const [phase, setPhase] = useState<Phase>("setup");
+  const [questionType, setQuestionType] = useState<QuestionType | "mixed">("multiple_choice");
+  const [direction, setDirection] = useState<Direction | "mixed">("term-to-definition");
+  const [count, setCount] = useState(cards.length);
+  const [shuffleOn, setShuffleOn] = useState(true);
+
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
+  const [writtenInput, setWrittenInput] = useState("");
+  const [writtenChecked, setWrittenChecked] = useState(false);
+  const [writtenCorrect, setWrittenCorrect] = useState(false);
   const [answers, setAnswers] = useState<Answered[]>([]);
 
-  const question = questions[index];
-  const done = index >= questions.length;
+  function startTest() {
+    const settings: QuizSettings = { questionType, direction, count, shuffle: shuffleOn };
+    setQuestions(generateQuiz(cards, settings));
+    setIndex(0);
+    setAnswers([]);
+    setSelected(null);
+    setWrittenInput("");
+    setWrittenChecked(false);
+    setPhase("running");
+  }
 
-  function choose(choiceIndex: number) {
+  const question = questions[index];
+  const done = phase === "running" && index >= questions.length;
+
+  function chooseMc(choiceIndex: number) {
     if (selected !== null) return;
     setSelected(choiceIndex);
-    setAnswers((prev) => [
-      ...prev,
-      {
-        question,
-        selectedIndex: choiceIndex,
-        correct: choiceIndex === question.correctIndex,
-      },
-    ]);
+    setAnswers((prev) => [...prev, { question, correct: choiceIndex === question.correctIndex }]);
+  }
+
+  function checkWritten() {
+    if (writtenChecked) return;
+    const correct = isCloseEnough(writtenInput, question.answer);
+    setWrittenChecked(true);
+    setWrittenCorrect(correct);
+    setAnswers((prev) => [...prev, { question, correct }]);
   }
 
   function nextQuestion() {
     setSelected(null);
+    setWrittenInput("");
+    setWrittenChecked(false);
     setIndex((i) => i + 1);
   }
 
-  function retake() {
-    setQuestions(generateQuiz(cards));
-    setIndex(0);
-    setSelected(null);
-    setAnswers([]);
+  if (phase === "setup") {
+    return (
+      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="mb-6 flex items-center gap-2">
+          <GearIcon className="h-5 w-5 text-neutral-400" />
+          <h2 className="text-lg font-medium">Test settings</h2>
+        </div>
+
+        <div className="flex flex-col gap-5">
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-neutral-600 dark:text-neutral-400">
+              Question type
+            </label>
+            <SegmentedControl options={QUESTION_TYPE_OPTIONS} value={questionType} onChange={setQuestionType} />
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-neutral-600 dark:text-neutral-400">
+              Direction
+            </label>
+            <SegmentedControl options={DIRECTION_OPTIONS} value={direction} onChange={setDirection} />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <label htmlFor="test-count" className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
+              Number of questions
+            </label>
+            <input
+              id="test-count"
+              type="number"
+              min={1}
+              max={cards.length}
+              value={count}
+              onChange={(e) =>
+                setCount(Math.max(1, Math.min(cards.length, Number(e.target.value) || 1)))
+              }
+              className="w-20 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-white"
+            />
+          </div>
+
+          <label className="flex items-center justify-between text-sm font-medium text-neutral-600 dark:text-neutral-400">
+            Shuffle question order
+            <input
+              type="checkbox"
+              checked={shuffleOn}
+              onChange={(e) => setShuffleOn(e.target.checked)}
+              className="h-4 w-4 accent-neutral-900 dark:accent-white"
+            />
+          </label>
+        </div>
+
+        <button
+          onClick={startTest}
+          className="mt-6 w-full rounded-lg bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+        >
+          Start test
+        </button>
+      </div>
+    );
   }
 
   if (done) {
@@ -65,8 +158,8 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
                   key={q.card.id}
                   className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm dark:border-red-900 dark:bg-red-950/40"
                 >
-                  <p className="font-medium">{q.card.term}</p>
-                  <p className="mt-0.5 text-neutral-600 dark:text-neutral-400">{q.card.definition}</p>
+                  <p className="font-medium">{q.prompt}</p>
+                  <p className="mt-0.5 text-neutral-600 dark:text-neutral-400">{q.answer}</p>
                 </div>
               ))}
             </div>
@@ -75,18 +168,24 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
 
         <div className="mt-8 flex w-full max-w-md gap-3">
           <button
-            onClick={retake}
+            onClick={startTest}
             className="flex-1 rounded-lg bg-neutral-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
           >
-            Retake test
+            Retake (same settings)
           </button>
-          <Link
-            href={`/sets/${setId}`}
-            className="flex-1 rounded-lg border border-neutral-300 px-4 py-3 text-center text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-900"
+          <button
+            onClick={() => setPhase("setup")}
+            className="flex-1 rounded-lg border border-neutral-300 px-4 py-3 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-900"
           >
-            Back to set
-          </Link>
+            Change settings
+          </button>
         </div>
+        <Link
+          href={`/sets/${setId}`}
+          className="mt-3 text-sm text-neutral-500 underline hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+        >
+          Back to set
+        </Link>
       </div>
     );
   }
@@ -102,44 +201,90 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
       <p className="mb-2 text-sm text-neutral-500 dark:text-neutral-400">
         Question {index + 1} of {questions.length}
       </p>
-      <h2 className="mb-6 text-xl font-medium sm:text-2xl">{question.card.term}</h2>
 
-      <div className="flex flex-col gap-2">
-        {question.choices.map((choice, i) => {
-          const isSelected = selected === i;
-          const isCorrectChoice = i === question.correctIndex;
-          const showState = selected !== null;
+      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+        <h2 className="mb-6 text-xl font-medium sm:text-2xl">{question.prompt}</h2>
 
-          let stateClasses =
-            "border-neutral-300 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-900";
-          if (showState && isCorrectChoice) {
-            stateClasses =
-              "border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300";
-          } else if (showState && isSelected && !isCorrectChoice) {
-            stateClasses = "border-red-500 bg-red-50 text-red-900 dark:bg-red-950/40 dark:text-red-300";
-          }
+        {question.type === "multiple_choice" ? (
+          <>
+            <div className="flex flex-col gap-2">
+              {question.choices.map((choice, i) => {
+                const isSelected = selected === i;
+                const isCorrectChoice = i === question.correctIndex;
+                const showState = selected !== null;
 
-          return (
+                let stateClasses =
+                  "border-neutral-300 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-900";
+                if (showState && isCorrectChoice) {
+                  stateClasses =
+                    "border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300";
+                } else if (showState && isSelected && !isCorrectChoice) {
+                  stateClasses = "border-red-500 bg-red-50 text-red-900 dark:bg-red-950/40 dark:text-red-300";
+                }
+
+                return (
+                  <button
+                    key={i}
+                    onClick={() => chooseMc(i)}
+                    disabled={selected !== null}
+                    className={`rounded-lg border px-4 py-3 text-left text-sm transition disabled:cursor-default ${stateClasses}`}
+                  >
+                    {choice}
+                  </button>
+                );
+              })}
+            </div>
+
+            {selected !== null ? (
+              <button
+                onClick={nextQuestion}
+                className="mt-6 w-full rounded-lg bg-neutral-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+              >
+                {index + 1 === questions.length ? "See results" : "Next question →"}
+              </button>
+            ) : null}
+          </>
+        ) : !writtenChecked ? (
+          <div className="flex flex-col gap-3">
+            <input
+              autoFocus
+              value={writtenInput}
+              onChange={(e) => setWrittenInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && checkWritten()}
+              placeholder="Type your answer…"
+              className="w-full rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-base outline-none focus:border-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-white"
+            />
             <button
-              key={i}
-              onClick={() => choose(i)}
-              disabled={selected !== null}
-              className={`rounded-lg border px-4 py-3 text-left text-sm transition disabled:cursor-default ${stateClasses}`}
+              onClick={checkWritten}
+              className="rounded-lg bg-neutral-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
             >
-              {choice}
+              Check answer
             </button>
-          );
-        })}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            <div
+              className={`rounded-lg border p-3 text-sm ${
+                writtenCorrect
+                  ? "border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300"
+                  : "border-red-500 bg-red-50 text-red-900 dark:bg-red-950/40 dark:text-red-300"
+              }`}
+            >
+              {writtenCorrect ? "Correct!" : (
+                <>
+                  Not quite. Correct answer: <span className="font-medium">{question.answer}</span>
+                </>
+              )}
+            </div>
+            <button
+              onClick={nextQuestion}
+              className="rounded-lg bg-neutral-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+            >
+              {index + 1 === questions.length ? "See results" : "Next question →"}
+            </button>
+          </div>
+        )}
       </div>
-
-      {selected !== null ? (
-        <button
-          onClick={nextQuestion}
-          className="mt-6 w-full rounded-lg bg-neutral-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
-        >
-          {index + 1 === questions.length ? "See results" : "Next question →"}
-        </button>
-      ) : null}
     </div>
   );
 }

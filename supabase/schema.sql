@@ -102,3 +102,61 @@ create policy "cards are owner deletable"
     select 1 from public.sets
     where sets.id = cards.set_id and sets.user_id = auth.uid()
   ));
+
+-- Per-user, per-card progress for Learn mode (multiple-choice -> written
+-- graduation, tracked with a simplified SM-2 schedule). No row means the
+-- card is "new" (never answered yet).
+create table if not exists public.study_progress (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  card_id uuid not null references public.cards (id) on delete cascade,
+  set_id uuid not null references public.sets (id) on delete cascade,
+  phase text not null default 'multiple_choice' check (phase in ('multiple_choice', 'written')),
+  status text not null default 'reviewing' check (status in ('reviewing', 'mastered')),
+  correct_streak integer not null default 0,
+  ease_factor real not null default 2.5,
+  interval_days real not null default 0,
+  due_at timestamptz not null default now(),
+  last_reviewed_at timestamptz,
+  created_at timestamptz not null default now(),
+  unique (user_id, card_id)
+);
+
+create index if not exists study_progress_user_set_idx on public.study_progress (user_id, set_id);
+
+alter table public.study_progress enable row level security;
+
+drop policy if exists "study_progress is owner readable" on public.study_progress;
+create policy "study_progress is owner readable"
+  on public.study_progress for select
+  using (user_id = auth.uid());
+
+drop policy if exists "study_progress is owner writable" on public.study_progress;
+create policy "study_progress is owner writable"
+  on public.study_progress for insert
+  with check (
+    user_id = auth.uid()
+    and exists (
+      select 1 from public.cards
+      join public.sets on sets.id = cards.set_id
+      where cards.id = study_progress.card_id and sets.user_id = auth.uid()
+    )
+  );
+
+drop policy if exists "study_progress is owner updatable" on public.study_progress;
+create policy "study_progress is owner updatable"
+  on public.study_progress for update
+  using (user_id = auth.uid())
+  with check (
+    user_id = auth.uid()
+    and exists (
+      select 1 from public.cards
+      join public.sets on sets.id = cards.set_id
+      where cards.id = study_progress.card_id and sets.user_id = auth.uid()
+    )
+  );
+
+drop policy if exists "study_progress is owner deletable" on public.study_progress;
+create policy "study_progress is owner deletable"
+  on public.study_progress for delete
+  using (user_id = auth.uid());

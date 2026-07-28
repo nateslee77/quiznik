@@ -42,6 +42,12 @@ export default async function SetDetailPage({
           >
             Test
           </Link>
+          <Link
+            href={`/sets/${id}/learn`}
+            className="flex-1 rounded-lg border border-neutral-300 px-4 py-2.5 text-center text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-900"
+          >
+            Learn
+          </Link>
         </div>
       ) : null}
 

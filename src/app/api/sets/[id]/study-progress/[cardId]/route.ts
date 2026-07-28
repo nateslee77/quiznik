@@ -1,0 +1,68 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { applyGrade, DEFAULT_PROGRESS_STATE, nextDueDate } from "@/lib/studyProgress";
+import type { Grade } from "@/lib/types";
+
+const VALID_GRADES: Grade[] = ["again", "hard", "good", "easy"];
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string; cardId: string }> },
+) {
+  const { id: setId, cardId } = await params;
+
+  const body = await request.json().catch(() => null);
+  const grade = body?.grade as Grade | undefined;
+  if (!grade || !VALID_GRADES.includes(grade)) {
+    return NextResponse.json({ error: "Invalid grade." }, { status: 400 });
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
+  const { data: card } = await supabase
+    .from("cards")
+    .select("id")
+    .eq("id", cardId)
+    .eq("set_id", setId)
+    .single();
+  if (!card) {
+    return NextResponse.json({ error: "Card not found." }, { status: 404 });
+  }
+
+  const { data: existing } = await supabase
+    .from("study_progress")
+    .select("phase, status, correct_streak, ease_factor, interval_days")
+    .eq("card_id", cardId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const nextState = applyGrade(existing ?? DEFAULT_PROGRESS_STATE, grade);
+
+  const { data: updated, error } = await supabase
+    .from("study_progress")
+    .upsert(
+      {
+        user_id: user.id,
+        card_id: cardId,
+        set_id: setId,
+        ...nextState,
+        due_at: nextDueDate(nextState.interval_days),
+        last_reviewed_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id,card_id" },
+    )
+    .select()
+    .single();
+
+  if (error || !updated) {
+    return NextResponse.json({ error: error?.message ?? "Couldn't save progress." }, { status: 500 });
+  }
+
+  return NextResponse.json(updated);
+}
