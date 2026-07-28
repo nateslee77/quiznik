@@ -156,7 +156,7 @@ export async function resetStudyProgress(setId: string) {
   revalidatePath(`/sets/${setId}/learn`);
 }
 
-export async function createFolder(name: string) {
+export async function createFolder(name: string, parentId: string | null = null) {
   const trimmed = name.trim();
   if (!trimmed) return;
 
@@ -172,7 +172,7 @@ export async function createFolder(name: string) {
 
   const { error } = await supabase
     .from("folders")
-    .insert({ name: trimmed, user_id: user.id, position: count ?? 0 });
+    .insert({ name: trimmed, user_id: user.id, parent_id: parentId, position: count ?? 0 });
   if (error) throw new Error(error.message);
   revalidatePath("/", "layout");
 }

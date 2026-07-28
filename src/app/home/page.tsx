@@ -4,16 +4,12 @@ import { MascotPlaceholder } from "@/components/landing/MascotPlaceholder";
 import { BoltIcon, DeckIcon, PlusIcon } from "@/components/icons";
 import type { SetWithCardCount } from "@/lib/types";
 
-function isDueNow(dueAt: string): boolean {
-  return new Date(dueAt).getTime() <= Date.now();
-}
-
 export default async function HomePage() {
   const supabase = await createClient();
 
   const [setsRes, progressRes] = await Promise.all([
     supabase.from("sets").select("*, cards(count)").order("updated_at", { ascending: false }),
-    supabase.from("study_progress").select("set_id, status, due_at").eq("status", "reviewing"),
+    supabase.from("study_progress").select("set_id, status").in("status", ["seen", "review"]),
   ]);
 
   const sets: SetWithCardCount[] =
@@ -24,9 +20,7 @@ export default async function HomePage() {
 
   const dueBySet = new Map<string, number>();
   for (const row of progressRes.data ?? []) {
-    if (isDueNow(row.due_at)) {
-      dueBySet.set(row.set_id, (dueBySet.get(row.set_id) ?? 0) + 1);
-    }
+    dueBySet.set(row.set_id, (dueBySet.get(row.set_id) ?? 0) + 1);
   }
   const totalDue = [...dueBySet.values()].reduce((a, b) => a + b, 0);
   const recent = sets.slice(0, 4);

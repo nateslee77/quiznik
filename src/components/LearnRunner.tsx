@@ -8,9 +8,9 @@ import { buildRound, type ProgressSnapshot, type RoundCardState } from "@/lib/le
 import { resetStudyProgress } from "@/app/sets/actions";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { GearIcon } from "@/components/icons";
-import type { Card, Grade } from "@/lib/types";
+import type { Card, StudyStatus } from "@/lib/types";
 
-type ProgressRow = { card_id: string; phase: string; status: string; correct_streak: number; due_at: string };
+type ProgressRow = { card_id: string; phase: string; status: string; correct_streak: number };
 
 type Phase = "setup" | "running";
 
@@ -24,6 +24,13 @@ const DIRECTION_OPTIONS: { value: Direction | "mixed"; label: string }[] = [
   { value: "mixed", label: "Mixed" },
 ];
 
+const STAGE_LABELS: { status: StudyStatus | "new"; label: string }[] = [
+  { status: "new", label: "Not studied" },
+  { status: "seen", label: "Seen" },
+  { status: "review", label: "Review" },
+  { status: "mastered", label: "Mastered" },
+];
+
 function toSnapshotMap(rows: ProgressRow[]): Record<string, ProgressSnapshot> {
   const map: Record<string, ProgressSnapshot> = {};
   for (const row of rows) {
@@ -31,7 +38,6 @@ function toSnapshotMap(rows: ProgressRow[]): Record<string, ProgressSnapshot> {
       phase: row.phase as ProgressSnapshot["phase"],
       status: row.status as ProgressSnapshot["status"],
       correct_streak: row.correct_streak,
-      due_at: row.due_at,
     };
   }
   return map;
@@ -62,10 +68,9 @@ export function LearnRunner({
   const [pending, setPending] = useState(false);
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [pendingGrade, setPendingGrade] = useState<Grade | null>(null);
+  const [answerWasCorrect, setAnswerWasCorrect] = useState<boolean | null>(null);
   const [writtenInput, setWrittenInput] = useState("");
   const [writtenChecked, setWrittenChecked] = useState(false);
-  const [writtenCorrect, setWrittenCorrect] = useState(false);
 
   const cardsById = useMemo(() => new Map(cards.map((c) => [c.id, c])), [cards]);
   const currentCardId = queue[0] as string | undefined;
@@ -73,7 +78,7 @@ export function LearnRunner({
 
   // Deliberately keyed only on currentCardId: the question's presentation
   // must stay frozen for as long as this card is on screen, even though
-  // submitGrade() updates this same card's phase/streak in the background
+  // submitResult() updates this same card's phase/streak in the background
   // the instant it's answered (that update should only affect its NEXT
   // appearance, not swap the UI mid-feedback for the current one).
   const activeQuestion = useMemo(() => {
@@ -101,7 +106,7 @@ export function LearnRunner({
     setCardStates(nextCardStates);
     setDoneCardIds(new Set());
     setSelectedIndex(null);
-    setPendingGrade(null);
+    setAnswerWasCorrect(null);
     setWrittenInput("");
     setWrittenChecked(false);
     setPhase("running");
@@ -115,13 +120,13 @@ export function LearnRunner({
     });
   }
 
-  async function submitGrade(cardId: string, grade: Grade) {
+  async function submitResult(cardId: string, correct: boolean) {
     setPending(true);
     try {
       const res = await fetch(`/api/sets/${setId}/study-progress/${cardId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ grade }),
+        body: JSON.stringify({ correct }),
       });
       const updated = await res.json();
       setProgressByCardId((prev) => ({
@@ -130,7 +135,6 @@ export function LearnRunner({
           phase: updated.phase,
           status: updated.status,
           correct_streak: updated.correct_streak,
-          due_at: updated.due_at,
         },
       }));
       setCardStates((prev) => ({
@@ -142,11 +146,14 @@ export function LearnRunner({
     }
   }
 
-  function advance(cardId: string, grade: Grade) {
+  function advance() {
+    if (!currentCardId || answerWasCorrect === null) return;
+    const wasCorrect = answerWasCorrect;
+    const cardId = currentCardId;
     setDoneCardIds((prev) => new Set(prev).add(cardId));
     setQueue((prev) => {
       const rest = prev.slice(1);
-      if (grade === "again") {
+      if (!wasCorrect) {
         const next = [...rest];
         next.splice(Math.min(REQUEUE_OFFSET, next.length), 0, cardId);
         return next;
@@ -154,55 +161,57 @@ export function LearnRunner({
       return rest;
     });
     setSelectedIndex(null);
-    setPendingGrade(null);
+    setAnswerWasCorrect(null);
     setWrittenInput("");
     setWrittenChecked(false);
-    setWrittenCorrect(false);
   }
 
   async function chooseMc(choiceIndex: number) {
     if (selectedIndex !== null || !activeQuestion || !currentCardId) return;
     setSelectedIndex(choiceIndex);
-    const grade: Grade = choiceIndex === activeQuestion.correctIndex ? "good" : "again";
-    setPendingGrade(grade);
-    await submitGrade(currentCardId, grade);
+    const correct = choiceIndex === activeQuestion.correctIndex;
+    setAnswerWasCorrect(correct);
+    await submitResult(currentCardId, correct);
   }
 
-  function checkWritten() {
-    if (!activeQuestion || !currentCard || writtenChecked) return;
+  async function checkWritten() {
+    if (!activeQuestion || !currentCardId || writtenChecked) return;
     const correct = isCloseEnough(writtenInput, activeQuestion.answer);
     setWrittenChecked(true);
-    setWrittenCorrect(correct);
-    if (!correct) {
-      setPendingGrade("again");
-      void submitGrade(currentCard.id, "again");
-    }
+    setAnswerWasCorrect(correct);
+    await submitResult(currentCardId, correct);
   }
 
-  async function chooseWrittenGrade(grade: Grade) {
-    if (!currentCardId) return;
-    setPendingGrade(grade);
-    await submitGrade(currentCardId, grade);
-    advance(currentCardId, grade);
+  const stageCounts: Record<StudyStatus | "new", number> = {
+    new: cards.length - Object.keys(progressByCardId).length,
+    seen: 0,
+    review: 0,
+    mastered: 0,
+  };
+  for (const snapshot of Object.values(progressByCardId)) {
+    stageCounts[snapshot.status] += 1;
   }
-
-  const totalCards = cards.length;
-  const answeredCards = Object.keys(progressByCardId).length;
-  const masteredCount = Object.values(progressByCardId).filter((s) => s.status === "mastered").length;
-  const reviewingCount = answeredCards - masteredCount;
-  const newCount = totalCards - answeredCards;
 
   if (phase === "setup") {
     return (
-      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="rounded-2xl border border-white/5 bg-white/[0.03] p-6 shadow-sm">
         <div className="mb-6 flex items-center gap-2">
           <GearIcon className="h-5 w-5 text-neutral-400" />
           <h2 className="text-lg font-medium">Learn settings</h2>
         </div>
 
+        <div className="mb-6 grid grid-cols-4 gap-2">
+          {STAGE_LABELS.map(({ status, label }) => (
+            <div key={status} className="rounded-xl border border-white/5 p-2.5 text-center">
+              <p className="text-lg font-semibold">{stageCounts[status]}</p>
+              <p className="text-[11px] text-neutral-500">{label}</p>
+            </div>
+          ))}
+        </div>
+
         <div className="flex flex-col gap-5">
           <div className="flex items-center justify-between">
-            <label htmlFor="max-new" className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
+            <label htmlFor="max-new" className="text-sm font-medium text-neutral-400">
               New cards per round
             </label>
             <input
@@ -211,13 +220,13 @@ export function LearnRunner({
               min={1}
               value={maxNew}
               onChange={(e) => setMaxNew(Math.max(1, Number(e.target.value) || 1))}
-              className="w-20 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-400 dark:border-neutral-700 dark:bg-neutral-900"
+              className="w-20 rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-1.5 text-sm outline-none focus:border-indigo-400"
             />
           </div>
 
           <div className="flex items-center justify-between">
-            <label htmlFor="max-review" className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
-              Review cards per round
+            <label htmlFor="max-review" className="text-sm font-medium text-neutral-400">
+              Learning cards per round
             </label>
             <input
               id="max-review"
@@ -225,18 +234,16 @@ export function LearnRunner({
               min={1}
               value={maxReview}
               onChange={(e) => setMaxReview(Math.max(1, Number(e.target.value) || 1))}
-              className="w-20 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-400 dark:border-neutral-700 dark:bg-neutral-900"
+              className="w-20 rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-1.5 text-sm outline-none focus:border-indigo-400"
             />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-neutral-600 dark:text-neutral-400">
-              Direction
-            </label>
+            <label className="mb-1.5 block text-sm font-medium text-neutral-400">Direction</label>
             <SegmentedControl options={DIRECTION_OPTIONS} value={direction} onChange={setDirection} />
           </div>
 
-          <label className="flex items-center justify-between text-sm font-medium text-neutral-600 dark:text-neutral-400">
+          <label className="flex items-center justify-between text-sm font-medium text-neutral-400">
             Include mastered cards
             <input
               type="checkbox"
@@ -248,15 +255,15 @@ export function LearnRunner({
         </div>
 
         {emptyRoundNotice ? (
-          <p className="mt-4 text-sm text-neutral-500 dark:text-neutral-400">
-            Nothing to learn right now with these settings &mdash; try including mastered cards, or check back once
-            more cards are due.
+          <p className="mt-4 text-sm text-neutral-400">
+            Nothing to learn right now &mdash; everything is mastered. Turn on
+            &ldquo;include mastered cards&rdquo; for a refresher round.
           </p>
         ) : null}
 
         <button
           onClick={startRound}
-          className="mt-6 w-full rounded-lg bg-indigo-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-400"
+          className="mt-6 w-full rounded-xl bg-indigo-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-400"
         >
           Start learning
         </button>
@@ -264,7 +271,7 @@ export function LearnRunner({
         <button
           onClick={doReset}
           disabled={resetPending}
-          className="mt-3 w-full rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950/40"
+          className="mt-3 w-full rounded-xl border border-red-900 px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-950/40 disabled:opacity-50"
         >
           {resetPending ? "Resetting…" : "Reset progress for this set"}
         </button>
@@ -275,47 +282,40 @@ export function LearnRunner({
   if (!currentCardId || !currentCard) {
     return (
       <div className="flex flex-1 flex-col items-center py-8 text-center">
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">Round complete</p>
+        <p className="text-sm text-neutral-400">Round complete</p>
         <p className="mt-1 text-2xl font-semibold tracking-tight">Nice work!</p>
 
-        <div className="mt-8 grid w-full max-w-sm grid-cols-3 gap-3">
-          <div className="rounded-lg border border-neutral-200 p-3 dark:border-neutral-800">
-            <p className="text-2xl font-semibold">{newCount}</p>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">New</p>
-          </div>
-          <div className="rounded-lg border border-neutral-200 p-3 dark:border-neutral-800">
-            <p className="text-2xl font-semibold">{reviewingCount}</p>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">Reviewing</p>
-          </div>
-          <div className="rounded-lg border border-neutral-200 p-3 dark:border-neutral-800">
-            <p className="text-2xl font-semibold">{masteredCount}</p>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">Mastered</p>
-          </div>
+        <div className="mt-8 grid w-full max-w-md grid-cols-4 gap-2">
+          {STAGE_LABELS.map(({ status, label }) => (
+            <div
+              key={status}
+              className={`rounded-xl border p-3 ${
+                status === "mastered" ? "border-indigo-500/40 bg-indigo-500/10" : "border-white/5"
+              }`}
+            >
+              <p className="text-2xl font-semibold">{stageCounts[status]}</p>
+              <p className="text-[11px] text-neutral-500">{label}</p>
+            </div>
+          ))}
         </div>
 
-        {emptyRoundNotice ? (
-          <p className="mt-4 max-w-sm text-sm text-neutral-500 dark:text-neutral-400">
-            Nothing new to learn right now &mdash; try again later, or adjust settings to include mastered cards.
-          </p>
-        ) : null}
-
-        <div className="mt-8 flex w-full max-w-sm gap-3">
+        <div className="mt-8 flex w-full max-w-md gap-3">
           <button
             onClick={startRound}
-            className="flex-1 rounded-lg bg-indigo-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-400"
+            className="flex-1 rounded-xl bg-indigo-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-400"
           >
             Keep learning
           </button>
           <button
             onClick={() => setPhase("setup")}
-            className="flex-1 rounded-lg border border-neutral-300 px-4 py-3 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-900"
+            className="flex-1 rounded-xl border border-neutral-700 px-4 py-3 text-sm font-medium text-neutral-300 transition hover:bg-white/5"
           >
             Change settings
           </button>
         </div>
         <Link
           href={`/sets/${setId}`}
-          className="mt-3 text-sm text-neutral-500 underline hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+          className="mt-3 text-sm text-neutral-400 underline hover:text-white"
         >
           Back to set
         </Link>
@@ -323,24 +323,27 @@ export function LearnRunner({
     );
   }
 
-  if (!activeQuestion || !currentCard || !currentCardId) return null;
+  if (!activeQuestion) return null;
 
-  const progress = doneCardIds.size / roundSize;
+  const progress = doneCardIds.size / Math.max(roundSize, 1);
+  const currentStage: StudyStatus | "new" =
+    progressByCardId[currentCardId] === undefined ? "new" : progressByCardId[currentCardId].status;
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800">
+      <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-neutral-800">
         <div
           className="h-full rounded-full bg-indigo-500 transition-all"
           style={{ width: `${Math.round(progress * 100)}%` }}
         />
       </div>
-      <p className="mb-2 text-sm text-neutral-500 dark:text-neutral-400">
+      <p className="mb-2 text-sm text-neutral-400">
         {activeQuestion.type === "multiple_choice" ? "Multiple choice" : "Written answer"} &middot;{" "}
-        {queue.length} card{queue.length === 1 ? "" : "s"} left this round
+        {queue.length} card{queue.length === 1 ? "" : "s"} left &middot;{" "}
+        {currentStage === "new" ? "Not studied" : currentStage === "seen" ? "Seen" : currentStage === "review" ? "Review" : "Mastered"}
       </p>
 
-      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="rounded-2xl border border-white/5 bg-white/[0.03] p-6 shadow-sm">
         <h2 className="mb-6 text-xl font-medium sm:text-2xl">{activeQuestion.prompt}</h2>
 
         {activeQuestion.type === "multiple_choice" ? (
@@ -351,13 +354,11 @@ export function LearnRunner({
                 const isCorrectChoice = i === activeQuestion.correctIndex;
                 const showState = selectedIndex !== null;
 
-                let stateClasses =
-                  "border-neutral-300 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-900";
+                let stateClasses = "border-neutral-700 hover:bg-white/5";
                 if (showState && isCorrectChoice) {
-                  stateClasses =
-                    "border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300";
+                  stateClasses = "border-emerald-500 bg-emerald-950/40 text-emerald-300";
                 } else if (showState && isSelected && !isCorrectChoice) {
-                  stateClasses = "border-red-500 bg-red-50 text-red-900 dark:bg-red-950/40 dark:text-red-300";
+                  stateClasses = "border-red-500 bg-red-950/40 text-red-300";
                 }
 
                 return (
@@ -365,7 +366,7 @@ export function LearnRunner({
                     key={i}
                     onClick={() => chooseMc(i)}
                     disabled={selectedIndex !== null}
-                    className={`rounded-lg border px-4 py-3 text-left text-sm transition disabled:cursor-default ${stateClasses}`}
+                    className={`rounded-xl border px-4 py-3 text-left text-sm transition disabled:cursor-default ${stateClasses}`}
                   >
                     {choice}
                   </button>
@@ -375,9 +376,9 @@ export function LearnRunner({
 
             {selectedIndex !== null ? (
               <button
-                onClick={() => pendingGrade && advance(currentCardId, pendingGrade)}
+                onClick={advance}
                 disabled={pending}
-                className="mt-6 w-full rounded-lg bg-indigo-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-400 disabled:opacity-60"
+                className="mt-6 w-full rounded-xl bg-indigo-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-400 disabled:opacity-60"
               >
                 {pending ? "Saving…" : "Next →"}
               </button>
@@ -393,54 +394,31 @@ export function LearnRunner({
                 if (e.key === "Enter") checkWritten();
               }}
               placeholder="Type your answer…"
-              className="w-full rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-base outline-none transition focus:border-indigo-400 dark:border-neutral-700 dark:bg-neutral-900"
+              className="w-full rounded-xl border border-neutral-700 bg-neutral-900 px-3.5 py-2.5 text-base outline-none transition focus:border-indigo-400"
             />
             <button
               onClick={checkWritten}
-              className="rounded-lg bg-indigo-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-400"
+              className="rounded-xl bg-indigo-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-400"
             >
               Check answer
             </button>
           </div>
-        ) : writtenCorrect ? (
-          <div className="flex flex-col gap-4">
-            <div className="rounded-lg border border-emerald-500 bg-emerald-50 p-3 text-sm text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
-              Correct! <span className="text-neutral-500 dark:text-neutral-400">({activeQuestion.answer})</span>
-            </div>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">How hard was that to recall?</p>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                onClick={() => chooseWrittenGrade("hard")}
-                disabled={pending}
-                className="rounded-lg border border-amber-400 px-3 py-2.5 text-sm font-medium text-amber-700 transition hover:bg-amber-50 disabled:opacity-60 dark:text-amber-300 dark:hover:bg-amber-950/40"
-              >
-                Hard
-              </button>
-              <button
-                onClick={() => chooseWrittenGrade("good")}
-                disabled={pending}
-                className="rounded-lg bg-indigo-500 px-3 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-400 disabled:opacity-60"
-              >
-                Good
-              </button>
-              <button
-                onClick={() => chooseWrittenGrade("easy")}
-                disabled={pending}
-                className="rounded-lg border border-emerald-400 px-3 py-2.5 text-sm font-medium text-emerald-700 transition hover:bg-emerald-50 disabled:opacity-60 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
-              >
-                Easy
-              </button>
-            </div>
-          </div>
         ) : (
           <div className="flex flex-col gap-4">
-            <div className="rounded-lg border border-red-500 bg-red-50 p-3 text-sm text-red-900 dark:bg-red-950/40 dark:text-red-300">
-              Not quite. Correct answer: <span className="font-medium">{activeQuestion.answer}</span>
-            </div>
+            {answerWasCorrect ? (
+              <div className="rounded-xl border border-emerald-500 bg-emerald-950/40 p-3 text-sm text-emerald-300">
+                Correct! <span className="text-neutral-400">({activeQuestion.answer})</span>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-red-500 bg-red-950/40 p-3 text-sm text-red-300">
+                Not quite. Correct answer:{" "}
+                <span className="font-medium">{activeQuestion.answer}</span>
+              </div>
+            )}
             <button
-              onClick={() => pendingGrade && advance(currentCardId, pendingGrade)}
+              onClick={advance}
               disabled={pending}
-              className="rounded-lg bg-indigo-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-400 disabled:opacity-60"
+              className="rounded-xl bg-indigo-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-400 disabled:opacity-60"
             >
               {pending ? "Saving…" : "Continue →"}
             </button>

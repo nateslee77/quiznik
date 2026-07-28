@@ -5,6 +5,18 @@ import { useState, useTransition } from "react";
 import { deleteSet, moveSetToFolder, updateSetDetails } from "@/app/sets/actions";
 import type { FlashcardSet, Folder } from "@/lib/types";
 
+function folderPath(folders: Folder[], folder: Folder): string {
+  const names: string[] = [folder.name];
+  let current = folder;
+  while (current.parent_id) {
+    const parent = folders.find((f) => f.id === current.parent_id);
+    if (!parent) break;
+    names.unshift(parent.name);
+    current = parent;
+  }
+  return names.join(" / ");
+}
+
 export function SetHeader({ set, folders }: { set: FlashcardSet; folders: Folder[] }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
@@ -52,11 +64,14 @@ export function SetHeader({ set, folders }: { set: FlashcardSet; folders: Folder
           className="rounded-xl border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
         >
           <option value="">No folder</option>
-          {folders.map((folder) => (
-            <option key={folder.id} value={folder.id}>
-              {folder.name}
-            </option>
-          ))}
+          {[...folders]
+            .map((folder) => ({ folder, path: folderPath(folders, folder) }))
+            .sort((a, b) => a.path.localeCompare(b.path))
+            .map(({ folder, path }) => (
+              <option key={folder.id} value={folder.id}>
+                {path}
+              </option>
+            ))}
         </select>
         <div className="flex gap-2">
           <button

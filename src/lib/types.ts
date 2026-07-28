@@ -11,6 +11,7 @@ export type FlashcardSet = {
 export type Folder = {
   id: string;
   user_id: string;
+  parent_id: string | null;
   name: string;
   position: number;
   created_at: string;
@@ -28,8 +29,7 @@ export type Card = {
 export type SetWithCardCount = FlashcardSet & { card_count: number };
 
 export type StudyPhase = "multiple_choice" | "written";
-export type StudyStatus = "reviewing" | "mastered";
-export type Grade = "again" | "hard" | "good" | "easy";
+export type StudyStatus = "seen" | "review" | "mastered";
 
 export type StudyProgress = {
   id: string;

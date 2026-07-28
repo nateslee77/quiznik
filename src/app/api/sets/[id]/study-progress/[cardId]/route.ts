@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { applyGrade, DEFAULT_PROGRESS_STATE, nextDueDate } from "@/lib/studyProgress";
-import type { Grade } from "@/lib/types";
-
-const VALID_GRADES: Grade[] = ["again", "hard", "good", "easy"];
+import { applyResult, DEFAULT_PROGRESS_STATE } from "@/lib/studyProgress";
 
 export async function PATCH(
   request: Request,
@@ -12,10 +9,10 @@ export async function PATCH(
   const { id: setId, cardId } = await params;
 
   const body = await request.json().catch(() => null);
-  const grade = body?.grade as Grade | undefined;
-  if (!grade || !VALID_GRADES.includes(grade)) {
-    return NextResponse.json({ error: "Invalid grade." }, { status: 400 });
+  if (typeof body?.correct !== "boolean") {
+    return NextResponse.json({ error: "Body must include { correct: boolean }." }, { status: 400 });
   }
+  const correct: boolean = body.correct;
 
   const supabase = await createClient();
   const {
@@ -42,7 +39,7 @@ export async function PATCH(
     .eq("user_id", user.id)
     .maybeSingle();
 
-  const nextState = applyGrade(existing ?? DEFAULT_PROGRESS_STATE, grade);
+  const nextState = applyResult(existing ?? DEFAULT_PROGRESS_STATE, correct);
 
   const { data: updated, error } = await supabase
     .from("study_progress")
@@ -52,7 +49,7 @@ export async function PATCH(
         card_id: cardId,
         set_id: setId,
         ...nextState,
-        due_at: nextDueDate(nextState.interval_days),
+        due_at: new Date().toISOString(),
         last_reviewed_at: new Date().toISOString(),
       },
       { onConflict: "user_id,card_id" },

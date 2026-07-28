@@ -112,7 +112,7 @@ create table if not exists public.study_progress (
   card_id uuid not null references public.cards (id) on delete cascade,
   set_id uuid not null references public.sets (id) on delete cascade,
   phase text not null default 'multiple_choice' check (phase in ('multiple_choice', 'written')),
-  status text not null default 'reviewing' check (status in ('reviewing', 'mastered')),
+  status text not null default 'seen' check (status in ('seen', 'review', 'mastered')),
   correct_streak integer not null default 0,
   ease_factor real not null default 2.5,
   interval_days real not null default 0,
@@ -161,19 +161,35 @@ create policy "study_progress is owner deletable"
   on public.study_progress for delete
   using (user_id = auth.uid());
 
+-- Migration for databases created before the seen/review/mastered staging:
+-- relax the old check, map 'reviewing' onto the new stages, re-add the check.
+alter table public.study_progress drop constraint if exists study_progress_status_check;
+update public.study_progress set status = 'seen'
+  where status = 'reviewing' and phase = 'multiple_choice';
+update public.study_progress set status = 'review'
+  where status = 'reviewing' and phase = 'written';
+alter table public.study_progress add constraint study_progress_status_check
+  check (status in ('seen', 'review', 'mastered'));
+alter table public.study_progress alter column status set default 'seen';
+
 -- Folders group sets inside a user's library. Deleting a folder keeps its
 -- sets (folder_id nulls out via the FK) so no cards are ever lost.
 create table if not exists public.folders (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users (id) on delete cascade,
+  parent_id uuid references public.folders (id) on delete cascade,
   name text not null,
   position integer not null default 0,
   created_at timestamptz not null default now()
 );
 
+-- Migration for databases created before nesting existed.
+alter table public.folders add column if not exists parent_id uuid references public.folders (id) on delete cascade;
+
 alter table public.sets add column if not exists folder_id uuid references public.folders (id) on delete set null;
 
 create index if not exists folders_user_idx on public.folders (user_id, position);
+create index if not exists folders_parent_idx on public.folders (parent_id);
 
 alter table public.folders enable row level security;
 

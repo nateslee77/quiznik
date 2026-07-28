@@ -34,7 +34,10 @@ export function AppShell({
         >
           <MenuIcon className="h-5 w-5" />
         </button>
-        <Link href="/home" className="text-base font-semibold tracking-tight">
+        <Link href="/" className="flex items-center gap-2 text-base font-semibold tracking-tight">
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-indigo-500 text-xs font-semibold text-white">
+            Q
+          </span>
           Quiznik
         </Link>
       </div>

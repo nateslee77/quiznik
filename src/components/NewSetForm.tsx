@@ -41,6 +41,18 @@ export function NewSetForm() {
     setRows((prev) => (prev.length <= 1 ? prev : prev.filter((r) => r.id !== id)));
   }
 
+  // Keep Tab usable inside the textarea (it types the delimiter instead of
+  // moving browser focus).
+  function insertTab(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key !== "Tab") return;
+    e.preventDefault();
+    const el = e.currentTarget;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    setPasteText(pasteText.slice(0, start) + "\t" + pasteText.slice(end));
+    requestAnimationFrame(() => el.setSelectionRange(start + 1, start + 1));
+  }
+
   function importParsed() {
     if (preview.cards.length === 0) return;
     setRows((prev) => {
@@ -168,6 +180,7 @@ export function NewSetForm() {
             <textarea
               value={pasteText}
               onChange={(e) => setPasteText(e.target.value)}
+              onKeyDown={insertTab}
               rows={8}
               placeholder={"mitochondria\tthe powerhouse of the cell\nphotosynthesis\thow plants convert light into energy"}
               className="w-full resize-y rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 font-mono text-sm outline-none focus:border-indigo-400 dark:border-neutral-700 dark:bg-neutral-900"

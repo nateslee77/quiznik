@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { createFolder } from "@/app/sets/actions";
 import { signOut } from "@/app/auth/actions";
 import {
-  BoltIcon,
   ChatIcon,
   ChevronIcon,
   DeckIcon,
@@ -51,21 +50,20 @@ function NavLink({
 function DeckLink({
   deck,
   active,
-  indent,
+  depth,
   onNavigate,
 }: {
   deck: SidebarDeck;
   active: boolean;
-  indent?: boolean;
+  depth: number;
   onNavigate?: () => void;
 }) {
   return (
     <Link
       href={`/sets/${deck.id}`}
       onClick={onNavigate}
+      style={{ paddingLeft: `${12 + depth * 16}px` }}
       className={`flex items-center gap-2 rounded-lg py-1.5 pr-2 text-sm transition ${
-        indent ? "pl-8" : "pl-3"
-      } ${
         active
           ? "bg-indigo-500/10 text-indigo-300"
           : "text-neutral-400 hover:bg-white/5 hover:text-neutral-200"
@@ -74,6 +72,77 @@ function DeckLink({
       <DeckIcon className="h-3.5 w-3.5 shrink-0" />
       <span className="truncate">{deck.title}</span>
     </Link>
+  );
+}
+
+function FolderNode({
+  folder,
+  folders,
+  decks,
+  depth,
+  pathname,
+  openFolders,
+  toggleFolder,
+  onNavigate,
+}: {
+  folder: Folder;
+  folders: Folder[];
+  decks: SidebarDeck[];
+  depth: number;
+  pathname: string;
+  openFolders: Set<string>;
+  toggleFolder: (id: string) => void;
+  onNavigate?: () => void;
+}) {
+  const open = openFolders.has(folder.id);
+  const childFolders = folders.filter((f) => f.parent_id === folder.id);
+  const childDecks = decks.filter((d) => d.folder_id === folder.id);
+  const itemCount = childFolders.length + childDecks.length;
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => toggleFolder(folder.id)}
+        style={{ paddingLeft: `${12 + depth * 16}px` }}
+        className="flex w-full items-center gap-2 rounded-lg py-1.5 pr-3 text-sm text-neutral-300 transition hover:bg-white/5"
+      >
+        <ChevronIcon
+          className={`h-3 w-3 shrink-0 text-neutral-500 transition-transform ${open ? "rotate-90" : ""}`}
+        />
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-violet-500/15 text-violet-300">
+          <FolderIcon className="h-3.5 w-3.5" />
+        </span>
+        <span className="flex-1 truncate text-left">{folder.name}</span>
+        <span className="text-xs text-neutral-600">{itemCount}</span>
+      </button>
+      {open ? (
+        <>
+          {childFolders.map((child) => (
+            <FolderNode
+              key={child.id}
+              folder={child}
+              folders={folders}
+              decks={decks}
+              depth={depth + 1}
+              pathname={pathname}
+              openFolders={openFolders}
+              toggleFolder={toggleFolder}
+              onNavigate={onNavigate}
+            />
+          ))}
+          {childDecks.map((deck) => (
+            <DeckLink
+              key={deck.id}
+              deck={deck}
+              depth={depth + 1}
+              active={pathname.startsWith(`/sets/${deck.id}`)}
+              onNavigate={onNavigate}
+            />
+          ))}
+        </>
+      ) : null}
+    </div>
   );
 }
 
@@ -92,6 +161,7 @@ export function Sidebar({
   const [folderName, setFolderName] = useState("");
   const [pending, startTransition] = useTransition();
 
+  const rootFolders = folders.filter((f) => !f.parent_id);
   const unfiled = decks.filter((d) => !d.folder_id);
 
   function toggleFolder(id: string) {
@@ -116,18 +186,18 @@ export function Sidebar({
   }
 
   return (
-    <div className="flex h-full flex-col gap-1 overflow-y-auto px-3 py-4">
-      {/* Workspace switcher (single workspace for now; switching comes later) */}
-      <button
-        type="button"
-        className="mb-2 flex items-center gap-2.5 rounded-xl px-2 py-2 text-left transition hover:bg-white/5"
+    <div className="no-scrollbar flex h-full flex-col gap-1 overflow-y-auto px-3 py-4">
+      {/* Logo — returns to the landing page */}
+      <Link
+        href="/"
+        onClick={onNavigate}
+        className="mb-2 flex items-center gap-2.5 rounded-xl px-2 py-2 transition hover:bg-white/5"
       >
         <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500 text-sm font-semibold text-white">
           Q
         </span>
-        <span className="flex-1 truncate text-sm font-semibold">My workspace</span>
-        <ChevronIcon className="h-3.5 w-3.5 rotate-90 text-neutral-500" />
-      </button>
+        <span className="flex-1 truncate text-sm font-semibold">Quiznik</span>
+      </Link>
 
       <NavLink
         href="/home"
@@ -150,13 +220,6 @@ export function Sidebar({
           Soon
         </span>
       </div>
-      <NavLink
-        href="/learn"
-        active={pathname === "/learn"}
-        icon={<BoltIcon className="h-4 w-4" />}
-        label="Learn"
-        onNavigate={onNavigate}
-      />
 
       <div className="my-3 border-t border-white/5" />
 
@@ -164,44 +227,25 @@ export function Sidebar({
         Library
       </p>
 
-      {folders.map((folder) => {
-        const open = openFolders.has(folder.id);
-        const folderDecks = decks.filter((d) => d.folder_id === folder.id);
-        return (
-          <div key={folder.id}>
-            <button
-              type="button"
-              onClick={() => toggleFolder(folder.id)}
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-neutral-300 transition hover:bg-white/5"
-            >
-              <ChevronIcon
-                className={`h-3 w-3 shrink-0 text-neutral-500 transition-transform ${open ? "rotate-90" : ""}`}
-              />
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-violet-500/15 text-violet-300">
-                <FolderIcon className="h-3.5 w-3.5" />
-              </span>
-              <span className="flex-1 truncate text-left">{folder.name}</span>
-              <span className="text-xs text-neutral-600">{folderDecks.length}</span>
-            </button>
-            {open
-              ? folderDecks.map((deck) => (
-                  <DeckLink
-                    key={deck.id}
-                    deck={deck}
-                    indent
-                    active={pathname.startsWith(`/sets/${deck.id}`)}
-                    onNavigate={onNavigate}
-                  />
-                ))
-              : null}
-          </div>
-        );
-      })}
+      {rootFolders.map((folder) => (
+        <FolderNode
+          key={folder.id}
+          folder={folder}
+          folders={folders}
+          decks={decks}
+          depth={0}
+          pathname={pathname}
+          openFolders={openFolders}
+          toggleFolder={toggleFolder}
+          onNavigate={onNavigate}
+        />
+      ))}
 
       {unfiled.map((deck) => (
         <DeckLink
           key={deck.id}
           deck={deck}
+          depth={0}
           active={pathname.startsWith(`/sets/${deck.id}`)}
           onNavigate={onNavigate}
         />

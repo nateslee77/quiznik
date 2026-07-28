@@ -6,10 +6,6 @@ import { CardList } from "@/components/CardList";
 import { BoltIcon, DeckIcon, GearIcon, SparkleIcon } from "@/components/icons";
 import type { Card, Folder } from "@/lib/types";
 
-function isDueNow(dueAt: string): boolean {
-  return new Date(dueAt).getTime() <= Date.now();
-}
-
 function ModeCard({
   href,
   icon,
@@ -74,17 +70,17 @@ export default async function SetDetailPage({
   const [cardsRes, foldersRes, progressRes] = await Promise.all([
     supabase.from("cards").select("*").eq("set_id", id).order("position", { ascending: true }),
     supabase.from("folders").select("*").order("position").order("created_at"),
-    supabase.from("study_progress").select("card_id, status, due_at").eq("set_id", id),
+    supabase.from("study_progress").select("card_id, status").eq("set_id", id),
   ]);
 
   const cardList: Card[] = cardsRes.data ?? [];
   const folders: Folder[] = foldersRes.data ?? [];
   const progress = progressRes.data ?? [];
 
-  const dueCount = progress.filter((p) => p.status === "reviewing" && isDueNow(p.due_at)).length;
+  const learningCount = progress.filter((p) => p.status === "seen" || p.status === "review").length;
   const newCount = cardList.length - progress.length;
   const masteredCount = progress.filter((p) => p.status === "mastered").length;
-  const recommendLearn = dueCount + newCount > 0;
+  const recommendLearn = learningCount + newCount > 0;
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-8">
@@ -109,7 +105,7 @@ export default async function SetDetailPage({
             description="Adaptive review that tracks each card"
             stat={
               recommendLearn
-                ? `${dueCount} due · ${newCount} new`
+                ? `${learningCount} learning · ${newCount} new`
                 : `${masteredCount} mastered`
             }
             recommended={recommendLearn}
