@@ -30,7 +30,7 @@ export function AuthForm({ action, mode, next }: Props) {
           type="email"
           required
           autoComplete="email"
-          className="w-full rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-base outline-none transition focus:border-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-white"
+          className="w-full rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-base outline-none transition focus:border-indigo-400 dark:border-neutral-700 dark:bg-neutral-900"
           placeholder="you@example.com"
         />
       </div>
@@ -46,7 +46,7 @@ export function AuthForm({ action, mode, next }: Props) {
           required
           minLength={8}
           autoComplete={isLogin ? "current-password" : "new-password"}
-          className="w-full rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-base outline-none transition focus:border-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-white"
+          className="w-full rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-base outline-none transition focus:border-indigo-400 dark:border-neutral-700 dark:bg-neutral-900"
           placeholder="••••••••"
         />
       </div>
@@ -66,7 +66,7 @@ export function AuthForm({ action, mode, next }: Props) {
       <button
         type="submit"
         disabled={pending}
-        className="mt-2 w-full rounded-lg bg-neutral-900 px-4 py-2.5 text-base font-medium text-white transition hover:bg-neutral-700 disabled:opacity-60 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+        className="mt-2 w-full rounded-lg bg-indigo-500 px-4 py-2.5 text-base font-medium text-white transition hover:bg-indigo-400 disabled:opacity-60"
       >
         {pending ? "Please wait…" : isLogin ? "Log in" : "Create account"}
       </button>

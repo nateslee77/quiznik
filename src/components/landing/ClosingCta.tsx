@@ -11,7 +11,7 @@ export function ClosingCta() {
       </p>
       <Link
         href="/signup"
-        className="mt-6 inline-block rounded-lg bg-neutral-900 px-6 py-3 text-base font-medium text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+        className="mt-6 inline-block rounded-lg bg-indigo-500 px-6 py-3 text-base font-medium text-white transition hover:bg-indigo-400"
       >
         Get started for free
       </Link>

@@ -160,3 +160,40 @@ drop policy if exists "study_progress is owner deletable" on public.study_progre
 create policy "study_progress is owner deletable"
   on public.study_progress for delete
   using (user_id = auth.uid());
+
+-- Folders group sets inside a user's library. Deleting a folder keeps its
+-- sets (folder_id nulls out via the FK) so no cards are ever lost.
+create table if not exists public.folders (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  name text not null,
+  position integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+alter table public.sets add column if not exists folder_id uuid references public.folders (id) on delete set null;
+
+create index if not exists folders_user_idx on public.folders (user_id, position);
+
+alter table public.folders enable row level security;
+
+drop policy if exists "folders are owner readable" on public.folders;
+create policy "folders are owner readable"
+  on public.folders for select
+  using (auth.uid() = user_id);
+
+drop policy if exists "folders are owner writable" on public.folders;
+create policy "folders are owner writable"
+  on public.folders for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "folders are owner updatable" on public.folders;
+create policy "folders are owner updatable"
+  on public.folders for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+drop policy if exists "folders are owner deletable" on public.folders;
+create policy "folders are owner deletable"
+  on public.folders for delete
+  using (auth.uid() = user_id);

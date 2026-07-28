@@ -66,7 +66,7 @@ export function NewSetForm() {
           id={`${idBase}-title`}
           name="title"
           required
-          className="w-full rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-base outline-none focus:border-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-white"
+          className="w-full rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-base outline-none focus:border-indigo-400 dark:border-neutral-700 dark:bg-neutral-900"
           placeholder="e.g. Spanish Verbs — Unit 3"
         />
       </div>
@@ -78,7 +78,7 @@ export function NewSetForm() {
         <input
           id={`${idBase}-desc`}
           name="description"
-          className="w-full rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-base outline-none focus:border-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-white"
+          className="w-full rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-base outline-none focus:border-indigo-400 dark:border-neutral-700 dark:bg-neutral-900"
           placeholder="What's this set for?"
         />
       </div>
@@ -90,7 +90,7 @@ export function NewSetForm() {
             onClick={() => setTab("manual")}
             className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition ${
               tab === "manual"
-                ? "bg-white text-neutral-900 shadow-sm dark:bg-neutral-800 dark:text-white"
+                ? "bg-indigo-500 text-white shadow-sm"
                 : "text-neutral-500 dark:text-neutral-400"
             }`}
           >
@@ -101,7 +101,7 @@ export function NewSetForm() {
             onClick={() => setTab("paste")}
             className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition ${
               tab === "paste"
-                ? "bg-white text-neutral-900 shadow-sm dark:bg-neutral-800 dark:text-white"
+                ? "bg-indigo-500 text-white shadow-sm"
                 : "text-neutral-500 dark:text-neutral-400"
             }`}
           >
@@ -120,13 +120,13 @@ export function NewSetForm() {
                   value={row.term}
                   onChange={(e) => updateRow(row.id, "term", e.target.value)}
                   placeholder="Term"
-                  className="w-full min-w-0 flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-white"
+                  className="w-full min-w-0 flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-neutral-700 dark:bg-neutral-900"
                 />
                 <input
                   value={row.definition}
                   onChange={(e) => updateRow(row.id, "definition", e.target.value)}
                   placeholder="Definition"
-                  className="w-full min-w-0 flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-white"
+                  className="w-full min-w-0 flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-neutral-700 dark:bg-neutral-900"
                 />
                 <button
                   type="button"
@@ -170,7 +170,7 @@ export function NewSetForm() {
               onChange={(e) => setPasteText(e.target.value)}
               rows={8}
               placeholder={"mitochondria\tthe powerhouse of the cell\nphotosynthesis\thow plants convert light into energy"}
-              className="w-full resize-y rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 font-mono text-sm outline-none focus:border-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-white"
+              className="w-full resize-y rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 font-mono text-sm outline-none focus:border-indigo-400 dark:border-neutral-700 dark:bg-neutral-900"
             />
             <div className="flex items-center justify-between">
               <p className="text-xs text-neutral-400">
@@ -185,7 +185,7 @@ export function NewSetForm() {
                 type="button"
                 onClick={importParsed}
                 disabled={preview.cards.length === 0}
-                className="rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:opacity-40 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+                className="rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-indigo-400 disabled:opacity-40"
               >
                 Add {preview.cards.length || ""} card{preview.cards.length === 1 ? "" : "s"}
               </button>
@@ -203,7 +203,7 @@ export function NewSetForm() {
       <button
         type="submit"
         disabled={pending || validCount === 0}
-        className="w-full rounded-lg bg-neutral-900 px-4 py-2.5 text-base font-medium text-white transition hover:bg-neutral-700 disabled:opacity-50 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+        className="w-full rounded-lg bg-indigo-500 px-4 py-2.5 text-base font-medium text-white transition hover:bg-indigo-400 disabled:opacity-50"
       >
         {pending ? "Creating…" : `Create set (${validCount} card${validCount === 1 ? "" : "s"})`}
       </button>

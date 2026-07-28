@@ -155,3 +155,47 @@ export async function resetStudyProgress(setId: string) {
   if (error) throw new Error(error.message);
   revalidatePath(`/sets/${setId}/learn`);
 }
+
+export async function createFolder(name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) return;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { count } = await supabase
+    .from("folders")
+    .select("*", { count: "exact", head: true });
+
+  const { error } = await supabase
+    .from("folders")
+    .insert({ name: trimmed, user_id: user.id, position: count ?? 0 });
+  if (error) throw new Error(error.message);
+  revalidatePath("/", "layout");
+}
+
+export async function renameFolder(folderId: string, name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) return;
+  const supabase = await createClient();
+  const { error } = await supabase.from("folders").update({ name: trimmed }).eq("id", folderId);
+  if (error) throw new Error(error.message);
+  revalidatePath("/", "layout");
+}
+
+export async function deleteFolder(folderId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("folders").delete().eq("id", folderId);
+  if (error) throw new Error(error.message);
+  revalidatePath("/", "layout");
+}
+
+export async function moveSetToFolder(setId: string, folderId: string | null) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("sets").update({ folder_id: folderId }).eq("id", setId);
+  if (error) throw new Error(error.message);
+  revalidatePath("/", "layout");
+}

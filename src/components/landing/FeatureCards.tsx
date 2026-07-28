@@ -36,7 +36,7 @@ export function FeatureCards() {
         ))}
 
         <div className="relative rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-5 dark:border-neutral-700 dark:bg-neutral-900/40">
-          <span className="absolute right-4 top-4 rounded-full bg-neutral-900 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white dark:bg-white dark:text-neutral-900">
+          <span className="absolute right-4 top-4 rounded-full bg-indigo-500 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white">
             Coming soon
           </span>
           <h3 className="font-medium text-neutral-500 dark:text-neutral-400">

@@ -58,7 +58,7 @@ export function StudyDeck({ cards }: { cards: Card[] }) {
           onClick={toggleShuffle}
           className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
             shuffled
-              ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+              ? "bg-indigo-500 text-white"
               : "border border-neutral-300 text-neutral-600 dark:border-neutral-700 dark:text-neutral-300"
           }`}
         >
@@ -68,7 +68,7 @@ export function StudyDeck({ cards }: { cards: Card[] }) {
 
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800">
         <div
-          className="h-full rounded-full bg-neutral-900 transition-all dark:bg-white"
+          className="h-full rounded-full bg-indigo-500 transition-all"
           style={{ width: `${((index + 1) / cards.length) * 100}%` }}
         />
       </div>
@@ -101,14 +101,14 @@ export function StudyDeck({ cards }: { cards: Card[] }) {
         {atEnd ? (
           <button
             onClick={restart}
-            className="flex-1 rounded-lg bg-neutral-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+            className="flex-1 rounded-lg bg-indigo-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-400"
           >
             Restart
           </button>
         ) : (
           <button
             onClick={next}
-            className="flex-1 rounded-lg bg-neutral-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+            className="flex-1 rounded-lg bg-indigo-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-400"
           >
             Next →
           </button>

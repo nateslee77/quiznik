@@ -31,17 +31,17 @@ function EditableCard({ card, setId }: { card: Card; setId: string }) {
         <input
           value={term}
           onChange={(e) => setTerm(e.target.value)}
-          className="w-full min-w-0 flex-1 rounded-md border border-neutral-300 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-white"
+          className="w-full min-w-0 flex-1 rounded-md border border-neutral-300 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-indigo-400 dark:border-neutral-700 dark:bg-neutral-900"
         />
         <input
           value={definition}
           onChange={(e) => setDefinition(e.target.value)}
-          className="w-full min-w-0 flex-1 rounded-md border border-neutral-300 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-white"
+          className="w-full min-w-0 flex-1 rounded-md border border-neutral-300 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-indigo-400 dark:border-neutral-700 dark:bg-neutral-900"
         />
         <button
           onClick={save}
           disabled={pending}
-          className="shrink-0 rounded-md bg-neutral-900 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-neutral-700 dark:bg-white dark:text-neutral-900"
+          className="shrink-0 rounded-md bg-indigo-500 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-indigo-400"
         >
           Save
         </button>
@@ -100,19 +100,19 @@ function AddCardRow({ setId }: { setId: string }) {
         value={term}
         onChange={(e) => setTerm(e.target.value)}
         placeholder="Term"
-        className="w-full min-w-0 flex-1 rounded-md border border-neutral-300 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-white"
+        className="w-full min-w-0 flex-1 rounded-md border border-neutral-300 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-indigo-400 dark:border-neutral-700 dark:bg-neutral-900"
       />
       <input
         value={definition}
         onChange={(e) => setDefinition(e.target.value)}
         placeholder="Definition"
         onKeyDown={(e) => e.key === "Enter" && submit()}
-        className="w-full min-w-0 flex-1 rounded-md border border-neutral-300 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-white"
+        className="w-full min-w-0 flex-1 rounded-md border border-neutral-300 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-indigo-400 dark:border-neutral-700 dark:bg-neutral-900"
       />
       <button
         onClick={submit}
         disabled={pending || !term.trim() || !definition.trim()}
-        className="shrink-0 rounded-md bg-neutral-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-neutral-700 disabled:opacity-40 dark:bg-white dark:text-neutral-900"
+        className="shrink-0 rounded-md bg-indigo-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-400 disabled:opacity-40"
       >
         Add
       </button>
@@ -160,7 +160,7 @@ function PasteCardsPanel({ setId, onDone }: { setId: string; onDone: () => void 
         onChange={(e) => setPasteText(e.target.value)}
         rows={6}
         placeholder={"mitochondria\tthe powerhouse of the cell\nphotosynthesis\thow plants convert light into energy"}
-        className="w-full resize-y rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 font-mono text-sm outline-none focus:border-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-white"
+        className="w-full resize-y rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 font-mono text-sm outline-none focus:border-indigo-400 dark:border-neutral-700 dark:bg-neutral-900"
       />
       <div className="flex items-center justify-between">
         <p className="text-xs text-neutral-400">
@@ -174,7 +174,7 @@ function PasteCardsPanel({ setId, onDone }: { setId: string; onDone: () => void 
         <button
           onClick={submit}
           disabled={preview.cards.length === 0 || pending}
-          className="shrink-0 rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:opacity-40 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+          className="shrink-0 rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-indigo-400 disabled:opacity-40"
         >
           {pending ? "Adding…" : `Add ${preview.cards.length || ""} card${preview.cards.length === 1 ? "" : "s"}`}
         </button>
@@ -194,7 +194,7 @@ function AddCardsSection({ setId }: { setId: string }) {
           onClick={() => setTab("add")}
           className={`rounded-md px-2.5 py-1 font-medium transition ${
             tab === "add"
-              ? "bg-white text-neutral-900 shadow-sm dark:bg-neutral-800 dark:text-white"
+              ? "bg-indigo-500 text-white shadow-sm"
               : "text-neutral-500 dark:text-neutral-400"
           }`}
         >
@@ -205,7 +205,7 @@ function AddCardsSection({ setId }: { setId: string }) {
           onClick={() => setTab("paste")}
           className={`rounded-md px-2.5 py-1 font-medium transition ${
             tab === "paste"
-              ? "bg-white text-neutral-900 shadow-sm dark:bg-neutral-800 dark:text-white"
+              ? "bg-indigo-500 text-white shadow-sm"
               : "text-neutral-500 dark:text-neutral-400"
           }`}
         >

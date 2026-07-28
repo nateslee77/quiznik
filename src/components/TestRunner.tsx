@@ -109,7 +109,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
               onChange={(e) =>
                 setCount(Math.max(1, Math.min(cards.length, Number(e.target.value) || 1)))
               }
-              className="w-20 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-white"
+              className="w-20 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-400 dark:border-neutral-700 dark:bg-neutral-900"
             />
           </div>
 
@@ -119,14 +119,14 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
               type="checkbox"
               checked={shuffleOn}
               onChange={(e) => setShuffleOn(e.target.checked)}
-              className="h-4 w-4 accent-neutral-900 dark:accent-white"
+              className="h-4 w-4 accent-indigo-500"
             />
           </label>
         </div>
 
         <button
           onClick={startTest}
-          className="mt-6 w-full rounded-lg bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+          className="mt-6 w-full rounded-lg bg-indigo-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-400"
         >
           Start test
         </button>
@@ -169,7 +169,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
         <div className="mt-8 flex w-full max-w-md gap-3">
           <button
             onClick={startTest}
-            className="flex-1 rounded-lg bg-neutral-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+            className="flex-1 rounded-lg bg-indigo-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-400"
           >
             Retake (same settings)
           </button>
@@ -194,7 +194,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
     <div className="flex flex-1 flex-col">
       <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800">
         <div
-          className="h-full rounded-full bg-neutral-900 transition-all dark:bg-white"
+          className="h-full rounded-full bg-indigo-500 transition-all"
           style={{ width: `${(index / questions.length) * 100}%` }}
         />
       </div>
@@ -238,7 +238,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
             {selected !== null ? (
               <button
                 onClick={nextQuestion}
-                className="mt-6 w-full rounded-lg bg-neutral-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+                className="mt-6 w-full rounded-lg bg-indigo-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-400"
               >
                 {index + 1 === questions.length ? "See results" : "Next question →"}
               </button>
@@ -252,11 +252,11 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
               onChange={(e) => setWrittenInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && checkWritten()}
               placeholder="Type your answer…"
-              className="w-full rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-base outline-none focus:border-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-white"
+              className="w-full rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-base outline-none focus:border-indigo-400 dark:border-neutral-700 dark:bg-neutral-900"
             />
             <button
               onClick={checkWritten}
-              className="rounded-lg bg-neutral-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+              className="rounded-lg bg-indigo-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-400"
             >
               Check answer
             </button>
@@ -278,7 +278,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
             </div>
             <button
               onClick={nextQuestion}
-              className="rounded-lg bg-neutral-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+              className="rounded-lg bg-indigo-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-400"
             >
               {index + 1 === questions.length ? "See results" : "Next question →"}
             </button>
