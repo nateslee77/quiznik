@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createFolder, moveFolder, moveSetToFolder } from "@/app/sets/actions";
@@ -18,9 +18,11 @@ export type LibraryDeck = {
 };
 
 type Filter = "all" | "decks" | "folders";
-type DragPayload = { kind: "deck" | "folder"; id: string };
+type DragPayload = { kind: "deck" | "folder"; id: string; title: string };
 
-const DRAG_MIME = "application/x-quiznik";
+const MOUSE_DRAG_THRESHOLD = 6; // px of movement before a mouse-down becomes a drag
+const TOUCH_MOVE_CANCEL_THRESHOLD = 10; // px of movement that cancels a pending long-press
+const TOUCH_LONG_PRESS_MS = 350; // hold time before a touch/pen turns into a drag
 
 function relativeEdited(iso: string): string {
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
@@ -63,6 +65,17 @@ export function LibraryBrowser({
   const [folderName, setFolderName] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  // Pointer-based drag state (works for mouse, touch, and pen alike — the
+  // native HTML5 drag-and-drop API never fires on touch devices at all, so
+  // this is the only thing that makes dragging work on a phone/tablet).
+  const [draggingPayload, setDraggingPayload] = useState<DragPayload | null>(null);
+  const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
+  // Suppresses the click/navigation that would otherwise fire right after
+  // a drag ends on the same element (a plain mutable ref, not state, since
+  // it must be readable synchronously inside the click handler that the
+  // browser dispatches after pointerup — no render cycle to wait on).
+  const justDraggedRef = useRef(false);
+
   // Optimistic overlay on top of server-fetched data: rows moved (or a
   // folder just created) show up/disappear instantly on drop/submit,
   // without waiting for a round-trip. `router.refresh()` still runs in the
@@ -89,27 +102,9 @@ export function LibraryBrowser({
 
   const activeFolder = activeFolderId ? folders.find((f) => f.id === activeFolderId) : undefined;
 
-  // ---- drag and drop ----
-  function startDrag(e: React.DragEvent, payload: DragPayload) {
-    e.dataTransfer.setData(DRAG_MIME, JSON.stringify(payload));
-    e.dataTransfer.effectAllowed = "move";
-  }
-
-  function allowDrop(e: React.DragEvent, targetKey: string) {
-    if (!e.dataTransfer.types.includes(DRAG_MIME)) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-    setDropTarget(targetKey);
-  }
-
-  function handleDrop(e: React.DragEvent, targetFolderId: string | null) {
-    e.preventDefault();
-    setDropTarget(null);
-    const raw = e.dataTransfer.getData(DRAG_MIME);
-    if (!raw) return;
-    const payload: DragPayload = JSON.parse(raw);
+  // ---- drag and drop (pointer-events based) ----
+  function performMove(payload: DragPayload, targetFolderId: string | null) {
     setError(null);
-
     if (payload.kind === "folder") {
       if (payload.id === targetFolderId) return;
       // Client-side guard against dropping into own subtree (server re-checks).
@@ -145,6 +140,92 @@ export function LibraryBrowser({
           setError("Couldn't move that deck. Try again.");
         }
       });
+    }
+  }
+
+  function dropTargetAt(x: number, y: number): string | null {
+    const el = document.elementFromPoint(x, y) as HTMLElement | null;
+    return el?.closest<HTMLElement>("[data-drop-target]")?.dataset.dropTarget ?? null;
+  }
+
+  function beginDrag(e: React.PointerEvent, payload: DragPayload) {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const isTouch = e.pointerType !== "mouse";
+    let dragging = false;
+    let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+
+    function activate(x: number, y: number) {
+      dragging = true;
+      setDraggingPayload(payload);
+      setDragPos({ x, y });
+      setDropTarget(dropTargetAt(x, y));
+    }
+
+    function cleanup() {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+      if (longPressTimer) clearTimeout(longPressTimer);
+    }
+
+    function onMove(ev: PointerEvent) {
+      const dist = Math.hypot(ev.clientX - startX, ev.clientY - startY);
+
+      if (!dragging) {
+        if (isTouch) {
+          // Waiting on the long-press timer — bail if this looks like a
+          // scroll gesture instead, and let the browser handle it normally.
+          if (dist > TOUCH_MOVE_CANCEL_THRESHOLD && longPressTimer) {
+            cleanup();
+          }
+          return;
+        }
+        if (dist > MOUSE_DRAG_THRESHOLD) activate(ev.clientX, ev.clientY);
+        return;
+      }
+
+      ev.preventDefault();
+      setDragPos({ x: ev.clientX, y: ev.clientY });
+      setDropTarget(dropTargetAt(ev.clientX, ev.clientY));
+    }
+
+    function finish(x: number, y: number, shouldDrop: boolean) {
+      cleanup();
+      if (dragging && shouldDrop) {
+        justDraggedRef.current = true;
+        const key = dropTargetAt(x, y);
+        performMove(payload, key === "root" ? null : key);
+      }
+      setDraggingPayload(null);
+      setDragPos(null);
+      setDropTarget(null);
+    }
+
+    function onUp(ev: PointerEvent) {
+      finish(ev.clientX, ev.clientY, true);
+    }
+    function onCancel(ev: PointerEvent) {
+      finish(ev.clientX, ev.clientY, false);
+    }
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onCancel);
+
+    if (isTouch) {
+      longPressTimer = setTimeout(() => {
+        longPressTimer = null;
+        activate(startX, startY);
+      }, TOUCH_LONG_PRESS_MS);
+    }
+  }
+
+  function suppressClickAfterDrag(e: React.MouseEvent) {
+    if (justDraggedRef.current) {
+      e.preventDefault();
+      justDraggedRef.current = false;
     }
   }
 
@@ -196,12 +277,10 @@ export function LibraryBrowser({
     return (
       <Link
         href={`/sets?folder=${folder.id}`}
-        draggable
-        onDragStart={(e) => startDrag(e, { kind: "folder", id: folder.id })}
-        onDragOver={(e) => allowDrop(e, folder.id)}
-        onDragLeave={() => setDropTarget((t) => (t === folder.id ? null : t))}
-        onDrop={(e) => handleDrop(e, folder.id)}
-        className={`flex items-center gap-3 rounded-2xl border border-amber-900/10 bg-white p-3.5 transition hover:border-amber-900/15 hover:bg-orange-50 ${dropZoneClass(folder.id)}`}
+        data-drop-target={folder.id}
+        onClick={suppressClickAfterDrag}
+        onPointerDown={(e) => beginDrag(e, { kind: "folder", id: folder.id, title: folder.name })}
+        className={`flex touch-manipulation items-center gap-3 rounded-2xl border border-amber-900/10 bg-white p-3.5 transition select-none hover:border-amber-900/15 hover:bg-orange-50 ${dropZoneClass(folder.id)} ${draggingPayload?.id === folder.id ? "opacity-40" : ""}`}
       >
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-200/70 text-amber-700">
           <FolderIcon className="h-5 w-5" />
@@ -217,9 +296,9 @@ export function LibraryBrowser({
   const DeckRow = ({ deck }: { deck: LibraryDeck }) => (
     <Link
       href={`/sets/${deck.id}`}
-      draggable
-      onDragStart={(e) => startDrag(e, { kind: "deck", id: deck.id })}
-      className="flex items-center gap-3 rounded-2xl border border-amber-900/10 bg-white p-3.5 transition hover:border-amber-900/15 hover:bg-orange-50"
+      onClick={suppressClickAfterDrag}
+      onPointerDown={(e) => beginDrag(e, { kind: "deck", id: deck.id, title: deck.title })}
+      className={`flex touch-manipulation items-center gap-3 rounded-2xl border border-amber-900/10 bg-white p-3.5 transition select-none hover:border-amber-900/15 hover:bg-orange-50 ${draggingPayload?.id === deck.id ? "opacity-40" : ""}`}
     >
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-500">
         <DeckIcon className="h-5 w-5" />
@@ -269,6 +348,22 @@ export function LibraryBrowser({
     <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
   ) : null;
 
+  const dragGhost =
+    draggingPayload && dragPos ? (
+      <div
+        aria-hidden
+        className="pointer-events-none fixed z-50 flex items-center gap-2 rounded-xl border border-rose-300 bg-white px-3 py-2 text-sm font-medium shadow-lg"
+        style={{ left: dragPos.x + 12, top: dragPos.y + 12 }}
+      >
+        {draggingPayload.kind === "folder" ? (
+          <FolderIcon className="h-4 w-4 text-amber-700" />
+        ) : (
+          <DeckIcon className="h-4 w-4 text-rose-500" />
+        )}
+        {draggingPayload.title}
+      </div>
+    ) : null;
+
   // ---- folder view ----
   if (activeFolder) {
     const crumbs: Folder[] = [activeFolder];
@@ -284,12 +379,11 @@ export function LibraryBrowser({
 
     return (
       <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-8">
+        {dragGhost}
         <nav className="mb-2 flex flex-wrap items-center gap-1 text-sm text-amber-950/50">
           <Link
             href="/sets"
-            onDragOver={(e) => allowDrop(e, "root")}
-            onDragLeave={() => setDropTarget((t) => (t === "root" ? null : t))}
-            onDrop={(e) => handleDrop(e, null)}
+            data-drop-target="root"
             className={`rounded px-1 hover:text-amber-950/80 ${dropZoneClass("root")}`}
           >
             Library
@@ -302,9 +396,7 @@ export function LibraryBrowser({
               ) : (
                 <Link
                   href={`/sets?folder=${crumb.id}`}
-                  onDragOver={(e) => allowDrop(e, crumb.id)}
-                  onDragLeave={() => setDropTarget((t) => (t === crumb.id ? null : t))}
-                  onDrop={(e) => handleDrop(e, crumb.id)}
+                  data-drop-target={crumb.id}
                   className={`rounded px-1 hover:text-amber-950/80 ${dropZoneClass(crumb.id)}`}
                 >
                   {crumb.name}
@@ -348,7 +440,7 @@ export function LibraryBrowser({
                 Create flashcards
               </Link>
               <p className="text-xs text-amber-950/40">
-                Or drag decks and folders here from the library.
+                Or drag decks and folders here (press and hold on touch) from the library.
               </p>
             </div>
           ) : null}
@@ -380,6 +472,7 @@ export function LibraryBrowser({
 
   return (
     <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-8">
+      {dragGhost}
       <div className="mb-5 flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold tracking-tight">Library</h1>
         <div className="flex items-center gap-2">
@@ -405,16 +498,14 @@ export function LibraryBrowser({
       {errorBanner}
 
       <div
+        data-drop-target="root"
         className={`mb-5 flex items-center gap-5 border-b border-amber-900/10 ${dropZoneClass("root")}`}
-        onDragOver={(e) => allowDrop(e, "root")}
-        onDragLeave={() => setDropTarget((t) => (t === "root" ? null : t))}
-        onDrop={(e) => handleDrop(e, null)}
       >
         {pill("all", "All")}
         {pill("decks", "Decks")}
         {pill("folders", "Folders")}
         <span className="ml-auto pb-2 text-[11px] text-amber-950/40">
-          Drag rows onto folders to organize
+          Drag rows onto folders (press and hold on touch) to organize
         </span>
       </div>
 

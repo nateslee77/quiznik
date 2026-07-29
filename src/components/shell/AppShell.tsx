@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Sidebar } from "@/components/shell/Sidebar";
 import { DockedMascot, MascotProvider } from "@/components/mascot/MascotContext";
 import { CoinsProvider } from "@/components/coins/CoinsContext";
+import { CoinBalance } from "@/components/coins/CoinBalance";
 import { MenuIcon } from "@/components/icons";
 
 export function AppShell({
@@ -49,12 +50,13 @@ export function AppShell({
           >
             <MenuIcon className="h-5 w-5" />
           </button>
-          <Link href="/" className="flex items-center gap-2 text-base font-semibold tracking-tight">
+          <Link href="/" className="flex flex-1 items-center gap-2 text-base font-semibold tracking-tight">
             <span className="flex h-6 w-6 items-center justify-center rounded-md bg-rose-400 text-xs font-semibold text-white">
               Q
             </span>
             Quiznik
           </Link>
+          <CoinBalance />
         </div>
 
         {drawerOpen ? (
