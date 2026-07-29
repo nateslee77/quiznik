@@ -8,6 +8,8 @@ import { buildRound, type ProgressSnapshot, type RoundCardState } from "@/lib/le
 import { resetStudyProgress } from "@/app/sets/actions";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { useMascot } from "@/components/mascot/MascotContext";
+import { useCoins } from "@/components/coins/CoinsContext";
+import { LEARN_CORRECT_COINS, STAGE_BONUS } from "@/lib/coins";
 import { GearIcon } from "@/components/icons";
 import type { Card, StudyStatus } from "@/lib/types";
 
@@ -66,7 +68,6 @@ export function LearnRunner({
   const [roundSize, setRoundSize] = useState(0);
   const [cardStates, setCardStates] = useState<Record<string, RoundCardState>>({});
   const [doneCardIds, setDoneCardIds] = useState<Set<string>>(new Set());
-  const [pending, setPending] = useState(false);
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [answerWasCorrect, setAnswerWasCorrect] = useState<boolean | null>(null);
@@ -78,6 +79,7 @@ export function LearnRunner({
   const currentCard = currentCardId ? cardsById.get(currentCardId) : undefined;
 
   const { setState: setMascot } = useMascot();
+  const { addCoins } = useCoins();
   const view = phase === "setup" ? "setup" : !currentCardId ? "complete" : "question";
   useEffect(() => {
     if (view === "setup") setMascot("idle");
@@ -130,29 +132,30 @@ export function LearnRunner({
     });
   }
 
+  // Fire-and-forget from every caller: the UI advances immediately on
+  // click, this just persists in the background and reconciles local
+  // state (and any stage-bonus coins) whenever it resolves.
   async function submitResult(cardId: string, correct: boolean) {
-    setPending(true);
-    try {
-      const res = await fetch(`/api/sets/${setId}/study-progress/${cardId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correct }),
-      });
-      const updated = await res.json();
-      setProgressByCardId((prev) => ({
-        ...prev,
-        [cardId]: {
-          phase: updated.phase,
-          status: updated.status,
-          correct_streak: updated.correct_streak,
-        },
-      }));
-      setCardStates((prev) => ({
-        ...prev,
-        [cardId]: { ...prev[cardId], phase: updated.phase, correctStreak: updated.correct_streak },
-      }));
-    } finally {
-      setPending(false);
+    const res = await fetch(`/api/sets/${setId}/study-progress/${cardId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ correct }),
+    });
+    const updated = await res.json();
+    setProgressByCardId((prev) => ({
+      ...prev,
+      [cardId]: {
+        phase: updated.phase,
+        status: updated.status,
+        correct_streak: updated.correct_streak,
+      },
+    }));
+    setCardStates((prev) => ({
+      ...prev,
+      [cardId]: { ...prev[cardId], phase: updated.phase, correctStreak: updated.correct_streak },
+    }));
+    if (updated.stageBonusAwarded) {
+      addCoins(STAGE_BONUS[updated.status as keyof typeof STAGE_BONUS]);
     }
   }
 
@@ -177,22 +180,24 @@ export function LearnRunner({
     setMascot("testing");
   }
 
-  async function chooseMc(choiceIndex: number) {
+  function chooseMc(choiceIndex: number) {
     if (selectedIndex !== null || !activeQuestion || !currentCardId) return;
     setSelectedIndex(choiceIndex);
     const correct = choiceIndex === activeQuestion.correctIndex;
     setAnswerWasCorrect(correct);
-    setMascot(correct ? "testing" : "crying");
-    await submitResult(currentCardId, correct);
+    setMascot(correct ? "correct" : "wrong");
+    if (correct) addCoins(LEARN_CORRECT_COINS);
+    void submitResult(currentCardId, correct);
   }
 
-  async function checkWritten() {
+  function checkWritten() {
     if (!activeQuestion || !currentCardId || writtenChecked) return;
     const correct = isCloseEnough(writtenInput, activeQuestion.answer);
     setWrittenChecked(true);
     setAnswerWasCorrect(correct);
-    setMascot(correct ? "testing" : "crying");
-    await submitResult(currentCardId, correct);
+    setMascot(correct ? "correct" : "wrong");
+    if (correct) addCoins(LEARN_CORRECT_COINS);
+    void submitResult(currentCardId, correct);
   }
 
   const stageCounts: Record<StudyStatus | "new", number> = {
@@ -390,10 +395,9 @@ export function LearnRunner({
             {selectedIndex !== null ? (
               <button
                 onClick={advance}
-                disabled={pending}
-                className="mt-6 w-full rounded-xl bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300 disabled:opacity-60"
+                className="mt-6 w-full rounded-xl bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300"
               >
-                {pending ? "Saving…" : "Next →"}
+                Next →
               </button>
             ) : null}
           </>
@@ -430,10 +434,9 @@ export function LearnRunner({
             )}
             <button
               onClick={advance}
-              disabled={pending}
-              className="rounded-xl bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300 disabled:opacity-60"
+              className="rounded-xl bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300"
             >
-              {pending ? "Saving…" : "Continue →"}
+              Continue →
             </button>
           </div>
         )}

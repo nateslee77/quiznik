@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { createClient } from "@/lib/supabase/server";
+import { getCoinBalance } from "@/lib/coins";
 import { Navbar } from "@/components/Navbar";
 import { AppShell } from "@/components/shell/AppShell";
 import "./globals.css";
@@ -35,6 +36,17 @@ export default async function RootLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
+  let initialCoins = 0;
+  let initialSkinId = "default";
+  if (user) {
+    const [balance, profileRes] = await Promise.all([
+      getCoinBalance(supabase, user.id),
+      supabase.from("profiles").select("equipped_skin").eq("user_id", user.id).maybeSingle(),
+    ]);
+    initialCoins = balance;
+    initialSkinId = profileRes.data?.equipped_skin ?? "default";
+  }
+
   return (
     <html
       lang="en"
@@ -50,7 +62,9 @@ export default async function RootLayout({
           className="pointer-events-none fixed -bottom-40 -right-40 z-0 h-[480px] w-[480px] rounded-full bg-amber-200/40 blur-3xl"
         />
         {user ? (
-          <AppShell>{children}</AppShell>
+          <AppShell initialCoins={initialCoins} initialSkinId={initialSkinId}>
+            {children}
+          </AppShell>
         ) : (
           <>
             <Navbar />

@@ -46,8 +46,8 @@ function subtreeIds(folders: Folder[], folderId: string): Set<string> {
 }
 
 export function LibraryBrowser({
-  folders,
-  decks,
+  folders: serverFolders,
+  decks: serverDecks,
   activeFolderId,
   filter,
 }: {
@@ -61,6 +61,31 @@ export function LibraryBrowser({
   const [dropTarget, setDropTarget] = useState<string | null>(null); // folder id or "root"
   const [addingFolder, setAddingFolder] = useState(false);
   const [folderName, setFolderName] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  // Optimistic overlay on top of server-fetched data: rows moved (or a
+  // folder just created) show up/disappear instantly on drop/submit,
+  // without waiting for a round-trip. `router.refresh()` still runs in the
+  // background to fetch true state; once it lands, fresh props replace
+  // these overrides (the effect below clears them whenever props change).
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+  const [ghostFolders, setGhostFolders] = useState<Folder[]>([]);
+
+  // Reset the optimistic overlay whenever fresh server data arrives (from
+  // router.refresh() after a move/create resolves) — the React-recommended
+  // pattern for "adjust state when a prop changes" is comparing during
+  // render, not in an effect (avoids an extra render pass).
+  const [prevServerFolders, setPrevServerFolders] = useState(serverFolders);
+  const [prevServerDecks, setPrevServerDecks] = useState(serverDecks);
+  if (serverFolders !== prevServerFolders || serverDecks !== prevServerDecks) {
+    setPrevServerFolders(serverFolders);
+    setPrevServerDecks(serverDecks);
+    setHiddenIds(new Set());
+    setGhostFolders([]);
+  }
+
+  const folders = [...serverFolders, ...ghostFolders].filter((f) => !hiddenIds.has(f.id));
+  const decks = serverDecks.filter((d) => !hiddenIds.has(d.id));
 
   const activeFolder = activeFolderId ? folders.find((f) => f.id === activeFolderId) : undefined;
 
@@ -83,21 +108,42 @@ export function LibraryBrowser({
     const raw = e.dataTransfer.getData(DRAG_MIME);
     if (!raw) return;
     const payload: DragPayload = JSON.parse(raw);
+    setError(null);
 
     if (payload.kind === "folder") {
       if (payload.id === targetFolderId) return;
       // Client-side guard against dropping into own subtree (server re-checks).
       if (targetFolderId && subtreeIds(folders, payload.id).has(targetFolderId)) return;
+      setHiddenIds((prev) => new Set(prev).add(payload.id));
       startTransition(async () => {
-        await moveFolder(payload.id, targetFolderId);
-        router.refresh();
+        try {
+          await moveFolder(payload.id, targetFolderId);
+          router.refresh();
+        } catch {
+          setHiddenIds((prev) => {
+            const next = new Set(prev);
+            next.delete(payload.id);
+            return next;
+          });
+          setError("Couldn't move that folder. Try again.");
+        }
       });
     } else {
       const deck = decks.find((d) => d.id === payload.id);
       if (deck && deck.folder_id === targetFolderId) return;
+      setHiddenIds((prev) => new Set(prev).add(payload.id));
       startTransition(async () => {
-        await moveSetToFolder(payload.id, targetFolderId);
-        router.refresh();
+        try {
+          await moveSetToFolder(payload.id, targetFolderId);
+          router.refresh();
+        } catch {
+          setHiddenIds((prev) => {
+            const next = new Set(prev);
+            next.delete(payload.id);
+            return next;
+          });
+          setError("Couldn't move that deck. Try again.");
+        }
       });
     }
   }
@@ -108,15 +154,32 @@ export function LibraryBrowser({
 
   // ---- new folder ----
   function submitFolder() {
-    if (!folderName.trim()) {
-      setAddingFolder(false);
-      return;
-    }
+    const trimmed = folderName.trim();
+    setAddingFolder(false);
+    setFolderName("");
+    if (!trimmed) return;
+
+    setError(null);
+    const tempId = `temp-${Date.now()}`;
+    setGhostFolders((prev) => [
+      ...prev,
+      {
+        id: tempId,
+        user_id: "",
+        parent_id: activeFolderId,
+        name: trimmed,
+        position: 0,
+        created_at: new Date().toISOString(),
+      },
+    ]);
     startTransition(async () => {
-      await createFolder(folderName, activeFolderId);
-      setFolderName("");
-      setAddingFolder(false);
-      router.refresh();
+      try {
+        await createFolder(trimmed, activeFolderId);
+        router.refresh();
+      } catch {
+        setGhostFolders((prev) => prev.filter((f) => f.id !== tempId));
+        setError("Couldn't create that folder. Try again.");
+      }
     });
   }
 
@@ -202,6 +265,10 @@ export function LibraryBrowser({
     </button>
   );
 
+  const errorBanner = error ? (
+    <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+  ) : null;
+
   // ---- folder view ----
   if (activeFolder) {
     const crumbs: Folder[] = [activeFolder];
@@ -260,6 +327,8 @@ export function LibraryBrowser({
             </Link>
           </div>
         </div>
+
+        {errorBanner}
 
         <div className="flex flex-col gap-2">
           {subfolders.map((folder) => (
@@ -332,6 +401,8 @@ export function LibraryBrowser({
           Soon
         </span>
       </div>
+
+      {errorBanner}
 
       <div
         className={`mb-5 flex items-center gap-5 border-b border-amber-900/10 ${dropZoneClass("root")}`}

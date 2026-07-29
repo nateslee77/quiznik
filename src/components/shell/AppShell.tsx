@@ -4,14 +4,24 @@ import { useState } from "react";
 import Link from "next/link";
 import { Sidebar } from "@/components/shell/Sidebar";
 import { DockedMascot, MascotProvider } from "@/components/mascot/MascotContext";
+import { CoinsProvider } from "@/components/coins/CoinsContext";
 import { MenuIcon } from "@/components/icons";
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  initialCoins = 0,
+  initialSkinId = "default",
+  children,
+}: {
+  initialCoins?: number;
+  initialSkinId?: string;
+  children: React.ReactNode;
+}) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <MascotProvider>
+    <CoinsProvider initialBalance={initialCoins}>
+    <MascotProvider initialSkinId={initialSkinId}>
       <div className="relative z-10 flex min-h-full flex-1">
         {/* Desktop sidebar (collapsible) */}
         {!collapsed ? (
@@ -65,5 +75,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <DockedMascot />
       </div>
     </MascotProvider>
+    </CoinsProvider>
   );
 }

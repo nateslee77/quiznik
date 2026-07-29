@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { MascotPlaceholder } from "@/components/landing/MascotPlaceholder";
+import { CoinBalance } from "@/components/coins/CoinBalance";
 import { BoltIcon, DeckIcon, PlusIcon } from "@/components/icons";
 import type { SetWithCardCount } from "@/lib/types";
 
@@ -29,7 +30,7 @@ export default async function HomePage() {
     <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-8">
       <div className="flex items-center gap-4">
         <MascotPlaceholder variant="idle" className="h-14 w-14 shrink-0" />
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
           <p className="mt-0.5 text-sm text-amber-950/60">
             {totalDue > 0
@@ -37,6 +38,7 @@ export default async function HomePage() {
               : "You're all caught up. Nice."}
           </p>
         </div>
+        <CoinBalance />
       </div>
 
       {totalDue > 0 ? (

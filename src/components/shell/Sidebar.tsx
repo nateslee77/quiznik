@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "@/app/auth/actions";
+import { CoinBalance } from "@/components/coins/CoinBalance";
 import {
   ChatIcon,
   HomeIcon,
@@ -75,6 +76,8 @@ export function Sidebar({
           </button>
         ) : null}
       </div>
+
+      <CoinBalance className="mb-2 w-fit" />
 
       <NavLink
         href="/home"

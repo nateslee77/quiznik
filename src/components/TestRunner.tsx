@@ -6,6 +6,9 @@ import { generateQuiz, type QuizQuestion, type QuizSettings, type Direction, typ
 import { isCloseEnough } from "@/lib/fuzzyMatch";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { useMascot } from "@/components/mascot/MascotContext";
+import { useCoins } from "@/components/coins/CoinsContext";
+import { TEST_CORRECT_COINS, testCompletionBonus } from "@/lib/coins";
+import { awardTestCoins } from "@/app/sets/actions";
 import { GearIcon } from "@/components/icons";
 import type { Card } from "@/lib/types";
 
@@ -54,20 +57,32 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
   const done = phase === "running" && index >= questions.length;
 
   const { setState: setMascot } = useMascot();
-  const scoredWell =
-    questions.length > 0 && answers.filter((a) => a.correct).length / questions.length >= 0.6;
+  const { addCoins } = useCoins();
+  const correctCount = answers.filter((a) => a.correct).length;
+  const scoredWell = questions.length > 0 && correctCount / questions.length >= 0.6;
   useEffect(() => {
     if (phase === "setup") setMascot("idle");
-    else if (done) setMascot(scoredWell ? "celebrate" : "crying");
+    else if (done) setMascot(scoredWell ? "celebrate" : "wrong");
     else setMascot("testing");
     return () => setMascot("idle");
   }, [phase, done, scoredWell, setMascot]);
+
+  // Fires exactly once per completed attempt (done flips false->true once
+  // per startTest() call) — optimistic coin add plus the persisted award,
+  // fired in the background so results render instantly.
+  useEffect(() => {
+    if (!done || questions.length === 0) return;
+    const coins = correctCount * TEST_CORRECT_COINS + testCompletionBonus(correctCount / questions.length);
+    addCoins(coins);
+    void awardTestCoins(setId, correctCount, questions.length);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [done]);
 
   function chooseMc(choiceIndex: number) {
     if (selected !== null) return;
     setSelected(choiceIndex);
     const correct = choiceIndex === question.correctIndex;
-    setMascot(correct ? "testing" : "crying");
+    setMascot(correct ? "correct" : "wrong");
     setAnswers((prev) => [...prev, { question, correct }]);
   }
 
@@ -76,7 +91,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
     const correct = isCloseEnough(writtenInput, question.answer);
     setWrittenChecked(true);
     setWrittenCorrect(correct);
-    setMascot(correct ? "testing" : "crying");
+    setMascot(correct ? "correct" : "wrong");
     setAnswers((prev) => [...prev, { question, correct }]);
   }
 

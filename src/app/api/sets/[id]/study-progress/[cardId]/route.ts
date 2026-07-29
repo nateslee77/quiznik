@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { applyResult, DEFAULT_PROGRESS_STATE } from "@/lib/studyProgress";
+import { LEARN_CORRECT_COINS, STAGE_BONUS } from "@/lib/coins";
 
 export async function PATCH(
   request: Request,
@@ -61,5 +62,38 @@ export async function PATCH(
     return NextResponse.json({ error: error?.message ?? "Couldn't save progress." }, { status: 500 });
   }
 
-  return NextResponse.json(updated);
+  // Coin awards. Fire-and-forget from the caller's perspective (the client
+  // doesn't wait on this), but do it inline here so both inserts share the
+  // same auth context. The per-card-per-stage unique index makes repeated
+  // stage-bonus attempts (e.g. after Reset Progress) harmless no-ops.
+  if (correct) {
+    await supabase.from("coin_transactions").insert({
+      user_id: user.id,
+      amount: LEARN_CORRECT_COINS,
+      reason: "learn_correct",
+      card_id: cardId,
+      set_id: setId,
+    });
+  }
+  const stageReason = `learn_stage_${nextState.status}`;
+  const { data: stageBonusRows } = await supabase
+    .from("coin_transactions")
+    .upsert(
+      {
+        user_id: user.id,
+        amount: STAGE_BONUS[nextState.status as keyof typeof STAGE_BONUS],
+        reason: stageReason,
+        card_id: cardId,
+        set_id: setId,
+        dedupe_key: `${user.id}:${cardId}:${stageReason}`,
+      },
+      { onConflict: "dedupe_key", ignoreDuplicates: true },
+    )
+    .select();
+  // ignoreDuplicates means a skipped (already-awarded) row comes back
+  // empty — this tells the client whether it's safe to add the stage
+  // bonus to the displayed coin count without double-crediting it.
+  const stageBonusAwarded = (stageBonusRows?.length ?? 0) > 0;
+
+  return NextResponse.json({ ...updated, stageBonusAwarded });
 }

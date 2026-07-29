@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { ParsedCard } from "@/lib/parseFlashcards";
+import { TEST_CORRECT_COINS, testCompletionBonus } from "@/lib/coins";
 
 export type CreateSetState = { error: string };
 
@@ -211,6 +212,28 @@ export async function moveSetToFolder(setId: string, folderId: string | null) {
   const { error } = await supabase.from("sets").update({ folder_id: folderId }).eq("id", setId);
   if (error) throw new Error(error.message);
   revalidatePath("/", "layout");
+}
+
+export async function awardTestCoins(setId: string, correctCount: number, totalQuestions: number) {
+  if (totalQuestions <= 0) return;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const amount =
+    correctCount * TEST_CORRECT_COINS + testCompletionBonus(correctCount / totalQuestions);
+  if (amount <= 0) return;
+
+  const { error } = await supabase.from("coin_transactions").insert({
+    user_id: user.id,
+    amount,
+    reason: "test_complete",
+    set_id: setId,
+  });
+  if (error) throw new Error(error.message);
 }
 
 export async function moveFolder(folderId: string, newParentId: string | null) {

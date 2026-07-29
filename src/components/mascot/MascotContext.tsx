@@ -6,6 +6,8 @@ import { MascotPlaceholder, type MascotState } from "@/components/landing/Mascot
 type MascotContextValue = {
   state: MascotState;
   setState: (state: MascotState) => void;
+  skinId: string;
+  setSkinId: (skinId: string) => void;
 };
 
 // Safe no-op default so components using the hook never crash when
@@ -13,12 +15,23 @@ type MascotContextValue = {
 const MascotContext = createContext<MascotContextValue>({
   state: "idle",
   setState: () => {},
+  skinId: "default",
+  setSkinId: () => {},
 });
 
-export function MascotProvider({ children }: { children: React.ReactNode }) {
+export function MascotProvider({
+  initialSkinId = "default",
+  children,
+}: {
+  initialSkinId?: string;
+  children: React.ReactNode;
+}) {
   const [state, setState] = useState<MascotState>("idle");
+  const [skinId, setSkinId] = useState(initialSkinId);
   return (
-    <MascotContext.Provider value={{ state, setState }}>{children}</MascotContext.Provider>
+    <MascotContext.Provider value={{ state, setState, skinId, setSkinId }}>
+      {children}
+    </MascotContext.Provider>
   );
 }
 
@@ -38,27 +51,50 @@ export function useMascotWhileMounted(state: MascotState) {
 
 const MASCOT_POS_KEY = "quiznik-mascot-pos";
 const MASCOT_SIZE = 80;
+// Matches AppShell's mobile top bar (`h-14`), which only renders below the
+// `lg` breakpoint (1024px) — the mascot must never sit under it.
+const MOBILE_HEADER_HEIGHT = 56;
+const LG_BREAKPOINT = 1024;
+
+function getTopInset(): number {
+  if (typeof window === "undefined") return 0;
+  return window.innerWidth < LG_BREAKPOINT ? MOBILE_HEADER_HEIGHT : 0;
+}
+
+function clampPos(x: number, y: number): { x: number; y: number } {
+  const topInset = getTopInset();
+  return {
+    x: Math.min(Math.max(0, x), window.innerWidth - MASCOT_SIZE),
+    y: Math.min(Math.max(topInset, y), window.innerHeight - MASCOT_SIZE),
+  };
+}
 
 // The always-visible companion. Drag it anywhere; the spot is remembered.
 export function DockedMascot() {
-  const { state } = useMascot();
+  const { state, skinId } = useMascot();
   const [pos, setPos] = useState<{ x: number; y: number } | null>(() => {
     if (typeof window === "undefined") return null;
     try {
       const saved = localStorage.getItem(MASCOT_POS_KEY);
-      return saved ? JSON.parse(saved) : null;
+      if (!saved) return null;
+      const parsed = JSON.parse(saved);
+      return clampPos(parsed.x, parsed.y);
     } catch {
       return null;
     }
   });
   const [dragging, setDragging] = useState(false);
 
-  function clamp(x: number, y: number) {
-    return {
-      x: Math.min(Math.max(0, x), window.innerWidth - MASCOT_SIZE),
-      y: Math.min(Math.max(0, y), window.innerHeight - MASCOT_SIZE),
-    };
-  }
+  // Re-clamp on viewport resize (e.g. rotating a phone, or the mobile top
+  // bar appearing/disappearing at the lg breakpoint) so a saved spot from
+  // one layout can't end up under the header in another.
+  useEffect(() => {
+    function onResize() {
+      setPos((prev) => (prev ? clampPos(prev.x, prev.y) : prev));
+    }
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   function onPointerDown(e: React.PointerEvent) {
     e.preventDefault();
@@ -70,13 +106,13 @@ export function DockedMascot() {
     setDragging(true);
 
     function onMove(ev: PointerEvent) {
-      setPos(clamp(ev.clientX - offsetX, ev.clientY - offsetY));
+      setPos(clampPos(ev.clientX - offsetX, ev.clientY - offsetY));
     }
     function onUp(ev: PointerEvent) {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
       setDragging(false);
-      const finalPos = clamp(ev.clientX - offsetX, ev.clientY - offsetY);
+      const finalPos = clampPos(ev.clientX - offsetX, ev.clientY - offsetY);
       setPos(finalPos);
       try {
         localStorage.setItem(MASCOT_POS_KEY, JSON.stringify(finalPos));
@@ -97,7 +133,11 @@ export function DockedMascot() {
         pos ? "" : "bottom-3 right-3 sm:bottom-5 sm:right-5"
       } ${dragging ? "cursor-grabbing" : "cursor-grab"}`}
     >
-      <MascotPlaceholder variant={state} className="h-16 w-16 drop-shadow-md sm:h-20 sm:w-20" />
+      <MascotPlaceholder
+        variant={state}
+        skinId={skinId}
+        className="h-16 w-16 drop-shadow-md sm:h-20 sm:w-20"
+      />
     </div>
   );
 }

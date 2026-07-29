@@ -213,3 +213,89 @@ drop policy if exists "folders are owner deletable" on public.folders;
 create policy "folders are owner deletable"
   on public.folders for delete
   using (auth.uid() = user_id);
+
+-- Coin ledger: append-only (no update/delete policy at all, by design —
+-- this is what makes earned coins survive Reset Progress / prevents
+-- retroactive tampering, not just app-level convention).
+create table if not exists public.coin_transactions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  amount integer not null,
+  reason text not null,
+  card_id uuid references public.cards (id) on delete set null,
+  set_id uuid references public.sets (id) on delete set null,
+  -- Set only for one-time-only awards (the seen/review/mastered stage
+  -- bonuses), as `${user_id}:${card_id}:${reason}`; left null for every
+  -- other transaction. A plain (non-partial) unique index on this column
+  -- gives exactly-once semantics for those rows via upsert+onConflict —
+  -- Postgres doesn't match ON CONFLICT against a partial index unless the
+  -- same WHERE predicate is repeated in the conflict clause, which the
+  -- Supabase client has no way to do, so this column exists specifically
+  -- to sidestep that. NULLs never collide in a unique index, so ordinary
+  -- (non-deduped) rows are unaffected.
+  dedupe_key text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists coin_transactions_user_idx on public.coin_transactions (user_id);
+
+-- Migration for databases created before dedupe_key existed.
+alter table public.coin_transactions add column if not exists dedupe_key text;
+drop index if exists coin_transactions_stage_dedupe;
+
+create unique index if not exists coin_transactions_dedupe_key_idx
+  on public.coin_transactions (dedupe_key);
+
+alter table public.coin_transactions enable row level security;
+
+drop policy if exists "coin_transactions are owner readable" on public.coin_transactions;
+create policy "coin_transactions are owner readable"
+  on public.coin_transactions for select
+  using (auth.uid() = user_id);
+
+drop policy if exists "coin_transactions are owner writable" on public.coin_transactions;
+create policy "coin_transactions are owner writable"
+  on public.coin_transactions for insert
+  with check (auth.uid() = user_id);
+
+create table if not exists public.profiles (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  equipped_skin text not null default 'default'
+);
+
+alter table public.profiles enable row level security;
+
+drop policy if exists "profiles are owner readable" on public.profiles;
+create policy "profiles are owner readable"
+  on public.profiles for select
+  using (auth.uid() = user_id);
+
+drop policy if exists "profiles are owner writable" on public.profiles;
+create policy "profiles are owner writable"
+  on public.profiles for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "profiles are owner updatable" on public.profiles;
+create policy "profiles are owner updatable"
+  on public.profiles for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create table if not exists public.unlocked_skins (
+  user_id uuid not null references auth.users (id) on delete cascade,
+  skin_id text not null,
+  unlocked_at timestamptz not null default now(),
+  primary key (user_id, skin_id)
+);
+
+alter table public.unlocked_skins enable row level security;
+
+drop policy if exists "unlocked_skins are owner readable" on public.unlocked_skins;
+create policy "unlocked_skins are owner readable"
+  on public.unlocked_skins for select
+  using (auth.uid() = user_id);
+
+drop policy if exists "unlocked_skins are owner writable" on public.unlocked_skins;
+create policy "unlocked_skins are owner writable"
+  on public.unlocked_skins for insert
+  with check (auth.uid() = user_id);

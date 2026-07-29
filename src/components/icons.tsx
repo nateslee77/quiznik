@@ -1,5 +1,16 @@
 type IconProps = { className?: string };
 
+export function CoinIcon({ className = "h-4 w-4" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <circle cx="12" cy="12" r="9" className="fill-amber-300" stroke="currentColor" strokeWidth="1.5" />
+      <text x="12" y="16" textAnchor="middle" fontSize="11" fontWeight="700" className="fill-amber-800" stroke="none">
+        $
+      </text>
+    </svg>
+  );
+}
+
 export function GearIcon({ className = "h-4 w-4" }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
