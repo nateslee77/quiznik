@@ -606,6 +606,15 @@ export function LearnRunner({
                 <span className="font-medium">{activeQuestion.answer}</span>
               </div>
             )}
+            {!answerWasCorrect ? (
+              <button
+                type="button"
+                onMouseUp={() => gradeWritten(true)}
+                className="self-start text-xs text-amber-950/40 underline decoration-dotted hover:text-amber-950/70"
+              >
+                Actually, mark it correct
+              </button>
+            ) : null}
             <button
               onClick={advance}
               className="rounded-xl bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300"
