@@ -207,6 +207,24 @@ export function LearnRunner({
     });
   }
 
+  // Bails out of the current round back to setup — unlike doReset(), this
+  // only abandons this round's queue/position (auto-cleared from storage by
+  // the persistence effect once phase leaves "running"), leaving every
+  // card's actual mastery progress untouched.
+  function abandonRound() {
+    if (!confirm("Start over? This round's progress will be lost (cards already mastered stay that way).")) return;
+    setPhase("setup");
+    setQueue([]);
+    setRoundSize(0);
+    setCardStates({});
+    setDoneCardIds(new Set());
+    setSelectedIndex(null);
+    setAnswerWasCorrect(null);
+    setWrittenInput("");
+    setWrittenChecked(false);
+    setPendingConfirm(null);
+  }
+
   // Fire-and-forget from every caller: the UI advances immediately on
   // click, this just persists in the background and reconciles local
   // state (and any stage-bonus coins) whenever it resolves.
@@ -473,15 +491,23 @@ export function LearnRunner({
           style={{ width: `${Math.round(progress * 100)}%` }}
         />
       </div>
-      <p className="mb-2 flex items-center gap-2 text-sm text-amber-950/60">
-        {activeQuestion.type === "multiple_choice" ? "Multiple choice" : "Written answer"} &middot;{" "}
-        {queue.length} card{queue.length === 1 ? "" : "s"} left
-        <span
-          className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${stageColors.border} ${stageColors.bg} ${stageColors.text}`}
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <p className="flex items-center gap-2 text-sm text-amber-950/60">
+          {activeQuestion.type === "multiple_choice" ? "Multiple choice" : "Written answer"} &middot;{" "}
+          {queue.length} card{queue.length === 1 ? "" : "s"} left
+          <span
+            className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${stageColors.border} ${stageColors.bg} ${stageColors.text}`}
+          >
+            {STAGE_LABELS[currentStage]}
+          </span>
+        </p>
+        <button
+          onClick={abandonRound}
+          className="shrink-0 text-xs font-medium text-amber-950/40 underline decoration-dotted hover:text-amber-950/70"
         >
-          {STAGE_LABELS[currentStage]}
-        </span>
-      </p>
+          Start over
+        </button>
+      </div>
 
       <div className="rounded-2xl border border-amber-900/10 bg-white p-6 shadow-sm sm:p-8">
         {cardImageUrl(activeQuestion.card.image_path) ? (
