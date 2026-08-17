@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useId, useMemo, useRef, useState } from "react";
 import { createSet, type CreateSetState } from "@/app/sets/actions";
 import { parseFlashcardText, TERM_SEPARATORS, type TermSeparator } from "@/lib/parseFlashcards";
+import { useImageDrop } from "@/lib/useImageDrop";
 import { ImageIcon, XIcon } from "@/components/icons";
 
 type Row = { id: string; term: string; definition: string; image: File | null };
@@ -30,6 +31,19 @@ function RowImagePicker({
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
   }, [previewUrl]);
+
+  // A dropped file only exists in JS — the real `<input type="file">` this
+  // form submits from must also get it, or the server never sees it.
+  function acceptFile(file: File) {
+    if (inputRef.current) {
+      const transfer = new DataTransfer();
+      transfer.items.add(file);
+      inputRef.current.files = transfer.files;
+    }
+    onChange(file);
+  }
+
+  const { isOver, dropHandlers } = useImageDrop(acceptFile);
 
   return (
     <div className="mt-1 shrink-0">
@@ -61,8 +75,13 @@ function RowImagePicker({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          aria-label="Add photo"
-          className="flex h-9 w-9 items-center justify-center rounded-md border border-dashed border-amber-900/20 text-amber-950/40 transition hover:border-rose-300 hover:text-rose-400"
+          aria-label="Add or drop a photo"
+          {...dropHandlers}
+          className={`flex h-9 w-9 items-center justify-center rounded-md border transition ${
+            isOver
+              ? "border-rose-400 bg-rose-50 text-rose-500"
+              : "border-dashed border-amber-900/20 text-amber-950/40 hover:border-rose-300 hover:text-rose-400"
+          }`}
         >
           <ImageIcon className="h-4 w-4" />
         </button>

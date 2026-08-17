@@ -130,7 +130,7 @@ export function DockedMascot() {
       onPointerDown={onPointerDown}
       style={pos ? { left: pos.x, top: pos.y } : undefined}
       className={`fixed z-20 touch-none select-none ${
-        pos ? "" : "bottom-3 right-3 sm:bottom-5 sm:right-5"
+        pos ? "" : "top-16 right-3 sm:right-5 lg:top-3"
       } ${dragging ? "cursor-grabbing" : "cursor-grab"}`}
     >
       <MascotPlaceholder

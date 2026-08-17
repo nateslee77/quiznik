@@ -118,9 +118,12 @@ export async function createSet(
         try {
           const path = await uploadCardImageFile(supabase, user.id, file);
           await supabase.from("cards").update({ image_path: path }).eq("id", cardId);
-        } catch {
+        } catch (err) {
           // A failed image upload shouldn't block set creation — the card
           // still exists, the user can attach a photo again from the deck.
+          // Logged (not surfaced) since we're about to redirect away from
+          // any UI that could show it.
+          console.error(`Card image upload failed for card ${cardId}:`, err);
         }
       }),
     );
