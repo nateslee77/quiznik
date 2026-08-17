@@ -27,7 +27,7 @@ export default async function ShopPage() {
         <CoinBalance />
       </div>
       <p className="mb-8 text-sm text-amber-950/50">
-        Spend coins earned from Learn and Test on a new look for your study buddy.
+        Spend coins earned from Learn, Test, Match, and Gravity on a new look for your study buddy.
       </p>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">

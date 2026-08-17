@@ -351,6 +351,27 @@ export async function awardTestCoins(setId: string, correctCount: number, totalQ
   if (error) throw new Error(error.message);
 }
 
+// Shared by Match/Gravity completion — the amount is already computed
+// client-side (matchCompletionBonus/gravityCompletionBonus in
+// src/lib/coins.ts, same shape as awardTestCoins above), this just persists it.
+export async function awardGameCoins(setId: string, amount: number, reason: string) {
+  if (amount <= 0) return;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { error } = await supabase.from("coin_transactions").insert({
+    user_id: user.id,
+    amount,
+    reason,
+    set_id: setId,
+  });
+  if (error) throw new Error(error.message);
+}
+
 export async function moveFolder(folderId: string, newParentId: string | null) {
   if (folderId === newParentId) return;
 

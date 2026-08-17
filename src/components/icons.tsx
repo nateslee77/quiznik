@@ -171,6 +171,32 @@ export function SpinnerIcon({ className = "h-4 w-4" }: IconProps) {
   );
 }
 
+export function MatchIcon({ className = "h-4 w-4" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <rect x="3" y="4" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
+      <rect x="13" y="12" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M9 10.5 15 13.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeDasharray="1.5 2.5"
+      />
+    </svg>
+  );
+}
+
+export function GravityIcon({ className = "h-4 w-4" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <rect x="7" y="3.5" width="10" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M12 11v7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M8.5 15 12 18.5 15.5 15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function PencilIcon({ className = "h-4 w-4" }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">

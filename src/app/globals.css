@@ -131,3 +131,21 @@ body {
   display: inline-block;
   animation: coin-float-spin 2.4s ease-in-out infinite;
 }
+
+/* Gravity mini-game: a falling word's vertical position is driven entirely
+   by this CSS animation (duration set inline per-word, shrinking as
+   difficulty ramps) rather than a JS tick loop — the browser handles the
+   motion, React just listens for onAnimationEnd to know a word landed. */
+@keyframes gravity-fall {
+  from {
+    top: 0%;
+  }
+  to {
+    top: 100%;
+  }
+}
+.gravity-word {
+  animation-name: gravity-fall;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}

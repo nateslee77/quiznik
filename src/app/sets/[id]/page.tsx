@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { SetHeader } from "@/components/SetHeader";
 import { CardList } from "@/components/CardList";
 import { Breadcrumb } from "@/components/Breadcrumb";
-import { BoltIcon, DeckIcon, GearIcon, SparkleIcon } from "@/components/icons";
+import { BoltIcon, DeckIcon, GearIcon, GravityIcon, MatchIcon } from "@/components/icons";
 import type { Card, Folder, StudyStatus } from "@/lib/types";
 
 function ModeCard({
@@ -39,21 +39,6 @@ function ModeCard({
       <span className="text-xs text-amber-950/50">{description}</span>
       <span className="text-xs font-medium text-amber-950/60">{stat}</span>
     </Link>
-  );
-}
-
-function ComingSoonCard({ name, description }: { name: string; description: string }) {
-  return (
-    <div className="relative flex flex-col gap-2 rounded-2xl border border-dashed border-amber-900/15 p-4 opacity-60">
-      <span className="absolute right-3 top-3 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-950/60">
-        Soon
-      </span>
-      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100/70 text-amber-950/50">
-        <SparkleIcon className="h-5 w-5" />
-      </span>
-      <span className="mt-1 text-sm font-semibold text-amber-950/60">{name}</span>
-      <span className="text-xs text-amber-950/60">{description}</span>
-    </div>
   );
 }
 
@@ -125,8 +110,22 @@ export default async function SetDetailPage({
             description="Quiz yourself with your own settings"
             stat={cardList.length >= 2 ? "Configurable" : "Needs 2+ cards"}
           />
-          <ComingSoonCard name="Match" description="Race to pair terms and definitions" />
-          <ComingSoonCard name="Gravity" description="Type answers before they fall" />
+          <ModeCard
+            href={`/sets/${id}/match`}
+            icon={<MatchIcon className="h-5 w-5" />}
+            tint="bg-sky-100 text-sky-600"
+            name="Match"
+            description="Race to pair terms and definitions"
+            stat={cardList.length >= 3 ? "Configurable" : "Needs 3+ cards"}
+          />
+          <ModeCard
+            href={`/sets/${id}/gravity`}
+            icon={<GravityIcon className="h-5 w-5" />}
+            tint="bg-emerald-100 text-emerald-600"
+            name="Gravity"
+            description="Type answers before they fall"
+            stat={cardList.length >= 4 ? "3 lives" : "Needs 4+ cards"}
+          />
         </div>
       ) : null}
 
