@@ -71,7 +71,7 @@ export function LearnRunner({
   const [phase, setPhase] = useState<Phase>("setup");
   const [maxNew, setMaxNew] = useState(DEFAULT_MAX_NEW);
   const [maxReview, setMaxReview] = useState(DEFAULT_MAX_REVIEW);
-  const [direction, setDirection] = useState<Direction | "mixed">("term-to-definition");
+  const [direction, setDirection] = useState<Direction | "mixed">("definition-to-term");
   const [includeMastered, setIncludeMastered] = useState(false);
   const [emptyRoundNotice, setEmptyRoundNotice] = useState(false);
   const [resetPending, startResetTransition] = useTransition();
