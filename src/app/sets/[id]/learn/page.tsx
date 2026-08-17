@@ -43,7 +43,7 @@ export default async function LearnPage({
 
   const { data: progressRows } = await supabase
     .from("study_progress")
-    .select("card_id, phase, status, correct_streak")
+    .select("card_id, phase, status, correct_streak, due_at")
     .eq("set_id", id);
 
   return (

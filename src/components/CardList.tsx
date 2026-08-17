@@ -19,7 +19,8 @@ import {
 import { cardImageUrl } from "@/lib/supabase/storage";
 import { useImageDrop } from "@/lib/useImageDrop";
 import { ImageIcon, SpinnerIcon, XIcon } from "@/components/icons";
-import type { Card } from "@/lib/types";
+import { STAGE_COLORS, STAGE_LABELS, type Stage } from "@/lib/studyStage";
+import type { Card, StudyStatus } from "@/lib/types";
 
 function errorMessage(err: unknown, fallback: string): string {
   return err instanceof Error ? err.message : fallback;
@@ -104,11 +105,13 @@ function CardImageControl({
 function EditableCard({
   card,
   setId,
+  stage,
   onDeleted,
   onError,
 }: {
   card: Card;
   setId: string;
+  stage: Stage;
   onDeleted: (cardId: string) => void;
   onError: (message: string) => void;
 }) {
@@ -229,10 +232,17 @@ function EditableCard({
   return (
     <div
       {...(ghost ? {} : dropHandlers)}
-      className={`flex flex-col gap-3 rounded-xl border p-4 transition sm:flex-row sm:items-center sm:gap-4 sm:p-5 ${
+      className={`relative flex flex-col gap-3 rounded-xl border p-4 transition sm:flex-row sm:items-center sm:gap-4 sm:p-5 ${
         dropRing || "border-amber-900/10"
       } ${ghost ? "opacity-50" : ""}`}
     >
+      {!ghost ? (
+        <span
+          title={STAGE_LABELS[stage]}
+          aria-label={STAGE_LABELS[stage]}
+          className={`absolute left-2 top-2 h-2 w-2 rounded-full ${STAGE_COLORS[stage].dot}`}
+        />
+      ) : null}
       {imageControl}
       <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-2 sm:gap-4">
         <p className="whitespace-pre-wrap break-words text-base font-medium">{card.term}</p>
@@ -466,7 +476,15 @@ function tempCard(setId: string, position: number, term: string, definition: str
   };
 }
 
-export function CardList({ setId, cards: serverCards }: { setId: string; cards: Card[] }) {
+export function CardList({
+  setId,
+  cards: serverCards,
+  progressByCardId = {},
+}: {
+  setId: string;
+  cards: Card[];
+  progressByCardId?: Record<string, StudyStatus>;
+}) {
   const router = useRouter();
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
   const [ghostCards, setGhostCards] = useState<Card[]>([]);
@@ -560,6 +578,7 @@ export function CardList({ setId, cards: serverCards }: { setId: string; cards: 
             key={card.id}
             card={card}
             setId={setId}
+            stage={progressByCardId[card.id] ?? "new"}
             onDeleted={handleDeleted}
             onError={(msg) => setError(msg || null)}
           />

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { buildQuestion, type Direction } from "@/lib/generateQuiz";
-import { isCloseEnough } from "@/lib/fuzzyMatch";
+import { matchQuality } from "@/lib/fuzzyMatch";
 import { buildRound, type ProgressSnapshot, type RoundCardState } from "@/lib/learnRound";
 import { resetStudyProgress } from "@/app/sets/actions";
 import { SegmentedControl } from "@/components/SegmentedControl";
@@ -12,27 +12,28 @@ import { useCoins } from "@/components/coins/CoinsContext";
 import { LEARN_CORRECT_COINS, STAGE_BONUS } from "@/lib/coins";
 import { GearIcon } from "@/components/icons";
 import { cardImageUrl } from "@/lib/supabase/storage";
-import type { Card, StudyStatus } from "@/lib/types";
+import { STAGE_COLORS, STAGE_LABELS, type Stage } from "@/lib/studyStage";
+import type { Card } from "@/lib/types";
 
-type ProgressRow = { card_id: string; phase: string; status: string; correct_streak: number };
+type ProgressRow = {
+  card_id: string;
+  phase: string;
+  status: string;
+  correct_streak: number;
+  due_at: string;
+};
 
 type Phase = "setup" | "running";
 
 const REQUEUE_OFFSET = 3;
 const DEFAULT_MAX_NEW = 10;
 const DEFAULT_MAX_REVIEW = 20;
+const STAGE_ORDER: Stage[] = ["new", "seen", "review", "mastered"];
 
 const DIRECTION_OPTIONS: { value: Direction | "mixed"; label: string }[] = [
   { value: "term-to-definition", label: "Term → Def" },
   { value: "definition-to-term", label: "Def → Term" },
   { value: "mixed", label: "Mixed" },
-];
-
-const STAGE_LABELS: { status: StudyStatus | "new"; label: string }[] = [
-  { status: "new", label: "Not studied" },
-  { status: "seen", label: "Seen" },
-  { status: "review", label: "Review" },
-  { status: "mastered", label: "Mastered" },
 ];
 
 function toSnapshotMap(rows: ProgressRow[]): Record<string, ProgressSnapshot> {
@@ -42,9 +43,20 @@ function toSnapshotMap(rows: ProgressRow[]): Record<string, ProgressSnapshot> {
       phase: row.phase as ProgressSnapshot["phase"],
       status: row.status as ProgressSnapshot["status"],
       correct_streak: row.correct_streak,
+      due_at: row.due_at,
     };
   }
   return map;
+}
+
+function StageTile({ stage, count }: { stage: Stage; count: number }) {
+  const colors = STAGE_COLORS[stage];
+  return (
+    <div className={`rounded-xl border p-2.5 text-center ${colors.border} ${colors.bg}`}>
+      <p className={`text-lg font-semibold ${colors.text}`}>{count}</p>
+      <p className="text-[11px] text-amber-950/50">{STAGE_LABELS[stage]}</p>
+    </div>
+  );
 }
 
 export function LearnRunner({
@@ -74,6 +86,9 @@ export function LearnRunner({
   const [answerWasCorrect, setAnswerWasCorrect] = useState<boolean | null>(null);
   const [writtenInput, setWrittenInput] = useState("");
   const [writtenChecked, setWrittenChecked] = useState(false);
+  // Set only when a typed answer is close-but-not-exact — holds off grading
+  // until the user confirms whether they meant the correct term.
+  const [pendingConfirm, setPendingConfirm] = useState<{ typed: string; correct: string } | null>(null);
 
   const cardsById = useMemo(() => new Map(cards.map((c) => [c.id, c])), [cards]);
   const currentCardId = queue[0] as string | undefined;
@@ -98,7 +113,12 @@ export function LearnRunner({
     if (!currentCard || !currentCardId) return null;
     const state = cardStates[currentCardId];
     const questionType = (state?.phase ?? "multiple_choice") === "multiple_choice" ? "multiple_choice" : "written";
-    return buildQuestion(currentCard, cards, state?.direction ?? "term-to-definition", questionType);
+    // Written answers are always "type the term" — typing a full definition
+    // back is slow and unreliable to grade, so this ignores the round's
+    // configured direction for written questions specifically.
+    const resolvedDirection: Direction =
+      questionType === "written" ? "definition-to-term" : state?.direction ?? "term-to-definition";
+    return buildQuestion(currentCard, cards, resolvedDirection, questionType);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentCardId]);
 
@@ -122,6 +142,7 @@ export function LearnRunner({
     setAnswerWasCorrect(null);
     setWrittenInput("");
     setWrittenChecked(false);
+    setPendingConfirm(null);
     setPhase("running");
   }
 
@@ -149,6 +170,7 @@ export function LearnRunner({
         phase: updated.phase,
         status: updated.status,
         correct_streak: updated.correct_streak,
+        due_at: updated.due_at,
       },
     }));
     setCardStates((prev) => ({
@@ -178,6 +200,7 @@ export function LearnRunner({
     setAnswerWasCorrect(null);
     setWrittenInput("");
     setWrittenChecked(false);
+    setPendingConfirm(null);
     setMascot("testing");
   }
 
@@ -191,14 +214,24 @@ export function LearnRunner({
     void submitResult(currentCardId, correct);
   }
 
-  function checkWritten() {
-    if (!activeQuestion || !currentCardId || writtenChecked) return;
-    const correct = isCloseEnough(writtenInput, activeQuestion.answer);
+  function gradeWritten(correct: boolean) {
+    if (!currentCardId) return;
+    setPendingConfirm(null);
     setWrittenChecked(true);
     setAnswerWasCorrect(correct);
     setMascot(correct ? "correct" : "wrong");
     if (correct) addCoins(LEARN_CORRECT_COINS);
     void submitResult(currentCardId, correct);
+  }
+
+  function checkWritten() {
+    if (!activeQuestion || !currentCardId || writtenChecked || pendingConfirm) return;
+    const quality = matchQuality(writtenInput, activeQuestion.answer);
+    if (quality === "close") {
+      setPendingConfirm({ typed: writtenInput.trim(), correct: activeQuestion.answer });
+      return;
+    }
+    gradeWritten(quality === "exact");
   }
 
   useEffect(() => {
@@ -216,7 +249,25 @@ export function LearnRunner({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, activeQuestion, selectedIndex]);
 
-  const stageCounts: Record<StudyStatus | "new", number> = {
+  // Enter advances past an already-graded question, same as clicking
+  // Next/Continue — but never while the "did you mean" confirm prompt is
+  // showing (that needs an explicit Yes/No), and the written-answer input's
+  // own Enter-to-check handler covers checking the answer in the first
+  // place (this only fires once graded, so the two can't double-fire).
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== "Enter" || view !== "question" || pendingConfirm) return;
+      const graded = activeQuestion?.type === "multiple_choice" ? selectedIndex !== null : writtenChecked;
+      if (!graded) return;
+      e.preventDefault();
+      advance();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, activeQuestion, selectedIndex, writtenChecked, pendingConfirm]);
+
+  const stageCounts: Record<Stage, number> = {
     new: cards.length - Object.keys(progressByCardId).length,
     seen: 0,
     review: 0,
@@ -235,11 +286,8 @@ export function LearnRunner({
         </div>
 
         <div className="mb-6 grid grid-cols-4 gap-2">
-          {STAGE_LABELS.map(({ status, label }) => (
-            <div key={status} className="rounded-xl border border-amber-900/10 p-2.5 text-center">
-              <p className="text-lg font-semibold">{stageCounts[status]}</p>
-              <p className="text-[11px] text-amber-950/50">{label}</p>
-            </div>
+          {STAGE_ORDER.map((stage) => (
+            <StageTile key={stage} stage={stage} count={stageCounts[stage]} />
           ))}
         </div>
 
@@ -320,16 +368,8 @@ export function LearnRunner({
         <p className="mt-1 text-2xl font-semibold tracking-tight">Nice work!</p>
 
         <div className="mt-8 grid w-full max-w-md grid-cols-4 gap-2">
-          {STAGE_LABELS.map(({ status, label }) => (
-            <div
-              key={status}
-              className={`rounded-xl border p-3 ${
-                status === "mastered" ? "border-rose-300 bg-rose-100" : "border-amber-900/10"
-              }`}
-            >
-              <p className="text-2xl font-semibold">{stageCounts[status]}</p>
-              <p className="text-[11px] text-amber-950/50">{label}</p>
-            </div>
+          {STAGE_ORDER.map((stage) => (
+            <StageTile key={stage} stage={stage} count={stageCounts[stage]} />
           ))}
         </div>
 
@@ -360,8 +400,8 @@ export function LearnRunner({
   if (!activeQuestion) return null;
 
   const progress = doneCardIds.size / Math.max(roundSize, 1);
-  const currentStage: StudyStatus | "new" =
-    progressByCardId[currentCardId] === undefined ? "new" : progressByCardId[currentCardId].status;
+  const currentStage: Stage = progressByCardId[currentCardId] === undefined ? "new" : progressByCardId[currentCardId].status;
+  const stageColors = STAGE_COLORS[currentStage];
 
   return (
     <div className="flex flex-1 flex-col">
@@ -371,10 +411,14 @@ export function LearnRunner({
           style={{ width: `${Math.round(progress * 100)}%` }}
         />
       </div>
-      <p className="mb-2 text-sm text-amber-950/60">
+      <p className="mb-2 flex items-center gap-2 text-sm text-amber-950/60">
         {activeQuestion.type === "multiple_choice" ? "Multiple choice" : "Written answer"} &middot;{" "}
-        {queue.length} card{queue.length === 1 ? "" : "s"} left &middot;{" "}
-        {currentStage === "new" ? "Not studied" : currentStage === "seen" ? "Seen" : currentStage === "review" ? "Review" : "Mastered"}
+        {queue.length} card{queue.length === 1 ? "" : "s"} left
+        <span
+          className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${stageColors.border} ${stageColors.bg} ${stageColors.text}`}
+        >
+          {STAGE_LABELS[currentStage]}
+        </span>
       </p>
 
       <div className="rounded-2xl border border-amber-900/10 bg-white p-6 shadow-sm sm:p-8">
@@ -425,6 +469,27 @@ export function LearnRunner({
               </button>
             ) : null}
           </>
+        ) : pendingConfirm ? (
+          <div className="flex flex-col gap-4">
+            <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
+              You wrote <span className="font-medium">“{pendingConfirm.typed}”</span> — did you mean{" "}
+              <span className="font-medium">“{pendingConfirm.correct}”</span>?
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => gradeWritten(true)}
+                className="flex-1 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-emerald-400"
+              >
+                Yes, that&rsquo;s right
+              </button>
+              <button
+                onClick={() => gradeWritten(false)}
+                className="flex-1 rounded-xl border border-red-300 px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
+              >
+                No, mark wrong
+              </button>
+            </div>
+          </div>
         ) : !writtenChecked ? (
           <div className="flex flex-col gap-3">
             <input

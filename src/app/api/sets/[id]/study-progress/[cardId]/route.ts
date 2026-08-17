@@ -35,7 +35,7 @@ export async function PATCH(
 
   const { data: existing } = await supabase
     .from("study_progress")
-    .select("phase, status, correct_streak, ease_factor, interval_days")
+    .select("phase, status, correct_streak, ease_factor, interval_days, due_at")
     .eq("card_id", cardId)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -50,7 +50,6 @@ export async function PATCH(
         card_id: cardId,
         set_id: setId,
         ...nextState,
-        due_at: new Date().toISOString(),
         last_reviewed_at: new Date().toISOString(),
       },
       { onConflict: "user_id,card_id" },

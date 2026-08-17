@@ -5,7 +5,7 @@ import { SetHeader } from "@/components/SetHeader";
 import { CardList } from "@/components/CardList";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { BoltIcon, DeckIcon, GearIcon, SparkleIcon } from "@/components/icons";
-import type { Card, Folder } from "@/lib/types";
+import type { Card, Folder, StudyStatus } from "@/lib/types";
 
 function ModeCard({
   href,
@@ -83,6 +83,11 @@ export default async function SetDetailPage({
   const masteredCount = progress.filter((p) => p.status === "mastered").length;
   const recommendLearn = learningCount + newCount > 0;
 
+  const progressByCardId: Record<string, StudyStatus> = {};
+  for (const row of progress) {
+    progressByCardId[row.card_id] = row.status as StudyStatus;
+  }
+
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-8">
       <Breadcrumb folders={folders} folderId={set.folder_id} trailingLabel={set.title} />
@@ -125,7 +130,7 @@ export default async function SetDetailPage({
         </div>
       ) : null}
 
-      <CardList setId={id} cards={cardList} />
+      <CardList setId={id} cards={cardList} progressByCardId={progressByCardId} />
     </main>
   );
 }

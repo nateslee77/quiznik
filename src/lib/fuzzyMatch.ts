@@ -21,18 +21,30 @@ export function levenshtein(a: string, b: string): number {
 }
 
 function normalize(value: string): string {
-  return value.trim().toLowerCase().replace(/\s+/g, " ");
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, "")
+    .replace(/\s+/g, " ");
 }
 
-// Case/whitespace-insensitive, and tolerant of a small typo: allowed edit
-// distance scales with answer length so short answers stay strict.
-export function isCloseEnough(userAnswer: string, correctAnswer: string): boolean {
+export type MatchQuality = "exact" | "close" | "wrong";
+
+// Case/punctuation/whitespace-insensitive, and tolerant of a small typo:
+// allowed edit distance scales with answer length so short answers stay
+// strict. Distinguishes an exact match from a merely-close one so callers
+// can decide whether to ask "did you mean X?" before grading it correct.
+export function matchQuality(userAnswer: string, correctAnswer: string): MatchQuality {
   const normalizedUser = normalize(userAnswer);
   const normalizedCorrect = normalize(correctAnswer);
 
-  if (normalizedUser === normalizedCorrect) return true;
-  if (!normalizedUser) return false;
+  if (normalizedUser === normalizedCorrect) return "exact";
+  if (!normalizedUser) return "wrong";
 
   const threshold = normalizedCorrect.length <= 5 ? 1 : 2;
-  return levenshtein(normalizedUser, normalizedCorrect) <= threshold;
+  return levenshtein(normalizedUser, normalizedCorrect) <= threshold ? "close" : "wrong";
+}
+
+export function isCloseEnough(userAnswer: string, correctAnswer: string): boolean {
+  return matchQuality(userAnswer, correctAnswer) !== "wrong";
 }

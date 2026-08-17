@@ -117,6 +117,22 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, done, question, selected]);
 
+  // Enter advances past an already-graded question, same as clicking
+  // Next — only fires once graded, so it can't collide with the written-
+  // answer input's own Enter-to-check handler.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== "Enter" || phase !== "running" || done || !question) return;
+      const graded = question.type === "multiple_choice" ? selected !== null : writtenChecked;
+      if (!graded) return;
+      e.preventDefault();
+      nextQuestion();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, done, question, selected, writtenChecked]);
+
   if (phase === "setup") {
     return (
       <div className="rounded-2xl border border-amber-900/10 bg-white p-6 shadow-sm">
