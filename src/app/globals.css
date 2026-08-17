@@ -103,3 +103,20 @@ body {
 .coin-pop {
   animation: coin-pop 0.9s ease-out forwards;
 }
+
+/* Floating + spinning coin, used for the Shop nav icon. */
+@keyframes coin-float-spin {
+  0% {
+    transform: translateY(0) rotateY(0deg);
+  }
+  50% {
+    transform: translateY(-15%) rotateY(180deg);
+  }
+  100% {
+    transform: translateY(0) rotateY(360deg);
+  }
+}
+.coin-float-spin {
+  display: inline-block;
+  animation: coin-float-spin 2.4s ease-in-out infinite;
+}

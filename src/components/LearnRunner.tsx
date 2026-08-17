@@ -377,7 +377,6 @@ export function LearnRunner({
         {currentStage === "new" ? "Not studied" : currentStage === "seen" ? "Seen" : currentStage === "review" ? "Review" : "Mastered"}
       </p>
 
-      <div className="flex flex-1 flex-col justify-center">
       <div className="rounded-2xl border border-amber-900/10 bg-white p-6 shadow-sm sm:p-8">
         {cardImageUrl(activeQuestion.card.image_path) ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -465,7 +464,6 @@ export function LearnRunner({
             </button>
           </div>
         )}
-      </div>
       </div>
     </div>
   );
