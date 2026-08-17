@@ -256,7 +256,7 @@ export function LearnRunner({
   // place (this only fires once graded, so the two can't double-fire).
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key !== "Enter" || view !== "question" || pendingConfirm) return;
+      if (e.key !== "Enter" || e.repeat || view !== "question" || pendingConfirm) return;
       const graded = activeQuestion?.type === "multiple_choice" ? selectedIndex !== null : writtenChecked;
       if (!graded) return;
       e.preventDefault();

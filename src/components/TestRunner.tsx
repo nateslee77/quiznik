@@ -122,7 +122,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
   // answer input's own Enter-to-check handler.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key !== "Enter" || phase !== "running" || done || !question) return;
+      if (e.key !== "Enter" || e.repeat || phase !== "running" || done || !question) return;
       const graded = question.type === "multiple_choice" ? selected !== null : writtenChecked;
       if (!graded) return;
       e.preventDefault();
