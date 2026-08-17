@@ -36,6 +36,39 @@ const DIRECTION_OPTIONS: { value: Direction | "mixed"; label: string }[] = [
   { value: "mixed", label: "Mixed" },
 ];
 
+const ROUND_STORAGE_PREFIX = "quiznik-learn-round-";
+
+type StoredRound = {
+  phase: Phase;
+  queue: string[];
+  roundSize: number;
+  cardStates: Record<string, RoundCardState>;
+  doneCardIds: string[];
+};
+
+// Resumes an in-progress round left off from a previous visit (leaving the
+// page, refreshing, or the tab just closing mid-round shouldn't lose your
+// place). Only the round's structure is restored — not an answer that was
+// mid-flight — so a refresh lands back on the current card fresh rather
+// than replaying a half-submitted guess.
+function loadStoredRound(setId: string, cards: Card[]): StoredRound | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(ROUND_STORAGE_PREFIX + setId);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as StoredRound;
+    if (parsed.phase !== "running" || !Array.isArray(parsed.queue)) return null;
+    // Defensive: the deck may have been edited since — drop any card ids
+    // that no longer exist rather than trusting stale data blindly.
+    const validIds = new Set(cards.map((c) => c.id));
+    const queue = parsed.queue.filter((id) => validIds.has(id));
+    if (queue.length === 0) return null;
+    return { ...parsed, queue };
+  } catch {
+    return null;
+  }
+}
+
 function toSnapshotMap(rows: ProgressRow[]): Record<string, ProgressSnapshot> {
   const map: Record<string, ProgressSnapshot> = {};
   for (const row of rows) {
@@ -68,7 +101,8 @@ export function LearnRunner({
   cards: Card[];
   progressRows: ProgressRow[];
 }) {
-  const [phase, setPhase] = useState<Phase>("setup");
+  const [storedRound] = useState(() => loadStoredRound(setId, cards));
+  const [phase, setPhase] = useState<Phase>(storedRound ? "running" : "setup");
   const [maxNew, setMaxNew] = useState(DEFAULT_MAX_NEW);
   const [maxReview, setMaxReview] = useState(DEFAULT_MAX_REVIEW);
   const [direction, setDirection] = useState<Direction | "mixed">("definition-to-term");
@@ -77,10 +111,12 @@ export function LearnRunner({
   const [resetPending, startResetTransition] = useTransition();
 
   const [progressByCardId, setProgressByCardId] = useState(() => toSnapshotMap(progressRows));
-  const [queue, setQueue] = useState<string[]>([]);
-  const [roundSize, setRoundSize] = useState(0);
-  const [cardStates, setCardStates] = useState<Record<string, RoundCardState>>({});
-  const [doneCardIds, setDoneCardIds] = useState<Set<string>>(new Set());
+  const [queue, setQueue] = useState<string[]>(() => storedRound?.queue ?? []);
+  const [roundSize, setRoundSize] = useState(() => storedRound?.roundSize ?? 0);
+  const [cardStates, setCardStates] = useState<Record<string, RoundCardState>>(
+    () => storedRound?.cardStates ?? {},
+  );
+  const [doneCardIds, setDoneCardIds] = useState<Set<string>>(() => new Set(storedRound?.doneCardIds ?? []));
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [answerWasCorrect, setAnswerWasCorrect] = useState<boolean | null>(null);
@@ -103,6 +139,23 @@ export function LearnRunner({
     else setMascot("testing");
     return () => setMascot("idle");
   }, [view, setMascot]);
+
+  // Persist the round's structure (not any answer mid-flight) so leaving
+  // the page — navigating away, refreshing, closing the tab — and coming
+  // back resumes at the same spot instead of losing the round entirely.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (phase !== "running" || queue.length === 0) {
+        localStorage.removeItem(ROUND_STORAGE_PREFIX + setId);
+        return;
+      }
+      const stored: StoredRound = { phase, queue, roundSize, cardStates, doneCardIds: [...doneCardIds] };
+      localStorage.setItem(ROUND_STORAGE_PREFIX + setId, JSON.stringify(stored));
+    } catch {
+      // storage unavailable — round just won't persist across visits
+    }
+  }, [setId, phase, queue, roundSize, cardStates, doneCardIds]);
 
   // Deliberately keyed only on currentCardId: the question's presentation
   // must stay frozen for as long as this card is on screen, even though
