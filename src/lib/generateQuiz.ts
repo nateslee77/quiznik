@@ -61,11 +61,20 @@ function resolveType(setting: QuestionType | "mixed"): QuestionType {
   return Math.random() < 0.5 ? "multiple_choice" : "written";
 }
 
-export function generateQuiz(cards: Card[], settings: QuizSettings): QuizQuestion[] {
+// `distractorPool` defaults to `cards` (the question pool itself) but can be
+// given separately — e.g. a "retry just the missed cards" quiz should still
+// draw multiple-choice distractors from the *whole* deck, not just the
+// handful of missed cards, or a small miss-count could starve MC of enough
+// wrong choices to offer.
+export function generateQuiz(
+  cards: Card[],
+  settings: QuizSettings,
+  distractorPool: Card[] = cards,
+): QuizQuestion[] {
   const pool = settings.shuffle ? shuffle(cards) : cards;
   const selected = pool.slice(0, Math.max(0, Math.min(settings.count, pool.length)));
 
   return selected.map((card) =>
-    buildQuestion(card, cards, resolveDirection(settings.direction), resolveType(settings.questionType)),
+    buildQuestion(card, distractorPool, resolveDirection(settings.direction), resolveType(settings.questionType)),
   );
 }

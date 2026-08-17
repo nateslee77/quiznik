@@ -43,9 +43,18 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
   const [writtenCorrect, setWrittenCorrect] = useState(false);
   const [answers, setAnswers] = useState<Answered[]>([]);
 
-  function startTest() {
-    const settings: QuizSettings = { questionType, direction, count, shuffle: shuffleOn };
-    setQuestions(generateQuiz(cards, settings));
+  // `customCards`, when given, restricts the quiz to that subset (used by
+  // "Retry missed questions") while still drawing MC distractors from the
+  // full deck via generateQuiz's separate distractorPool param.
+  function startTest(customCards?: Card[]) {
+    const sourceCards = customCards ?? cards;
+    const settings: QuizSettings = {
+      questionType,
+      direction,
+      count: customCards ? sourceCards.length : count,
+      shuffle: shuffleOn,
+    };
+    setQuestions(generateQuiz(sourceCards, settings, cards));
     setIndex(0);
     setAnswers([]);
     setSelected(null);
@@ -194,7 +203,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
         </div>
 
         <button
-          onClick={startTest}
+          onClick={() => startTest()}
           className="mt-6 w-full rounded-lg bg-rose-400 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-rose-300"
         >
           Start test
@@ -206,6 +215,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
   if (done) {
     const correctCount = answers.filter((a) => a.correct).length;
     const missed = answers.filter((a) => !a.correct);
+    const missedCards = [...new Map(missed.map((a) => [a.question.card.id, a.question.card])).values()];
     const pct = Math.round((correctCount / questions.length) * 100);
 
     return (
@@ -235,9 +245,18 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
           </div>
         ) : null}
 
-        <div className="mt-8 flex w-full max-w-md gap-3">
+        {missedCards.length > 0 ? (
           <button
-            onClick={startTest}
+            onClick={() => startTest(missedCards)}
+            className="mt-6 w-full max-w-md rounded-lg border border-red-300 px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
+          >
+            Retry just the {missedCards.length} missed card{missedCards.length === 1 ? "" : "s"}
+          </button>
+        ) : null}
+
+        <div className="mt-3 flex w-full max-w-md gap-3">
+          <button
+            onClick={() => startTest()}
             className="flex-1 rounded-lg bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300"
           >
             Retake (same settings)
