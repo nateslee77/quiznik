@@ -5,6 +5,29 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { ParsedCard } from "@/lib/parseFlashcards";
 import { TEST_CORRECT_COINS, testCompletionBonus } from "@/lib/coins";
+import { CARD_IMAGES_BUCKET } from "@/lib/supabase/storage";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+function extOf(file: File): string {
+  const fromName = file.name.split(".").pop();
+  if (fromName && fromName.length <= 5) return fromName.toLowerCase();
+  return file.type.split("/")[1] ?? "jpg";
+}
+
+async function uploadCardImageFile(
+  supabase: SupabaseClient,
+  userId: string,
+  file: File,
+): Promise<string> {
+  const path = `${userId}/${crypto.randomUUID()}.${extOf(file)}`;
+  const { error } = await supabase.storage.from(CARD_IMAGES_BUCKET).upload(path, file, {
+    contentType: file.type || undefined,
+  });
+  if (error) throw new Error(error.message);
+  return path;
+}
 
 export type CreateSetState = { error: string };
 
@@ -61,17 +84,46 @@ export async function createSet(
     return { error: setError?.message ?? "Couldn't create the set." };
   }
 
-  const { error: cardsError } = await supabase.from("cards").insert(
-    validCards.map((card, i) => ({
-      set_id: set.id,
-      term: card.term.trim(),
-      definition: card.definition.trim(),
-      position: i,
-    })),
-  );
+  const { data: insertedCards, error: cardsError } = await supabase
+    .from("cards")
+    .insert(
+      validCards.map((card, i) => ({
+        set_id: set.id,
+        term: card.term.trim(),
+        definition: card.definition.trim(),
+        position: i,
+      })),
+    )
+    .select("id, position")
+    .order("position", { ascending: true });
 
   if (cardsError) {
     return { error: cardsError.message };
+  }
+
+  // Attach any per-row images picked in the manual-entry form. Bulk insert
+  // doesn't guarantee return order matches input order, so match rows back
+  // up by the `position` we just assigned rather than array index.
+  const uploads = (insertedCards ?? []).flatMap((row) => {
+    const source = validCards[row.position];
+    const file = source?.id ? formData.get(`image-${source.id}`) : null;
+    if (!(file instanceof File) || file.size === 0) return [];
+    return [{ cardId: row.id, file }];
+  });
+
+  if (uploads.length > 0) {
+    await Promise.all(
+      uploads.map(async ({ cardId, file }) => {
+        if (file.size > MAX_IMAGE_BYTES || !file.type.startsWith("image/")) return;
+        try {
+          const path = await uploadCardImageFile(supabase, user.id, file);
+          await supabase.from("cards").update({ image_path: path }).eq("id", cardId);
+        } catch {
+          // A failed image upload shouldn't block set creation — the card
+          // still exists, the user can attach a photo again from the deck.
+        }
+      }),
+    );
   }
 
   revalidatePath("/sets");
@@ -108,13 +160,62 @@ export async function addCard(setId: string, term: string, definition: string) {
     .select("*", { count: "exact", head: true })
     .eq("set_id", setId);
 
-  const { error } = await supabase.from("cards").insert({
-    set_id: setId,
-    term: term.trim(),
-    definition: definition.trim(),
-    position: count ?? 0,
-  });
+  const { data: card, error } = await supabase
+    .from("cards")
+    .insert({
+      set_id: setId,
+      term: term.trim(),
+      definition: definition.trim(),
+      position: count ?? 0,
+    })
+    .select("id")
+    .single();
+  if (error || !card) throw new Error(error?.message ?? "Couldn't add the card.");
+  revalidatePath(`/sets/${setId}`);
+  return { id: card.id as string };
+}
+
+export async function uploadCardImage(cardId: string, setId: string, file: File) {
+  if (!file.type.startsWith("image/")) throw new Error("Please choose an image file.");
+  if (file.size > MAX_IMAGE_BYTES) throw new Error("Images must be under 5MB.");
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data: existing } = await supabase
+    .from("cards")
+    .select("image_path")
+    .eq("id", cardId)
+    .maybeSingle();
+
+  const path = await uploadCardImageFile(supabase, user.id, file);
+  const { error } = await supabase.from("cards").update({ image_path: path }).eq("id", cardId);
   if (error) throw new Error(error.message);
+
+  if (existing?.image_path) {
+    await supabase.storage.from(CARD_IMAGES_BUCKET).remove([existing.image_path]);
+  }
+  revalidatePath(`/sets/${setId}`);
+  return { path };
+}
+
+export async function removeCardImage(cardId: string, setId: string) {
+  const supabase = await createClient();
+  const { data: existing } = await supabase
+    .from("cards")
+    .select("image_path")
+    .eq("id", cardId)
+    .maybeSingle();
+
+  const { error } = await supabase.from("cards").update({ image_path: null }).eq("id", cardId);
+  if (error) throw new Error(error.message);
+
+  if (existing?.image_path) {
+    await supabase.storage.from(CARD_IMAGES_BUCKET).remove([existing.image_path]);
+  }
   revalidatePath(`/sets/${setId}`);
 }
 
@@ -135,8 +236,18 @@ export async function updateCard(
 
 export async function deleteCard(cardId: string, setId: string) {
   const supabase = await createClient();
+  const { data: existing } = await supabase
+    .from("cards")
+    .select("image_path")
+    .eq("id", cardId)
+    .maybeSingle();
+
   const { error } = await supabase.from("cards").delete().eq("id", cardId);
   if (error) throw new Error(error.message);
+
+  if (existing?.image_path) {
+    await supabase.storage.from(CARD_IMAGES_BUCKET).remove([existing.image_path]);
+  }
   revalidatePath(`/sets/${setId}`);
 }
 

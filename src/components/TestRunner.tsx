@@ -10,6 +10,7 @@ import { useCoins } from "@/components/coins/CoinsContext";
 import { TEST_CORRECT_COINS, testCompletionBonus } from "@/lib/coins";
 import { awardTestCoins } from "@/app/sets/actions";
 import { GearIcon } from "@/components/icons";
+import { cardImageUrl } from "@/lib/supabase/storage";
 import type { Card } from "@/lib/types";
 
 type Answered = { question: QuizQuestion; correct: boolean };
@@ -233,6 +234,14 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
       </p>
 
       <div className="rounded-2xl border border-amber-900/10 bg-white p-6 shadow-sm">
+        {cardImageUrl(question.card.image_path) ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={cardImageUrl(question.card.image_path)!}
+            alt=""
+            className="mb-4 max-h-48 max-w-full rounded-xl object-contain"
+          />
+        ) : null}
         <h2 className="mb-6 text-xl font-medium sm:text-2xl">{question.prompt}</h2>
 
         {question.type === "multiple_choice" ? (

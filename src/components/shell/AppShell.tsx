@@ -7,14 +7,17 @@ import { DockedMascot, MascotProvider } from "@/components/mascot/MascotContext"
 import { CoinsProvider } from "@/components/coins/CoinsContext";
 import { CoinBalance } from "@/components/coins/CoinBalance";
 import { MenuIcon } from "@/components/icons";
+import type { Folder } from "@/lib/types";
 
 export function AppShell({
   initialCoins = 0,
   initialSkinId = "default",
+  folders = [],
   children,
 }: {
   initialCoins?: number;
   initialSkinId?: string;
+  folders?: Folder[];
   children: React.ReactNode;
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -27,7 +30,7 @@ export function AppShell({
         {/* Desktop sidebar (collapsible) */}
         {!collapsed ? (
           <aside className="sticky top-0 hidden h-screen w-60 shrink-0 border-r border-amber-900/10 bg-white/60 lg:block">
-            <Sidebar onCollapse={() => setCollapsed(true)} />
+            <Sidebar folders={folders} onCollapse={() => setCollapsed(true)} />
           </aside>
         ) : (
           <button
@@ -67,7 +70,7 @@ export function AppShell({
               aria-hidden
             />
             <aside className="absolute inset-y-0 left-0 w-72 border-r border-amber-900/15 bg-[#fff7f0]">
-              <Sidebar onNavigate={() => setDrawerOpen(false)} />
+              <Sidebar folders={folders} onNavigate={() => setDrawerOpen(false)} />
             </aside>
           </div>
         ) : null}

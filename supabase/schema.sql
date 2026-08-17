@@ -299,3 +299,36 @@ drop policy if exists "unlocked_skins are owner writable" on public.unlocked_ski
 create policy "unlocked_skins are owner writable"
   on public.unlocked_skins for insert
   with check (auth.uid() = user_id);
+
+-- Optional photo attached to a card, stored as a path inside the
+-- `card-images` bucket below (not a full URL) so it can be re-derived if the
+-- project URL ever changes.
+alter table public.cards add column if not exists image_path text;
+
+-- Card images bucket: public read (photos aren't sensitive, and public URLs
+-- avoid a signed-URL round trip on every study/test/learn render), writes
+-- restricted to the owning user via their uid as the first path segment
+-- (`{user_id}/...`).
+insert into storage.buckets (id, name, public)
+values ('card-images', 'card-images', true)
+on conflict (id) do nothing;
+
+drop policy if exists "card images are publicly readable" on storage.objects;
+create policy "card images are publicly readable"
+  on storage.objects for select
+  using (bucket_id = 'card-images');
+
+drop policy if exists "card images are owner writable" on storage.objects;
+create policy "card images are owner writable"
+  on storage.objects for insert
+  with check (bucket_id = 'card-images' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "card images are owner updatable" on storage.objects;
+create policy "card images are owner updatable"
+  on storage.objects for update
+  using (bucket_id = 'card-images' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "card images are owner deletable" on storage.objects;
+create policy "card images are owner deletable"
+  on storage.objects for delete
+  using (bucket_id = 'card-images' and (storage.foldername(name))[1] = auth.uid()::text);

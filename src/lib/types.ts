@@ -23,6 +23,7 @@ export type Card = {
   term: string;
   definition: string;
   position: number;
+  image_path: string | null;
   created_at: string;
 };
 

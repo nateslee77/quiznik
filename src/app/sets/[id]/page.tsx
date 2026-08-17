@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { SetHeader } from "@/components/SetHeader";
 import { CardList } from "@/components/CardList";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { BoltIcon, DeckIcon, GearIcon, SparkleIcon } from "@/components/icons";
 import type { Card, Folder } from "@/lib/types";
 
@@ -84,6 +85,7 @@ export default async function SetDetailPage({
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-8">
+      <Breadcrumb folders={folders} folderId={set.folder_id} trailingLabel={set.title} />
       <SetHeader set={set} folders={folders} />
 
       {cardList.length > 0 ? (

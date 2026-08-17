@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCoinBalance } from "@/lib/coins";
 import { Navbar } from "@/components/Navbar";
 import { AppShell } from "@/components/shell/AppShell";
+import type { Folder } from "@/lib/types";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -38,13 +39,16 @@ export default async function RootLayout({
 
   let initialCoins = 0;
   let initialSkinId = "default";
+  let folders: Folder[] = [];
   if (user) {
-    const [balance, profileRes] = await Promise.all([
+    const [balance, profileRes, foldersRes] = await Promise.all([
       getCoinBalance(supabase, user.id),
       supabase.from("profiles").select("equipped_skin").eq("user_id", user.id).maybeSingle(),
+      supabase.from("folders").select("*").order("position").order("created_at"),
     ]);
     initialCoins = balance;
     initialSkinId = profileRes.data?.equipped_skin ?? "default";
+    folders = foldersRes.data ?? [];
   }
 
   return (
@@ -62,7 +66,7 @@ export default async function RootLayout({
           className="pointer-events-none fixed -bottom-40 -right-40 z-0 h-[480px] w-[480px] rounded-full bg-amber-200/40 blur-3xl"
         />
         {user ? (
-          <AppShell initialCoins={initialCoins} initialSkinId={initialSkinId}>
+          <AppShell initialCoins={initialCoins} initialSkinId={initialSkinId} folders={folders}>
             {children}
           </AppShell>
         ) : (

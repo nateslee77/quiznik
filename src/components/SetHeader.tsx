@@ -3,18 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { deleteSet, moveSetToFolder, updateSetDetails } from "@/app/sets/actions";
+import { folderAncestors } from "@/lib/folderPath";
 import type { FlashcardSet, Folder } from "@/lib/types";
 
 function folderPath(folders: Folder[], folder: Folder): string {
-  const names: string[] = [folder.name];
-  let current = folder;
-  while (current.parent_id) {
-    const parent = folders.find((f) => f.id === current.parent_id);
-    if (!parent) break;
-    names.unshift(parent.name);
-    current = parent;
-  }
-  return names.join(" / ");
+  return folderAncestors(folders, folder.id)
+    .map((f) => f.name)
+    .join(" / ");
 }
 
 export function SetHeader({ set, folders }: { set: FlashcardSet; folders: Folder[] }) {

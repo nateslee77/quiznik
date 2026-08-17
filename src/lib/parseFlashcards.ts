@@ -14,7 +14,7 @@ export const TERM_SEPARATORS: Record<TermSeparator, { label: string }> = {
   colon: { label: "Colon (:)" },
 };
 
-export type ParsedCard = { term: string; definition: string };
+export type ParsedCard = { term: string; definition: string; id?: string };
 
 export type ParseResult = {
   cards: ParsedCard[];

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createFolder, moveFolder, moveSetToFolder } from "@/app/sets/actions";
 import { FolderControls } from "@/components/FolderControls";
 import { DeckIcon, FolderIcon, PlusIcon, SearchIcon } from "@/components/icons";
+import { folderAncestors } from "@/lib/folderPath";
 import type { Folder } from "@/lib/types";
 
 export type LibraryDeck = {
@@ -366,14 +367,7 @@ export function LibraryBrowser({
 
   // ---- folder view ----
   if (activeFolder) {
-    const crumbs: Folder[] = [activeFolder];
-    let cursor = activeFolder;
-    while (cursor.parent_id) {
-      const parent = folders.find((f) => f.id === cursor.parent_id);
-      if (!parent) break;
-      crumbs.unshift(parent);
-      cursor = parent;
-    }
+    const crumbs = folderAncestors(folders, activeFolder.id);
     const subfolders = folders.filter((f) => f.parent_id === activeFolder.id);
     const folderDecks = decks.filter((d) => d.folder_id === activeFolder.id);
 

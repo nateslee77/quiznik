@@ -1,15 +1,74 @@
 "use client";
 
-import { useActionState, useId, useMemo, useState } from "react";
+import { useActionState, useEffect, useId, useMemo, useRef, useState } from "react";
 import { createSet, type CreateSetState } from "@/app/sets/actions";
 import { parseFlashcardText, TERM_SEPARATORS, type TermSeparator } from "@/lib/parseFlashcards";
+import { ImageIcon, XIcon } from "@/components/icons";
 
-type Row = { id: string; term: string; definition: string };
+type Row = { id: string; term: string; definition: string; image: File | null };
 
 const initialState: CreateSetState = { error: "" };
 
 function emptyRow(): Row {
-  return { id: crypto.randomUUID(), term: "", definition: "" };
+  return { id: crypto.randomUUID(), term: "", definition: "", image: null };
+}
+
+function RowImagePicker({
+  row,
+  onChange,
+}: {
+  row: Row;
+  onChange: (file: File | null) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const previewUrl = useMemo(() => (row.image ? URL.createObjectURL(row.image) : null), [row.image]);
+
+  // Only cleanup here — the URL itself is derived straight from `row.image`
+  // during render, so there's no state to synchronize.
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  return (
+    <div className="mt-1 shrink-0">
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        name={`image-${row.id}`}
+        onChange={(e) => onChange(e.target.files?.[0] ?? null)}
+        className="hidden"
+      />
+      {previewUrl ? (
+        <div className="relative h-9 w-9 overflow-hidden rounded-md border border-amber-900/20">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={previewUrl} alt="" className="h-full w-full object-cover" />
+          <button
+            type="button"
+            onClick={() => {
+              onChange(null);
+              if (inputRef.current) inputRef.current.value = "";
+            }}
+            aria-label="Remove photo"
+            className="absolute inset-0 flex items-center justify-center bg-black/40 text-white opacity-0 transition hover:opacity-100"
+          >
+            <XIcon className="h-4 w-4" />
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          aria-label="Add photo"
+          className="flex h-9 w-9 items-center justify-center rounded-md border border-dashed border-amber-900/20 text-amber-950/40 transition hover:border-rose-300 hover:text-rose-400"
+        >
+          <ImageIcon className="h-4 w-4" />
+        </button>
+      )}
+    </div>
+  );
 }
 
 export function NewSetForm({ folderId }: { folderId?: string | null }) {
@@ -20,6 +79,7 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
   const [tab, setTab] = useState<"manual" | "paste">("manual");
   const [pasteText, setPasteText] = useState("");
   const [separator, setSeparator] = useState<TermSeparator>("tab");
+  const termRefs = useRef<Map<string, HTMLInputElement>>(new Map());
 
   const preview = useMemo(() => parseFlashcardText(pasteText, separator), [pasteText, separator]);
 
@@ -27,7 +87,7 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
     () =>
       JSON.stringify(
         rows
-          .map((r) => ({ term: r.term, definition: r.definition }))
+          .map((r) => ({ id: r.id, term: r.term, definition: r.definition }))
           .filter((c) => c.term.trim() && c.definition.trim()),
       ),
     [rows],
@@ -37,8 +97,28 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
   }
 
+  function updateRowImage(id: string, image: File | null) {
+    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, image } : r)));
+  }
+
   function removeRow(id: string) {
     setRows((prev) => (prev.length <= 1 ? prev : prev.filter((r) => r.id !== id)));
+  }
+
+  // Enter in a row's Definition field jumps to (or creates) the next row's
+  // Term field, so a whole deck can be typed without touching the mouse.
+  function handleDefinitionKeyDown(e: React.KeyboardEvent<HTMLInputElement>, rowId: string) {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    const idx = rows.findIndex((r) => r.id === rowId);
+    const next = rows[idx + 1];
+    if (next) {
+      termRefs.current.get(next.id)?.focus();
+    } else {
+      const row = emptyRow();
+      setRows((prev) => [...prev, row]);
+      requestAnimationFrame(() => termRefs.current.get(row.id)?.focus());
+    }
   }
 
   // Keep Tab usable inside the textarea (it types the delimiter instead of
@@ -57,7 +137,7 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
     if (preview.cards.length === 0) return;
     setRows((prev) => {
       const nonEmpty = prev.filter((r) => r.term.trim() || r.definition.trim());
-      const imported = preview.cards.map((c) => ({ id: crypto.randomUUID(), ...c }));
+      const imported = preview.cards.map((c) => ({ id: crypto.randomUUID(), ...c, image: null }));
       return [...nonEmpty, ...imported];
     });
     setPasteText("");
@@ -130,6 +210,10 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
                   {i + 1}
                 </span>
                 <input
+                  ref={(el) => {
+                    if (el) termRefs.current.set(row.id, el);
+                    else termRefs.current.delete(row.id);
+                  }}
                   value={row.term}
                   onChange={(e) => updateRow(row.id, "term", e.target.value)}
                   placeholder="Term"
@@ -138,9 +222,11 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
                 <input
                   value={row.definition}
                   onChange={(e) => updateRow(row.id, "definition", e.target.value)}
+                  onKeyDown={(e) => handleDefinitionKeyDown(e, row.id)}
                   placeholder="Definition"
                   className="w-full min-w-0 flex-1 rounded-lg border border-amber-900/20 bg-white px-3 py-2 text-sm outline-none focus:border-rose-400"
                 />
+                <RowImagePicker row={row} onChange={(file) => updateRowImage(row.id, file)} />
                 <button
                   type="button"
                   onClick={() => removeRow(row.id)}

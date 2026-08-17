@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "@/app/auth/actions";
 import { CoinBalance } from "@/components/coins/CoinBalance";
+import { FolderTree } from "@/components/shell/FolderTree";
 import {
   ChatIcon,
   HomeIcon,
@@ -12,6 +13,7 @@ import {
   PlusIcon,
   SparkleIcon,
 } from "@/components/icons";
+import type { Folder } from "@/lib/types";
 
 function NavLink({
   href,
@@ -43,9 +45,11 @@ function NavLink({
 }
 
 export function Sidebar({
+  folders = [],
   onNavigate,
   onCollapse,
 }: {
+  folders?: Folder[];
   onNavigate?: () => void;
   onCollapse?: () => void;
 }) {
@@ -93,6 +97,7 @@ export function Sidebar({
         label="Library"
         onNavigate={onNavigate}
       />
+      <FolderTree folders={folders} onNavigate={onNavigate} />
       <div className="flex cursor-default items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-amber-950/40">
         <ChatIcon className="h-4 w-4" />
         Chat
