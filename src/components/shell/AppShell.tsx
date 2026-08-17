@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Sidebar } from "@/components/shell/Sidebar";
 import { DockedMascot, MascotProvider } from "@/components/mascot/MascotContext";
@@ -22,6 +22,23 @@ export function AppShell({
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+
+  // Without this, dropping a file anywhere that isn't exactly one of our
+  // designated drop zones falls through to the browser's default behavior:
+  // navigating the whole tab to the dropped file. That reads as "drag and
+  // drop is broken" even where it works, since a slightly-missed drop wipes
+  // out the page. This guard makes every miss a no-op instead.
+  useEffect(() => {
+    function preventDefault(e: DragEvent) {
+      e.preventDefault();
+    }
+    window.addEventListener("dragover", preventDefault);
+    window.addEventListener("drop", preventDefault);
+    return () => {
+      window.removeEventListener("dragover", preventDefault);
+      window.removeEventListener("drop", preventDefault);
+    };
+  }, []);
 
   return (
     <CoinsProvider initialBalance={initialCoins}>

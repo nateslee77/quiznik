@@ -201,6 +201,21 @@ export function LearnRunner({
     void submitResult(currentCardId, correct);
   }
 
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (view !== "question" || !activeQuestion) return;
+      if (activeQuestion.type !== "multiple_choice" || selectedIndex !== null) return;
+      const target = e.target as HTMLElement | null;
+      if (target && ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) return;
+      const idx = ["1", "2", "3", "4"].indexOf(e.key);
+      if (idx === -1 || idx >= activeQuestion.choices.length) return;
+      chooseMc(idx);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, activeQuestion, selectedIndex]);
+
   const stageCounts: Record<StudyStatus | "new", number> = {
     new: cards.length - Object.keys(progressByCardId).length,
     seen: 0,
@@ -362,7 +377,8 @@ export function LearnRunner({
         {currentStage === "new" ? "Not studied" : currentStage === "seen" ? "Seen" : currentStage === "review" ? "Review" : "Mastered"}
       </p>
 
-      <div className="rounded-2xl border border-amber-900/10 bg-white p-6 shadow-sm">
+      <div className="flex flex-1 flex-col justify-center">
+      <div className="rounded-2xl border border-amber-900/10 bg-white p-6 shadow-sm sm:p-8">
         {cardImageUrl(activeQuestion.card.image_path) ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -449,6 +465,7 @@ export function LearnRunner({
             </button>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

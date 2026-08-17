@@ -30,56 +30,25 @@ function isGhost(id: string): boolean {
   return id.startsWith("temp-");
 }
 
+// Purely presentational — all pick/upload/remove logic lives in the parent
+// row (EditableCard), because the *drop zone* needs to be the whole row,
+// not this small button (a drop landing a few px off a tiny target used to
+// fall through to the browser's default "navigate to the file" behavior).
 function CardImageControl({
-  card,
-  setId,
+  src,
+  pending,
   editing,
-  onError,
+  inputRef,
+  onPick,
+  onRemove,
 }: {
-  card: Card;
-  setId: string;
+  src: string | null;
+  pending: boolean;
   editing: boolean;
-  onError: (message: string) => void;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+  onPick: (file: File | null) => void;
+  onRemove: () => void;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [removed, setRemoved] = useState(false);
-  const [pending, startTransition] = useTransition();
-
-  const src = previewUrl ?? (removed ? null : cardImageUrl(card.image_path));
-
-  function pick(file: File | null) {
-    if (!file) return;
-    onError("");
-    setRemoved(false);
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
-    startTransition(async () => {
-      try {
-        await uploadCardImage(card.id, setId, file);
-      } catch (err) {
-        setPreviewUrl(null);
-        onError(errorMessage(err, "Couldn't upload that photo. Try again."));
-      }
-    });
-  }
-
-  function remove() {
-    onError("");
-    setPreviewUrl(null);
-    setRemoved(true);
-    startTransition(async () => {
-      try {
-        await removeCardImage(card.id, setId);
-      } catch (err) {
-        setRemoved(false);
-        onError(errorMessage(err, "Couldn't remove that photo. Try again."));
-      }
-    });
-  }
-
-  const { isOver, dropHandlers } = useImageDrop(pick);
-
   if (!editing) {
     return src ? (
       // eslint-disable-next-line @next/next/no-img-element
@@ -93,20 +62,17 @@ function CardImageControl({
         ref={inputRef}
         type="file"
         accept="image/*"
-        onChange={(e) => pick(e.target.files?.[0] ?? null)}
+        onChange={(e) => onPick(e.target.files?.[0] ?? null)}
         className="hidden"
       />
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
         aria-label={src ? "Replace photo" : "Add or drop a photo"}
-        {...dropHandlers}
         className={`relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border transition sm:h-20 sm:w-20 ${
-          isOver
-            ? "border-rose-400 bg-rose-50"
-            : src
-              ? "border-amber-900/20"
-              : "border-dashed border-amber-900/20 text-amber-950/40 hover:border-rose-300 hover:text-rose-400"
+          src
+            ? "border-amber-900/20"
+            : "border-dashed border-amber-900/20 text-amber-950/40 hover:border-rose-300 hover:text-rose-400"
         }`}
       >
         {src ? (
@@ -124,7 +90,7 @@ function CardImageControl({
       {src ? (
         <button
           type="button"
-          onClick={remove}
+          onClick={onRemove}
           aria-label="Remove photo"
           className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-white text-amber-950/60 shadow ring-1 ring-amber-900/15 hover:text-red-600"
         >
@@ -152,6 +118,54 @@ function EditableCard({
   const [pending, startTransition] = useTransition();
   const ghost = isGhost(card.id);
 
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [imageRemoved, setImageRemoved] = useState(false);
+  const [imagePending, startImageTransition] = useTransition();
+  const imageSrc = previewUrl ?? (imageRemoved ? null : cardImageUrl(card.image_path));
+
+  function pickImage(file: File | null) {
+    if (!file || ghost) return;
+    onError("");
+    setImageRemoved(false);
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    startImageTransition(async () => {
+      try {
+        await uploadCardImage(card.id, setId, file);
+      } catch (err) {
+        setPreviewUrl(null);
+        onError(errorMessage(err, "Couldn't upload that photo. Try again."));
+      }
+    });
+  }
+
+  function removeImage() {
+    onError("");
+    setPreviewUrl(null);
+    setImageRemoved(true);
+    startImageTransition(async () => {
+      try {
+        await removeCardImage(card.id, setId);
+      } catch (err) {
+        setImageRemoved(false);
+        onError(errorMessage(err, "Couldn't remove that photo. Try again."));
+      }
+    });
+  }
+
+  // Drop zone covers the whole row (below), not just the small photo
+  // button — a dropped file also needs syncing onto the real file input in
+  // case the user picks again from the same control afterward.
+  const { isOver, dropHandlers } = useImageDrop((file) => {
+    if (imageInputRef.current) {
+      const transfer = new DataTransfer();
+      transfer.items.add(file);
+      imageInputRef.current.files = transfer.files;
+    }
+    pickImage(file);
+  });
+
   function save() {
     if (!term.trim() || !definition.trim()) return;
     startTransition(async () => {
@@ -165,10 +179,26 @@ function EditableCard({
     onDeleted(card.id);
   }
 
+  const imageControl = (
+    <CardImageControl
+      src={imageSrc}
+      pending={imagePending}
+      editing={editing}
+      inputRef={imageInputRef}
+      onPick={pickImage}
+      onRemove={removeImage}
+    />
+  );
+
+  const dropRing = isOver ? "border-rose-400 bg-rose-50" : "";
+
   if (editing) {
     return (
-      <div className="flex items-start gap-2 rounded-lg border border-amber-900/20 p-2">
-        <CardImageControl card={card} setId={setId} editing onError={onError} />
+      <div
+        {...dropHandlers}
+        className={`flex items-start gap-2 rounded-lg border p-2 transition ${dropRing || "border-amber-900/20"}`}
+      >
+        {imageControl}
         <input
           value={term}
           onChange={(e) => setTerm(e.target.value)}
@@ -198,9 +228,12 @@ function EditableCard({
 
   return (
     <div
-      className={`flex flex-col gap-3 rounded-xl border border-amber-900/10 p-4 transition sm:flex-row sm:items-center sm:gap-4 sm:p-5 ${ghost ? "opacity-50" : ""}`}
+      {...(ghost ? {} : dropHandlers)}
+      className={`flex flex-col gap-3 rounded-xl border p-4 transition sm:flex-row sm:items-center sm:gap-4 sm:p-5 ${
+        dropRing || "border-amber-900/10"
+      } ${ghost ? "opacity-50" : ""}`}
     >
-      <CardImageControl card={card} setId={setId} editing={false} onError={onError} />
+      {imageControl}
       <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-2 sm:gap-4">
         <p className="whitespace-pre-wrap break-words text-base font-medium">{card.term}</p>
         <p className="whitespace-pre-wrap break-words text-base text-amber-950/60">
@@ -248,7 +281,12 @@ function AddCardRow({
   }
 
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-dashed border-amber-900/20 p-3">
+    <div
+      {...dropHandlers}
+      className={`flex items-center gap-2 rounded-lg border border-dashed p-3 transition ${
+        isOver ? "border-rose-400 bg-rose-50" : "border-amber-900/20"
+      }`}
+    >
       <input
         ref={inputRef}
         type="file"
@@ -260,13 +298,10 @@ function AddCardRow({
         type="button"
         onClick={() => inputRef.current?.click()}
         aria-label="Add or drop a photo"
-        {...dropHandlers}
         className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md border transition ${
-          isOver
-            ? "border-rose-400 bg-rose-50 text-rose-500"
-            : image
-              ? "border-rose-300 text-rose-500"
-              : "border-dashed border-amber-900/20 text-amber-950/40 hover:border-rose-300 hover:text-rose-500"
+          image
+            ? "border-rose-300 text-rose-500"
+            : "border-dashed border-amber-900/20 text-amber-950/40 hover:border-rose-300 hover:text-rose-500"
         }`}
       >
         <ImageIcon className="h-4 w-4" />

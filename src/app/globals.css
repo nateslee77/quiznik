@@ -5,6 +5,15 @@
   --foreground: #45322b;
 }
 
+/* Scales every rem-based Tailwind utility app-wide — text, spacing, icons,
+   container widths — uniformly by 1.5x, since almost the whole UI is built
+   on Tailwind's rem scale. Media query breakpoints (sm/lg/etc) are defined
+   against the browser's true default font-size, not this override, so
+   responsive layout switches still happen at their normal viewport widths. */
+html {
+  font-size: 150%;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

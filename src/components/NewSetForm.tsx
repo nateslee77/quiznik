@@ -14,12 +14,24 @@ function emptyRow(): Row {
   return { id: crypto.randomUUID(), term: "", definition: "", image: null };
 }
 
-function RowImagePicker({
+function ManualRow({
   row,
-  onChange,
+  index,
+  onTermChange,
+  onDefinitionChange,
+  onDefinitionKeyDown,
+  onImageChange,
+  onRemove,
+  termRef,
 }: {
   row: Row;
-  onChange: (file: File | null) => void;
+  index: number;
+  onTermChange: (value: string) => void;
+  onDefinitionChange: (value: string) => void;
+  onDefinitionKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  onImageChange: (file: File | null) => void;
+  onRemove: () => void;
+  termRef: (el: HTMLInputElement | null) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const previewUrl = useMemo(() => (row.image ? URL.createObjectURL(row.image) : null), [row.image]);
@@ -40,52 +52,81 @@ function RowImagePicker({
       transfer.items.add(file);
       inputRef.current.files = transfer.files;
     }
-    onChange(file);
+    onImageChange(file);
   }
 
+  // The drop zone is the whole row, not just the photo button — a drop
+  // landing a few px off a small target used to fall through to the
+  // browser's default "navigate to the dropped file" behavior instead of
+  // attaching it.
   const { isOver, dropHandlers } = useImageDrop(acceptFile);
 
   return (
-    <div className="mt-1 shrink-0">
+    <div
+      {...dropHandlers}
+      className={`flex items-start gap-2 rounded-lg border p-1.5 transition ${
+        isOver ? "border-rose-400 bg-rose-50" : "border-transparent"
+      }`}
+    >
+      <span className="mt-2.5 w-5 shrink-0 text-right text-xs text-amber-950/60">{index + 1}</span>
       <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        name={`image-${row.id}`}
-        onChange={(e) => onChange(e.target.files?.[0] ?? null)}
-        className="hidden"
+        ref={termRef}
+        value={row.term}
+        onChange={(e) => onTermChange(e.target.value)}
+        placeholder="Term"
+        className="w-full min-w-0 flex-1 rounded-lg border border-amber-900/20 bg-white px-3 py-2 text-sm outline-none focus:border-rose-400"
       />
-      {previewUrl ? (
-        <div className="relative h-9 w-9 overflow-hidden rounded-md border border-amber-900/20">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={previewUrl} alt="" className="h-full w-full object-cover" />
+      <input
+        value={row.definition}
+        onChange={(e) => onDefinitionChange(e.target.value)}
+        onKeyDown={onDefinitionKeyDown}
+        placeholder="Definition"
+        className="w-full min-w-0 flex-1 rounded-lg border border-amber-900/20 bg-white px-3 py-2 text-sm outline-none focus:border-rose-400"
+      />
+      <div className="mt-1 shrink-0">
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          name={`image-${row.id}`}
+          onChange={(e) => onImageChange(e.target.files?.[0] ?? null)}
+          className="hidden"
+        />
+        {previewUrl ? (
+          <div className="relative h-9 w-9 overflow-hidden rounded-md border border-amber-900/20">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={previewUrl} alt="" className="h-full w-full object-cover" />
+            <button
+              type="button"
+              onClick={() => {
+                onImageChange(null);
+                if (inputRef.current) inputRef.current.value = "";
+              }}
+              aria-label="Remove photo"
+              className="absolute inset-0 flex items-center justify-center bg-black/40 text-white opacity-0 transition hover:opacity-100"
+            >
+              <XIcon className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
           <button
             type="button"
-            onClick={() => {
-              onChange(null);
-              if (inputRef.current) inputRef.current.value = "";
-            }}
-            aria-label="Remove photo"
-            className="absolute inset-0 flex items-center justify-center bg-black/40 text-white opacity-0 transition hover:opacity-100"
+            onClick={() => inputRef.current?.click()}
+            aria-label="Add or drop a photo"
+            className="flex h-9 w-9 items-center justify-center rounded-md border border-dashed border-amber-900/20 text-amber-950/40 transition hover:border-rose-300 hover:text-rose-400"
           >
-            <XIcon className="h-4 w-4" />
+            <ImageIcon className="h-4 w-4" />
           </button>
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => inputRef.current?.click()}
-          aria-label="Add or drop a photo"
-          {...dropHandlers}
-          className={`flex h-9 w-9 items-center justify-center rounded-md border transition ${
-            isOver
-              ? "border-rose-400 bg-rose-50 text-rose-500"
-              : "border-dashed border-amber-900/20 text-amber-950/40 hover:border-rose-300 hover:text-rose-400"
-          }`}
-        >
-          <ImageIcon className="h-4 w-4" />
-        </button>
-      )}
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label="Remove card"
+        className="mt-1 shrink-0 rounded-md px-2 py-1 text-amber-950/60 hover:bg-orange-100/70 hover:text-red-600"
+      >
+        ✕
+      </button>
     </div>
   );
 }
@@ -224,37 +265,20 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
         {tab === "manual" ? (
           <div className="flex flex-col gap-2">
             {rows.map((row, i) => (
-              <div key={row.id} className="flex items-start gap-2">
-                <span className="mt-2.5 w-5 shrink-0 text-right text-xs text-amber-950/60">
-                  {i + 1}
-                </span>
-                <input
-                  ref={(el) => {
-                    if (el) termRefs.current.set(row.id, el);
-                    else termRefs.current.delete(row.id);
-                  }}
-                  value={row.term}
-                  onChange={(e) => updateRow(row.id, "term", e.target.value)}
-                  placeholder="Term"
-                  className="w-full min-w-0 flex-1 rounded-lg border border-amber-900/20 bg-white px-3 py-2 text-sm outline-none focus:border-rose-400"
-                />
-                <input
-                  value={row.definition}
-                  onChange={(e) => updateRow(row.id, "definition", e.target.value)}
-                  onKeyDown={(e) => handleDefinitionKeyDown(e, row.id)}
-                  placeholder="Definition"
-                  className="w-full min-w-0 flex-1 rounded-lg border border-amber-900/20 bg-white px-3 py-2 text-sm outline-none focus:border-rose-400"
-                />
-                <RowImagePicker row={row} onChange={(file) => updateRowImage(row.id, file)} />
-                <button
-                  type="button"
-                  onClick={() => removeRow(row.id)}
-                  aria-label="Remove card"
-                  className="mt-1 shrink-0 rounded-md px-2 py-1 text-amber-950/60 hover:bg-orange-100/70 hover:text-red-600"
-                >
-                  ✕
-                </button>
-              </div>
+              <ManualRow
+                key={row.id}
+                row={row}
+                index={i}
+                onTermChange={(value) => updateRow(row.id, "term", value)}
+                onDefinitionChange={(value) => updateRow(row.id, "definition", value)}
+                onDefinitionKeyDown={(e) => handleDefinitionKeyDown(e, row.id)}
+                onImageChange={(file) => updateRowImage(row.id, file)}
+                onRemove={() => removeRow(row.id)}
+                termRef={(el) => {
+                  if (el) termRefs.current.set(row.id, el);
+                  else termRefs.current.delete(row.id);
+                }}
+              />
             ))}
             <button
               type="button"

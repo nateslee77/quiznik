@@ -104,6 +104,19 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
     setIndex((i) => i + 1);
   }
 
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (phase !== "running" || done || !question) return;
+      if (question.type !== "multiple_choice" || selected !== null) return;
+      const idx = ["1", "2", "3", "4"].indexOf(e.key);
+      if (idx === -1 || idx >= question.choices.length) return;
+      chooseMc(idx);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, done, question, selected]);
+
   if (phase === "setup") {
     return (
       <div className="rounded-2xl border border-amber-900/10 bg-white p-6 shadow-sm">

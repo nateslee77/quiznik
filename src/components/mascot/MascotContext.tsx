@@ -50,10 +50,13 @@ export function useMascotWhileMounted(state: MascotState) {
 }
 
 const MASCOT_POS_KEY = "quiznik-mascot-pos";
-const MASCOT_SIZE = 80;
+// Both of these track rem-based Tailwind sizes (`sm:h-20 w-20` mascot,
+// `h-14` mobile header) scaled by globals.css's 150% root font-size — keep
+// them in that same 1.5x ratio if that scale ever changes.
+const MASCOT_SIZE = 120;
 // Matches AppShell's mobile top bar (`h-14`), which only renders below the
 // `lg` breakpoint (1024px) — the mascot must never sit under it.
-const MOBILE_HEADER_HEIGHT = 56;
+const MOBILE_HEADER_HEIGHT = 84;
 const LG_BREAKPOINT = 1024;
 
 function getTopInset(): number {
