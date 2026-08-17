@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { buildQuestion, type Direction } from "@/lib/generateQuiz";
 import { matchQuality } from "@/lib/fuzzyMatch";
@@ -101,8 +101,14 @@ export function LearnRunner({
   cards: Card[];
   progressRows: ProgressRow[];
 }) {
-  const [storedRound] = useState(() => loadStoredRound(setId, cards));
-  const [phase, setPhase] = useState<Phase>(storedRound ? "running" : "setup");
+  // Deliberately NOT read from localStorage in these initializers: this
+  // component server-renders too, and the server always has "setup" with
+  // an empty round (no access to the browser's storage) — starting the
+  // client's very first render from a resumed round instead would produce
+  // a structurally different tree than what was server-rendered, which is
+  // a hydration error (React #418), not just a mismatched attribute.
+  // Resuming happens in an effect below, strictly after that first render.
+  const [phase, setPhase] = useState<Phase>("setup");
   const [maxNew, setMaxNew] = useState(DEFAULT_MAX_NEW);
   const [maxReview, setMaxReview] = useState(DEFAULT_MAX_REVIEW);
   const [direction, setDirection] = useState<Direction | "mixed">("definition-to-term");
@@ -111,12 +117,15 @@ export function LearnRunner({
   const [resetPending, startResetTransition] = useTransition();
 
   const [progressByCardId, setProgressByCardId] = useState(() => toSnapshotMap(progressRows));
-  const [queue, setQueue] = useState<string[]>(() => storedRound?.queue ?? []);
-  const [roundSize, setRoundSize] = useState(() => storedRound?.roundSize ?? 0);
-  const [cardStates, setCardStates] = useState<Record<string, RoundCardState>>(
-    () => storedRound?.cardStates ?? {},
-  );
-  const [doneCardIds, setDoneCardIds] = useState<Set<string>>(() => new Set(storedRound?.doneCardIds ?? []));
+  const [queue, setQueue] = useState<string[]>([]);
+  const [roundSize, setRoundSize] = useState(0);
+  const [cardStates, setCardStates] = useState<Record<string, RoundCardState>>({});
+  const [doneCardIds, setDoneCardIds] = useState<Set<string>>(new Set());
+  // Guards the persistence-save effect below from wiping a not-yet-resumed
+  // round out of storage on the very first run, before the resume effect
+  // (declared after it, so it runs second on mount) has had a chance to
+  // apply it.
+  const skipNextSave = useRef(true);
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [answerWasCorrect, setAnswerWasCorrect] = useState<boolean | null>(null);
@@ -144,6 +153,14 @@ export function LearnRunner({
   // the page — navigating away, refreshing, closing the tab — and coming
   // back resumes at the same spot instead of losing the round entirely.
   useEffect(() => {
+    if (skipNextSave.current) {
+      // Skip the mount-time run unconditionally — otherwise this fires
+      // with the pre-resume "setup" state (the resume effect's updates
+      // haven't been committed yet) and wipes a real stored round out from
+      // under it before it ever gets applied.
+      skipNextSave.current = false;
+      return;
+    }
     if (typeof window === "undefined") return;
     try {
       if (phase !== "running" || queue.length === 0) {
@@ -156,6 +173,25 @@ export function LearnRunner({
       // storage unavailable — round just won't persist across visits
     }
   }, [setId, phase, queue, roundSize, cardStates, doneCardIds]);
+
+  // Resumes a stored round strictly after the first client render (so that
+  // render still matches the server's, avoiding a hydration mismatch) —
+  // this is the only place localStorage is read for round state. Reading
+  // browser-only storage is exactly the "sync with an external system"
+  // case useEffect is for; the state can't be derived during render here
+  // without reintroducing the hydration mismatch this is working around.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    const stored = loadStoredRound(setId, cards);
+    if (!stored) return;
+    setPhase(stored.phase);
+    setQueue(stored.queue);
+    setRoundSize(stored.roundSize);
+    setCardStates(stored.cardStates);
+    setDoneCardIds(new Set(stored.doneCardIds));
+    /* eslint-enable react-hooks/set-state-in-effect */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Deliberately keyed only on currentCardId: the question's presentation
   // must stay frozen for as long as this card is on screen, even though
