@@ -61,7 +61,10 @@ export function AppShell({
         )}
 
         {/* Mobile top bar + slide-over drawer */}
-        <div className="fixed inset-x-0 top-0 z-30 flex h-14 items-center gap-3 border-b border-amber-900/10 bg-white/80 px-4 backdrop-blur lg:hidden">
+        <div
+          id="mobile-topbar"
+          className="fixed inset-x-0 top-0 z-30 flex h-14 items-center gap-3 border-b border-amber-900/10 bg-white/80 px-4 backdrop-blur lg:hidden"
+        >
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}

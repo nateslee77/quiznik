@@ -199,7 +199,7 @@ function EditableCard({
     return (
       <div
         {...dropHandlers}
-        className={`flex items-start gap-2 rounded-lg border p-2 transition ${dropRing || "border-amber-900/20"}`}
+        className={`flex flex-col gap-2 rounded-lg border p-2 transition sm:flex-row sm:items-start sm:gap-2 ${dropRing || "border-amber-900/20"}`}
       >
         {imageControl}
         <input
@@ -212,19 +212,21 @@ function EditableCard({
           onChange={(e) => setDefinition(e.target.value)}
           className="w-full min-w-0 flex-1 rounded-md border border-amber-900/20 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-rose-400"
         />
-        <button
-          onClick={save}
-          disabled={pending}
-          className="shrink-0 rounded-md bg-rose-400 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-rose-300"
-        >
-          Save
-        </button>
-        <button
-          onClick={() => setEditing(false)}
-          className="shrink-0 rounded-md px-2 py-1.5 text-xs text-amber-950/50 hover:bg-orange-100/70"
-        >
-          Cancel
-        </button>
+        <div className="flex gap-2 sm:contents">
+          <button
+            onClick={save}
+            disabled={pending}
+            className="shrink-0 rounded-md bg-rose-400 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-rose-300"
+          >
+            Save
+          </button>
+          <button
+            onClick={() => setEditing(false)}
+            className="shrink-0 rounded-md px-2 py-1.5 text-xs text-amber-950/50 hover:bg-orange-100/70"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     );
   }
@@ -293,7 +295,7 @@ function AddCardRow({
   return (
     <div
       {...dropHandlers}
-      className={`flex items-center gap-2 rounded-lg border border-dashed p-3 transition ${
+      className={`flex flex-col gap-2 rounded-lg border border-dashed p-3 transition sm:flex-row sm:items-center ${
         isOver ? "border-rose-400 bg-rose-50" : "border-amber-900/20"
       }`}
     >
@@ -304,24 +306,26 @@ function AddCardRow({
         onChange={(e) => setImage(e.target.files?.[0] ?? null)}
         className="hidden"
       />
-      <button
-        type="button"
-        onClick={() => inputRef.current?.click()}
-        aria-label="Add or drop a photo"
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md border transition ${
-          image
-            ? "border-rose-300 text-rose-500"
-            : "border-dashed border-amber-900/20 text-amber-950/40 hover:border-rose-300 hover:text-rose-500"
-        }`}
-      >
-        <ImageIcon className="h-4 w-4" />
-      </button>
-      <input
-        value={term}
-        onChange={(e) => setTerm(e.target.value)}
-        placeholder="Term"
-        className="w-full min-w-0 flex-1 rounded-md border border-amber-900/20 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-rose-400"
-      />
+      <div className="flex items-center gap-2 sm:contents">
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          aria-label="Add or drop a photo"
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md border transition ${
+            image
+              ? "border-rose-300 text-rose-500"
+              : "border-dashed border-amber-900/20 text-amber-950/40 hover:border-rose-300 hover:text-rose-500"
+          }`}
+        >
+          <ImageIcon className="h-4 w-4" />
+        </button>
+        <input
+          value={term}
+          onChange={(e) => setTerm(e.target.value)}
+          placeholder="Term"
+          className="w-full min-w-0 flex-1 rounded-md border border-amber-900/20 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-rose-400"
+        />
+      </div>
       <input
         value={definition}
         onChange={(e) => setDefinition(e.target.value)}

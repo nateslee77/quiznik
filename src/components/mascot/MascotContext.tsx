@@ -50,14 +50,12 @@ export function useMascotWhileMounted(state: MascotState) {
 }
 
 const MASCOT_POS_KEY = "quiznik-mascot-pos";
-// Both of these track rem-based Tailwind sizes (`sm:h-20 w-20` mascot,
-// `h-14` mobile header) scaled by globals.css's 150% root font-size — keep
-// them in that same 1.5x ratio if that scale ever changes.
-const MASCOT_SIZE = 120;
-// Matches AppShell's mobile top bar (`h-14`), which only renders below the
-// `lg` breakpoint (1024px) — the mascot must never sit under it.
-const MOBILE_HEADER_HEIGHT = 84;
-const LG_BREAKPOINT = 1024;
+// Fallback used only before the widget's real size can be measured (the
+// very first paint) — actual clamping below measures the live DOM instead
+// of a hardcoded guess, since the mascot's rendered size varies by
+// breakpoint (globals.css scales the whole UI differently on phones vs
+// desktop) and swells considerably during a correct/wrong reaction.
+const FALLBACK_SIZE = 96;
 
 const REACTION_HOLD_MS = 3000;
 const REACTION_FADE_MS = 400;
@@ -114,16 +112,25 @@ function useHeldMascotState(state: MascotState): { displayState: MascotState; fa
   return { displayState, fading };
 }
 
+// Measures AppShell's actual mobile top bar rather than assuming a fixed
+// height at a fixed breakpoint — it's `display:none` (0-height) above the
+// `lg` breakpoint via `lg:hidden`, so this is naturally 0 on desktop too,
+// with no separate breakpoint check needed.
 function getTopInset(): number {
-  if (typeof window === "undefined") return 0;
-  return window.innerWidth < LG_BREAKPOINT ? MOBILE_HEADER_HEIGHT : 0;
+  if (typeof document === "undefined") return 0;
+  return document.getElementById("mobile-topbar")?.getBoundingClientRect().height ?? 0;
 }
 
-function clampPos(x: number, y: number): { x: number; y: number } {
+function clampPos(
+  x: number,
+  y: number,
+  width: number = FALLBACK_SIZE,
+  height: number = FALLBACK_SIZE,
+): { x: number; y: number } {
   const topInset = getTopInset();
   return {
-    x: Math.min(Math.max(0, x), window.innerWidth - MASCOT_SIZE),
-    y: Math.min(Math.max(topInset, y), window.innerHeight - MASCOT_SIZE),
+    x: Math.min(Math.max(0, x), window.innerWidth - width),
+    y: Math.min(Math.max(topInset, y), window.innerHeight - height),
   };
 }
 
@@ -132,6 +139,7 @@ export function DockedMascot() {
   const { state, skinId } = useMascot();
   const { displayState, fading } = useHeldMascotState(state);
   const isReaction = displayState === "correct" || displayState === "wrong";
+  const widgetRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(() => {
     if (typeof window === "undefined") return null;
     try {
@@ -145,16 +153,22 @@ export function DockedMascot() {
   });
   const [dragging, setDragging] = useState(false);
 
-  // Re-clamp on viewport resize (e.g. rotating a phone, or the mobile top
-  // bar appearing/disappearing at the lg breakpoint) so a saved spot from
-  // one layout can't end up under the header in another.
+  // Re-clamp against the widget's *actual current* rendered size (not a
+  // guess) whenever that size could have changed — on mount, on viewport
+  // resize (rotating a phone, or the mobile top bar appearing/disappearing
+  // at the lg breakpoint), and when a reaction grows the widget noticeably
+  // bigger. A left/top-anchored drag position that fit the small idle size
+  // can otherwise overflow off-screen once the reaction frame's border/
+  // padding/larger image push its real footprint well past that.
   useEffect(() => {
-    function onResize() {
-      setPos((prev) => (prev ? clampPos(prev.x, prev.y) : prev));
+    function reclamp() {
+      const rect = widgetRef.current?.getBoundingClientRect();
+      setPos((prev) => (prev && rect ? clampPos(prev.x, prev.y, rect.width, rect.height) : prev));
     }
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
+    reclamp();
+    window.addEventListener("resize", reclamp);
+    return () => window.removeEventListener("resize", reclamp);
+  }, [isReaction, fading]);
 
   function onPointerDown(e: React.PointerEvent) {
     e.preventDefault();
@@ -166,13 +180,13 @@ export function DockedMascot() {
     setDragging(true);
 
     function onMove(ev: PointerEvent) {
-      setPos(clampPos(ev.clientX - offsetX, ev.clientY - offsetY));
+      setPos(clampPos(ev.clientX - offsetX, ev.clientY - offsetY, rect.width, rect.height));
     }
     function onUp(ev: PointerEvent) {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
       setDragging(false);
-      const finalPos = clampPos(ev.clientX - offsetX, ev.clientY - offsetY);
+      const finalPos = clampPos(ev.clientX - offsetX, ev.clientY - offsetY, rect.width, rect.height);
       setPos(finalPos);
       try {
         localStorage.setItem(MASCOT_POS_KEY, JSON.stringify(finalPos));
@@ -186,6 +200,7 @@ export function DockedMascot() {
 
   return (
     <div
+      ref={widgetRef}
       suppressHydrationWarning
       onPointerDown={onPointerDown}
       style={pos ? { left: pos.x, top: pos.y } : undefined}

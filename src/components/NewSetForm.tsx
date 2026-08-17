@@ -64,18 +64,23 @@ function ManualRow({
   return (
     <div
       {...dropHandlers}
-      className={`flex items-start gap-2 rounded-lg border p-1.5 transition ${
-        isOver ? "border-rose-400 bg-rose-50" : "border-transparent"
+      className={`flex flex-col gap-2 rounded-lg border p-2 transition sm:flex-row sm:items-start sm:gap-2 sm:p-1.5 ${
+        isOver ? "border-rose-400 bg-rose-50" : "border-amber-900/10 sm:border-transparent"
       }`}
     >
-      <span className="mt-2.5 w-5 shrink-0 text-right text-xs text-amber-950/60">{index + 1}</span>
-      <input
-        ref={termRef}
-        value={row.term}
-        onChange={(e) => onTermChange(e.target.value)}
-        placeholder="Term"
-        className="w-full min-w-0 flex-1 rounded-lg border border-amber-900/20 bg-white px-3 py-2 text-sm outline-none focus:border-rose-400"
-      />
+      {/* `sm:contents` un-groups these two pairs back into independent flex
+          items at sm+, reconstructing the original single-row layout —
+          below that, each group stacks as its own full-width row instead. */}
+      <div className="flex items-center gap-2 sm:contents">
+        <span className="w-5 shrink-0 text-right text-xs text-amber-950/60 sm:mt-2.5">{index + 1}</span>
+        <input
+          ref={termRef}
+          value={row.term}
+          onChange={(e) => onTermChange(e.target.value)}
+          placeholder="Term"
+          className="w-full min-w-0 flex-1 rounded-lg border border-amber-900/20 bg-white px-3 py-2 text-sm outline-none focus:border-rose-400"
+        />
+      </div>
       <input
         value={row.definition}
         onChange={(e) => onDefinitionChange(e.target.value)}
@@ -83,6 +88,7 @@ function ManualRow({
         placeholder="Definition"
         className="w-full min-w-0 flex-1 rounded-lg border border-amber-900/20 bg-white px-3 py-2 text-sm outline-none focus:border-rose-400"
       />
+      <div className="flex items-center justify-end gap-2 sm:contents">
       <div className="mt-1 shrink-0">
         <input
           ref={inputRef}
@@ -119,14 +125,15 @@ function ManualRow({
           </button>
         )}
       </div>
-      <button
-        type="button"
-        onClick={onRemove}
-        aria-label="Remove card"
-        className="mt-1 shrink-0 rounded-md px-2 py-1 text-amber-950/60 hover:bg-orange-100/70 hover:text-red-600"
-      >
-        ✕
-      </button>
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label="Remove card"
+          className="shrink-0 rounded-md px-2 py-1 text-amber-950/60 hover:bg-orange-100/70 hover:text-red-600 sm:mt-1"
+        >
+          ✕
+        </button>
+      </div>
     </div>
   );
 }

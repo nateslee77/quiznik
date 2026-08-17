@@ -249,23 +249,32 @@ export function LearnRunner({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, activeQuestion, selectedIndex]);
 
-  // Enter advances past an already-graded question, same as clicking
-  // Next/Continue — but never while the "did you mean" confirm prompt is
-  // showing (that needs an explicit Yes/No), and the written-answer input's
-  // own Enter-to-check handler covers checking the answer in the first
-  // place (this only fires once graded, so the two can't double-fire).
+  // Single source of truth for what Enter does, so "check" and "advance"
+  // can never both fire off the same keypress: on a written question that
+  // hasn't been checked yet, Enter checks it and stops there — a
+  // *separate* later Enter press is what advances. (Two independent
+  // listeners racing on the same event was the previous, buggier approach.)
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key !== "Enter" || e.repeat || view !== "question" || pendingConfirm) return;
-      const graded = activeQuestion?.type === "multiple_choice" ? selectedIndex !== null : writtenChecked;
-      if (!graded) return;
-      e.preventDefault();
-      advance();
+      if (e.key !== "Enter" || e.repeat || view !== "question" || !activeQuestion) return;
+      if (pendingConfirm) return; // needs an explicit Yes/No, not Enter
+
+      if (activeQuestion.type === "written") {
+        e.preventDefault();
+        if (!writtenChecked) checkWritten();
+        else advance();
+        return;
+      }
+
+      if (selectedIndex !== null) {
+        e.preventDefault();
+        advance();
+      }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view, activeQuestion, selectedIndex, writtenChecked, pendingConfirm]);
+  }, [view, activeQuestion, selectedIndex, writtenChecked, pendingConfirm, writtenInput]);
 
   const stageCounts: Record<Stage, number> = {
     new: cards.length - Object.keys(progressByCardId).length,
@@ -496,9 +505,6 @@ export function LearnRunner({
               autoFocus
               value={writtenInput}
               onChange={(e) => setWrittenInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") checkWritten();
-              }}
               placeholder="Type your answer…"
               className="w-full rounded-xl border border-amber-900/20 bg-white px-3.5 py-2.5 text-base outline-none transition focus:border-rose-400"
             />

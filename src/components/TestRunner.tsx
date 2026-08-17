@@ -117,21 +117,30 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, done, question, selected]);
 
-  // Enter advances past an already-graded question, same as clicking
-  // Next — only fires once graded, so it can't collide with the written-
-  // answer input's own Enter-to-check handler.
+  // Single source of truth for what Enter does, so "check" and "advance"
+  // can never both fire off the same keypress: on a written question that
+  // hasn't been checked yet, Enter checks it and stops there — a
+  // *separate* later Enter press is what advances.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key !== "Enter" || e.repeat || phase !== "running" || done || !question) return;
-      const graded = question.type === "multiple_choice" ? selected !== null : writtenChecked;
-      if (!graded) return;
-      e.preventDefault();
-      nextQuestion();
+
+      if (question.type === "written") {
+        e.preventDefault();
+        if (!writtenChecked) checkWritten();
+        else nextQuestion();
+        return;
+      }
+
+      if (selected !== null) {
+        e.preventDefault();
+        nextQuestion();
+      }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, done, question, selected, writtenChecked]);
+  }, [phase, done, question, selected, writtenChecked, writtenInput]);
 
   if (phase === "setup") {
     return (
@@ -318,7 +327,6 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
               autoFocus
               value={writtenInput}
               onChange={(e) => setWrittenInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && checkWritten()}
               placeholder="Type your answer…"
               className="w-full rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 text-base outline-none focus:border-rose-400"
             />

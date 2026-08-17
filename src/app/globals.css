@@ -14,6 +14,17 @@ html {
   font-size: 150%;
 }
 
+/* On a real phone-width screen, 1.5x everything doesn't leave enough room —
+   padding/images/buttons sized for a roomy desktop view crowd out a ~375-
+   430px viewport. Every layout in this app was built against a 16px base in
+   the first place, so reverting to that on small screens keeps things
+   actually fitting rather than fighting the same components for space. */
+@media (max-width: 640px) {
+  html {
+    font-size: 100%;
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
