@@ -211,13 +211,15 @@ export function LearnRunner({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentCardId]);
 
-  function startRound() {
+  function startRound(overrideIncludeMastered?: boolean) {
+    const effectiveIncludeMastered = overrideIncludeMastered ?? includeMastered;
     const { queueCardIds, cardStates: nextCardStates } = buildRound(cards, progressByCardId, {
       maxNew,
       maxReview,
       direction,
-      includeMastered,
+      includeMastered: effectiveIncludeMastered,
     });
+    if (overrideIncludeMastered !== undefined) setIncludeMastered(overrideIncludeMastered);
     if (queueCardIds.length === 0) {
       setEmptyRoundNotice(true);
       return;
@@ -460,7 +462,7 @@ export function LearnRunner({
         ) : null}
 
         <button
-          onClick={startRound}
+          onClick={() => startRound()}
           className="mt-6 w-full rounded-xl bg-rose-400 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-rose-300"
         >
           Start learning
@@ -478,10 +480,28 @@ export function LearnRunner({
   }
 
   if (!currentCardId || !currentCard) {
+    const allMastered = cards.length > 0 && stageCounts.mastered === cards.length;
+
     return (
       <div className="flex flex-1 flex-col items-center py-8 text-center">
-        <p className="text-sm text-amber-950/60">Round complete</p>
-        <p className="mt-1 text-2xl font-semibold tracking-tight">Nice work!</p>
+        {allMastered ? (
+          <>
+            <span
+              className={`rounded-full border px-3 py-1 text-xs font-medium ${STAGE_COLORS.mastered.border} ${STAGE_COLORS.mastered.bg} ${STAGE_COLORS.mastered.text}`}
+            >
+              Deck mastered
+            </span>
+            <p className="mt-3 text-2xl font-semibold tracking-tight">Every card is mastered!</p>
+            <p className="mt-1 text-sm text-amber-950/60">
+              You&rsquo;ve fully learned all {cards.length} card{cards.length === 1 ? "" : "s"} in this set.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-amber-950/60">Round complete</p>
+            <p className="mt-1 text-2xl font-semibold tracking-tight">Nice work!</p>
+          </>
+        )}
 
         <div className="mt-8 grid w-full max-w-md grid-cols-4 gap-2">
           {STAGE_ORDER.map((stage) => (
@@ -490,12 +510,21 @@ export function LearnRunner({
         </div>
 
         <div className="mt-8 flex w-full max-w-md gap-3">
-          <button
-            onClick={startRound}
-            className="flex-1 rounded-xl bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300"
-          >
-            Keep learning
-          </button>
+          {allMastered ? (
+            <button
+              onClick={() => startRound(true)}
+              className="flex-1 rounded-xl bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300"
+            >
+              Refresher round
+            </button>
+          ) : (
+            <button
+              onClick={() => startRound()}
+              className="flex-1 rounded-xl bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300"
+            >
+              Keep learning
+            </button>
+          )}
           <button
             onClick={() => setPhase("setup")}
             className="flex-1 rounded-xl border border-amber-900/20 px-4 py-3 text-sm font-medium text-amber-950/80 transition hover:bg-orange-100/70"
@@ -503,12 +532,24 @@ export function LearnRunner({
             Change settings
           </button>
         </div>
-        <Link
-          href={`/sets/${setId}`}
-          className="mt-3 text-sm text-amber-950/60 underline hover:text-amber-950"
-        >
-          Back to set
-        </Link>
+
+        <div className="mt-3 flex items-center gap-3 text-sm text-amber-950/60">
+          <Link href={`/sets/${setId}`} className="underline hover:text-amber-950">
+            Back to set
+          </Link>
+          {allMastered ? (
+            <>
+              <span aria-hidden>&middot;</span>
+              <Link href="/sets" className="underline hover:text-amber-950">
+                Library
+              </Link>
+              <span aria-hidden>&middot;</span>
+              <Link href="/home" className="underline hover:text-amber-950">
+                Home
+              </Link>
+            </>
+          ) : null}
+        </div>
       </div>
     );
   }
