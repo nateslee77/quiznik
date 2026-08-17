@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { MASCOT_SKINS } from "@/lib/mascotSkins";
 import { CoinBalance } from "@/components/coins/CoinBalance";
-import { MascotPlaceholder } from "@/components/landing/MascotPlaceholder";
+import { CoinIcon } from "@/components/icons";
 import { ShopSkinCard } from "@/components/shop/ShopSkinCard";
 
 export default async function ShopPage() {
@@ -21,7 +21,7 @@ export default async function ShopPage() {
     <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-8">
       <div className="mb-2 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <MascotPlaceholder variant="celebrate" className="h-12 w-12" />
+          <CoinIcon className="h-12 w-12 coin-float-spin" />
           <h1 className="text-2xl font-semibold tracking-tight">Shop</h1>
         </div>
         <CoinBalance />
