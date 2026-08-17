@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { ParsedCard } from "@/lib/parseFlashcards";
 import { TEST_CORRECT_COINS, testCompletionBonus } from "@/lib/coins";
 import { CARD_IMAGES_BUCKET } from "@/lib/supabase/storage";
+import { imageContentType, isImageFile } from "@/lib/imageFile";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -23,7 +24,7 @@ async function uploadCardImageFile(
 ): Promise<string> {
   const path = `${userId}/${crypto.randomUUID()}.${extOf(file)}`;
   const { error } = await supabase.storage.from(CARD_IMAGES_BUCKET).upload(path, file, {
-    contentType: file.type || undefined,
+    contentType: imageContentType(file),
   });
   if (error) throw new Error(error.message);
   return path;
@@ -114,7 +115,7 @@ export async function createSet(
   if (uploads.length > 0) {
     await Promise.all(
       uploads.map(async ({ cardId, file }) => {
-        if (file.size > MAX_IMAGE_BYTES || !file.type.startsWith("image/")) return;
+        if (file.size > MAX_IMAGE_BYTES || !isImageFile(file)) return;
         try {
           const path = await uploadCardImageFile(supabase, user.id, file);
           await supabase.from("cards").update({ image_path: path }).eq("id", cardId);
@@ -179,7 +180,7 @@ export async function addCard(setId: string, term: string, definition: string) {
 }
 
 export async function uploadCardImage(cardId: string, setId: string, file: File) {
-  if (!file.type.startsWith("image/")) throw new Error("Please choose an image file.");
+  if (!isImageFile(file)) throw new Error("Please choose an image file.");
   if (file.size > MAX_IMAGE_BYTES) throw new Error("Images must be under 5MB.");
 
   const supabase = await createClient();

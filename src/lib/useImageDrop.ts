@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { isImageFile } from "@/lib/imageFile";
 
 // Shared drag-and-drop handling for the various "pick or drop a photo"
 // controls (NewSetForm rows, CardList's per-card control, the add-card row).
@@ -24,7 +25,7 @@ export function useImageDrop(onFile: (file: File) => void) {
     e.preventDefault();
     setIsOver(false);
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith("image/")) onFile(file);
+    if (file && isImageFile(file)) onFile(file);
   }
 
   return { isOver, dropHandlers: { onDragOver, onDragLeave, onDrop } };
