@@ -4,7 +4,7 @@ import { useActionState, useEffect, useId, useMemo, useRef, useState } from "rea
 import { createSet, type CreateSetState } from "@/app/sets/actions";
 import { parseFlashcardText, TERM_SEPARATORS, type TermSeparator } from "@/lib/parseFlashcards";
 import { useImageDrop } from "@/lib/useImageDrop";
-import { ImageIcon, XIcon } from "@/components/icons";
+import { ImageIcon, SpinnerIcon, XIcon } from "@/components/icons";
 
 type Row = { id: string; term: string; definition: string; image: File | null };
 
@@ -322,8 +322,9 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
       <button
         type="submit"
         disabled={pending || validCount === 0}
-        className="w-full rounded-lg bg-rose-400 px-4 py-2.5 text-base font-medium text-white transition hover:bg-rose-300 disabled:opacity-50"
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-rose-400 px-4 py-2.5 text-base font-medium text-white transition hover:bg-rose-300 disabled:opacity-50"
       >
+        {pending ? <SpinnerIcon className="h-4 w-4 animate-spin" /> : null}
         {pending ? "Creating…" : `Create set (${validCount} card${validCount === 1 ? "" : "s"})`}
       </button>
     </form>

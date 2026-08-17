@@ -18,7 +18,7 @@ import {
 } from "@/lib/parseFlashcards";
 import { cardImageUrl } from "@/lib/supabase/storage";
 import { useImageDrop } from "@/lib/useImageDrop";
-import { ImageIcon, XIcon } from "@/components/icons";
+import { ImageIcon, SpinnerIcon, XIcon } from "@/components/icons";
 import type { Card } from "@/lib/types";
 
 function errorMessage(err: unknown, fallback: string): string {
@@ -101,7 +101,7 @@ function CardImageControl({
         onClick={() => inputRef.current?.click()}
         aria-label={src ? "Replace photo" : "Add or drop a photo"}
         {...dropHandlers}
-        className={`flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border transition sm:h-20 sm:w-20 ${
+        className={`relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border transition sm:h-20 sm:w-20 ${
           isOver
             ? "border-rose-400 bg-rose-50"
             : src
@@ -115,6 +115,11 @@ function CardImageControl({
         ) : (
           <ImageIcon className="h-5 w-5" />
         )}
+        {pending ? (
+          <span className="absolute inset-0 flex items-center justify-center bg-black/10">
+            <SpinnerIcon className="h-5 w-5 animate-spin text-white drop-shadow" />
+          </span>
+        ) : null}
       </button>
       {src ? (
         <button

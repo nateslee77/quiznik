@@ -27,7 +27,7 @@ export default async function HomePage() {
   const recent = sets.slice(0, 4);
 
   return (
-    <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-8">
+    <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-8">
       <div className="flex items-center gap-4">
         <MascotPlaceholder variant="idle" className="h-14 w-14 shrink-0" />
         <div className="flex-1">
@@ -81,7 +81,7 @@ export default async function HomePage() {
             </Link>
           </div>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {recent.map((set) => {
               const due = dueBySet.get(set.id) ?? 0;
               return (
