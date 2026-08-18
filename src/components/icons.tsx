@@ -43,15 +43,17 @@ export function LibraryIcon({ className = "h-4 w-4" }: IconProps) {
   );
 }
 
+// Solid/filled, Google Drive-style — deliberately different from every
+// other (outline) icon in this file so a folder reads as a folder at a
+// glance, distinct from decks/files in the same list.
 export function FolderIcon({ className = "h-4 w-4" }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
       <path
-        d="M4 7a2 2 0 0 1 2-2h3.6a1 1 0 0 1 .8.4L11.9 7H18a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7Z"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinejoin="round"
+        d="M3 6.5A2 2 0 0 1 5 4.5h4.4a1.5 1.5 0 0 1 1.2.6l1.1 1.4H19a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5Z"
+        fill="currentColor"
       />
+      <path d="M3 8.7h18" stroke="rgba(0,0,0,0.14)" strokeWidth="1" />
     </svg>
   );
 }

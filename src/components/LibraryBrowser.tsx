@@ -279,12 +279,13 @@ export function LibraryBrowser({
       <Link
         href={`/sets?folder=${folder.id}`}
         data-drop-target={folder.id}
+        draggable={false}
         onClick={suppressClickAfterDrag}
         onPointerDown={(e) => beginDrag(e, { kind: "folder", id: folder.id, title: folder.name })}
-        className={`flex touch-manipulation items-center gap-3 rounded-2xl border border-amber-900/10 bg-white p-3.5 transition select-none hover:border-amber-900/15 hover:bg-orange-50 ${dropZoneClass(folder.id)} ${draggingPayload?.id === folder.id ? "opacity-40" : ""}`}
+        className={`flex touch-manipulation items-center gap-3 rounded-2xl border border-amber-200/70 bg-amber-50/50 p-3.5 transition select-none hover:border-amber-300 hover:bg-amber-50 ${dropZoneClass(folder.id)} ${draggingPayload?.id === folder.id ? "opacity-40" : ""}`}
       >
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-200/70 text-amber-700">
-          <FolderIcon className="h-5 w-5" />
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center">
+          <FolderIcon className="h-8 w-8 text-amber-400" />
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-medium">{folder.name}</span>
@@ -297,6 +298,7 @@ export function LibraryBrowser({
   const DeckRow = ({ deck }: { deck: LibraryDeck }) => (
     <Link
       href={`/sets/${deck.id}`}
+      draggable={false}
       onClick={suppressClickAfterDrag}
       onPointerDown={(e) => beginDrag(e, { kind: "deck", id: deck.id, title: deck.title })}
       className={`flex touch-manipulation items-center gap-3 rounded-2xl border border-amber-900/10 bg-white p-3.5 transition select-none hover:border-amber-900/15 hover:bg-orange-50 ${draggingPayload?.id === deck.id ? "opacity-40" : ""}`}
