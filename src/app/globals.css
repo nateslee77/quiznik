@@ -202,3 +202,39 @@ body {
   animation-timing-function: linear;
   animation-fill-mode: forwards;
 }
+
+/* Destruction burst — shared by both a correct hit and a landed asteroid,
+   colored differently (amber "victory" vs red "crash") via the two
+   modifier classes below. Position is set inline once, frozen at the
+   moment of destruction (computed in JS from spawnedAt/durationMs for a
+   correct hit, or just 100% for a landed one) — this element itself never
+   moves, only scales and fades. */
+@keyframes gravity-explode {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1.7);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2.4);
+    opacity: 0;
+  }
+}
+.gravity-explosion {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 9999px;
+  pointer-events: none;
+  animation: gravity-explode 450ms ease-out forwards;
+}
+.gravity-explosion-correct {
+  background: radial-gradient(circle, #fef08a, #f59e0b 55%, transparent 72%);
+  box-shadow: 0 0 24px 8px rgba(245, 158, 11, 0.55);
+}
+.gravity-explosion-landed {
+  background: radial-gradient(circle, #fca5a5, #dc2626 55%, transparent 72%);
+  box-shadow: 0 0 24px 8px rgba(220, 38, 38, 0.55);
+}

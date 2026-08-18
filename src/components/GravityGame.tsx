@@ -11,12 +11,13 @@ import { useMascot } from "@/components/mascot/MascotContext";
 import { useCoins } from "@/components/coins/CoinsContext";
 import { GRAVITY_WORD_COINS, gravityCompletionBonus } from "@/lib/coins";
 import { awardGameCoins } from "@/app/sets/actions";
-import { GearIcon } from "@/components/icons";
+import { GearIcon, XIcon } from "@/components/icons";
 import type { Card } from "@/lib/types";
 
 type Phase = "setup" | "playing" | "gameover";
 type QuestionMode = "written" | "multiple_choice";
 type AnswerField = "term" | "definition";
+type WordStatus = "falling" | "exploding-correct" | "exploding-landed";
 type FallingWord = {
   id: string;
   cardId: string;
@@ -27,15 +28,19 @@ type FallingWord = {
   spawnedAt: number;
   leftPct: number;
   shape: 0 | 1 | 2;
+  status: WordStatus;
+  frozenTopPct: number | null;
 };
 type Floater = { id: string; src: string; topPct: number; durationMs: number };
 
 const STARTING_LIVES = 3;
-const MIN_SPAWN_MS = 1400;
-const MAX_SPAWN_MS = 2800;
-// Roughly double the original fall window — more time to answer each one.
-const MIN_FALL_MS = 6000;
-const MAX_FALL_MS = 14000;
+// A new asteroid only spawns once the current one is gone (destroyed or
+// landed) or this much time has passed, whichever comes first — deliberately
+// slow and mostly-one-at-a-time rather than a flood on a timer.
+const SPAWN_GRACE_MS = 5000;
+const MIN_FALL_MS = 9000;
+const MAX_FALL_MS = 18000;
+const EXPLOSION_MS = 450;
 const FLOATER_INTERVAL_MS = 5000;
 const FLOATER_GIFS = MASCOT_SKINS.map((s) => s.gif);
 
@@ -71,22 +76,20 @@ export function GravityGame({ setId, cards }: { setId: string; cards: Card[] }) 
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(STARTING_LIVES);
   const [input, setInput] = useState("");
-  // Sampled periodically (not a real animation loop — the actual fall
-  // motion stays purely CSS-driven) just to know which asteroid is
-  // currently most urgent, for highlighting and for picking MC's target.
-  const [now, setNow] = useState(0);
 
-  const scoreRef = useRef(0);
-  const nextSpawnAtRef = useRef(0);
+  const lastSpawnAtRef = useRef(0);
   const nextFloaterAtRef = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { setState: setMascot } = useMascot();
   const { addCoins } = useCoins();
 
-  useEffect(() => {
-    scoreRef.current = score;
-  }, [score]);
+  const fallingWords = useMemo(() => words.filter((w) => w.status === "falling"), [words]);
+  // The oldest still-falling asteroid — deliberately NOT "closest to
+  // landing", so a freshly-spawned second asteroid can never steal the
+  // active/highlighted target (and MC's choices) away from the one already
+  // being answered. Stays locked until that one is destroyed or lands.
+  const activeWordId = fallingWords[0]?.id ?? null;
 
   useEffect(() => {
     if (phase === "setup") setMascot("idle");
@@ -113,30 +116,35 @@ export function GravityGame({ setId, cards }: { setId: string; cards: Card[] }) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
+  // Locks page scroll behind the fullscreen play area while it's up.
   useEffect(() => {
     if (phase !== "playing") return;
-    const id = setInterval(() => setNow(Date.now()), 300);
-    return () => clearInterval(id);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
   }, [phase]);
 
   function spawnWord() {
     setWords((prev) => {
-      const fallingCardIds = new Set(prev.map((w) => w.cardId));
+      const fallingCardIds = new Set(prev.filter((w) => w.status === "falling").map((w) => w.cardId));
       const pool = cards.filter((c) => !fallingCardIds.has(c.id));
       const source = pool.length > 0 ? pool : cards;
       const card = source[Math.floor(Math.random() * source.length)];
       const { prompt, answer, answerField } = wordTextFor(card, direction);
-      const durationMs = Math.max(MIN_FALL_MS, MAX_FALL_MS - scoreRef.current * 200);
       const word: FallingWord = {
         id: crypto.randomUUID(),
         cardId: card.id,
         prompt,
         answer,
         answerField,
-        durationMs,
+        durationMs: MIN_FALL_MS + Math.random() * (MAX_FALL_MS - MIN_FALL_MS),
         spawnedAt: Date.now(),
-        leftPct: 8 + Math.random() * 74,
+        leftPct: 10 + Math.random() * 70,
         shape: Math.floor(Math.random() * 3) as 0 | 1 | 2,
+        status: "falling",
+        frozenTopPct: null,
       };
       return [...prev, word];
     });
@@ -159,14 +167,14 @@ export function GravityGame({ setId, cards }: { setId: string; cards: Card[] }) 
   // change frequently right before a spawn was due.
   useEffect(() => {
     if (phase !== "playing") return;
-    nextSpawnAtRef.current = Date.now() + 400;
+    lastSpawnAtRef.current = Date.now();
     nextFloaterAtRef.current = Date.now() + 1500;
     const tick = setInterval(() => {
       const t = Date.now();
-      if (t >= nextSpawnAtRef.current) {
+      const stillFalling = words.some((w) => w.status === "falling");
+      if (!stillFalling || t - lastSpawnAtRef.current >= SPAWN_GRACE_MS) {
         spawnWord();
-        const spawnIntervalMs = Math.max(MIN_SPAWN_MS, MAX_SPAWN_MS - scoreRef.current * 80);
-        nextSpawnAtRef.current = t + spawnIntervalMs;
+        lastSpawnAtRef.current = t;
       }
       if (t >= nextFloaterAtRef.current) {
         spawnFloater();
@@ -175,42 +183,48 @@ export function GravityGame({ setId, cards }: { setId: string; cards: Card[] }) 
     }, 250);
     return () => clearInterval(tick);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase]);
-
-  // The most-urgent (closest to landing) falling word — highlighted in both
-  // modes, and MC's answer target.
-  const activeWordId = useMemo(() => {
-    if (words.length === 0) return null;
-    let bestId = words[0].id;
-    let bestProgress = -Infinity;
-    for (const w of words) {
-      const progress = (now - w.spawnedAt) / w.durationMs;
-      if (progress > bestProgress) {
-        bestProgress = progress;
-        bestId = w.id;
-      }
-    }
-    return bestId;
-  }, [words, now]);
+  }, [phase, words]);
 
   const activeChoices = useMemo(() => {
     if (questionType !== "multiple_choice") return null;
-    const activeWord = words.find((w) => w.id === activeWordId);
+    const activeWord = fallingWords.find((w) => w.id === activeWordId);
     if (!activeWord) return null;
     const distractorPool = shuffle(
       cards.filter((c) => c.id !== activeWord.cardId).map((c) => c[activeWord.answerField]),
     ).slice(0, 3);
     return shuffle([activeWord.answer, ...distractorPool]);
-  }, [questionType, words, activeWordId, cards]);
+  }, [questionType, fallingWords, activeWordId, cards]);
+
+  function currentTopPct(word: FallingWord): number {
+    return Math.min(100, ((Date.now() - word.spawnedAt) / word.durationMs) * 100);
+  }
 
   function handleLand(wordId: string) {
-    setWords((prev) => prev.filter((w) => w.id !== wordId));
+    setWords((prev) =>
+      prev.map((w) =>
+        w.id === wordId && w.status === "falling"
+          ? { ...w, status: "exploding-landed", frozenTopPct: 100 }
+          : w,
+      ),
+    );
     setLives((l) => Math.max(0, l - 1));
+    setTimeout(() => {
+      setWords((prev) => prev.filter((w) => w.id !== wordId));
+    }, EXPLOSION_MS);
   }
 
   function destroyWord(wordId: string) {
-    setWords((prev) => prev.filter((w) => w.id !== wordId));
+    setWords((prev) =>
+      prev.map((w) =>
+        w.id === wordId && w.status === "falling"
+          ? { ...w, status: "exploding-correct", frozenTopPct: currentTopPct(w) }
+          : w,
+      ),
+    );
     setScore((s) => s + 1);
+    setTimeout(() => {
+      setWords((prev) => prev.filter((w) => w.id !== wordId));
+    }, EXPLOSION_MS);
   }
 
   function submitGuess() {
@@ -219,7 +233,7 @@ export function GravityGame({ setId, cards }: { setId: string; cards: Card[] }) 
     const nowMs = Date.now();
     let bestId: string | null = null;
     let bestProgress = -1;
-    for (const w of words) {
+    for (const w of fallingWords) {
       if (matchQuality(typed, w.answer) === "wrong") continue;
       const progress = (nowMs - w.spawnedAt) / w.durationMs;
       if (progress > bestProgress) {
@@ -232,7 +246,7 @@ export function GravityGame({ setId, cards }: { setId: string; cards: Card[] }) 
   }
 
   function chooseMc(choice: string) {
-    const activeWord = words.find((w) => w.id === activeWordId);
+    const activeWord = fallingWords.find((w) => w.id === activeWordId);
     if (!activeWord) return;
     if (choice === activeWord.answer) destroyWord(activeWord.id);
   }
@@ -243,9 +257,13 @@ export function GravityGame({ setId, cards }: { setId: string; cards: Card[] }) 
     setScore(0);
     setLives(STARTING_LIVES);
     setInput("");
-    setNow(Date.now());
     setPhase("playing");
     if (questionType === "written") requestAnimationFrame(() => inputRef.current?.focus());
+  }
+
+  function exitGame() {
+    if (!confirm("End this run? Your score so far will be saved.")) return;
+    setPhase("gameover");
   }
 
   if (phase === "setup") {
@@ -268,8 +286,9 @@ export function GravityGame({ setId, cards }: { setId: string; cards: Card[] }) 
         </div>
 
         <p className="mt-4 text-xs text-amber-950/50">
-          Destroy each asteroid before it reaches the bottom. You have {STARTING_LIVES} lives — it
-          speeds up the longer you last.
+          Destroy each asteroid before it reaches the bottom. You have {STARTING_LIVES} lives. Plays
+          fullscreen — one asteroid at a time, with a fresh one every few seconds or as soon as you
+          clear the current one.
         </p>
 
         <button
@@ -315,20 +334,28 @@ export function GravityGame({ setId, cards }: { setId: string; cards: Card[] }) 
   }
 
   return (
-    <div className="flex flex-1 flex-col">
-      <div className="mb-2 flex items-center justify-between text-sm text-amber-950/60">
+    <div className="gravity-space fixed inset-0 z-50 flex flex-col p-3 sm:p-6">
+      <div className="mb-2 flex items-center justify-between text-sm text-white/80">
         <span>Score: {score}</span>
-        <span className="flex items-center gap-1">
+        <span className="flex items-center gap-1.5">
           {Array.from({ length: STARTING_LIVES }).map((_, i) => (
             <span
               key={i}
-              className={`h-2.5 w-2.5 rounded-full ${i < lives ? "bg-rose-400" : "bg-amber-200/60"}`}
+              className={`h-2.5 w-2.5 rounded-full ${i < lives ? "bg-rose-400" : "bg-white/15"}`}
             />
           ))}
         </span>
+        <button
+          onClick={exitGame}
+          aria-label="Exit"
+          className="flex items-center gap-1 rounded-lg px-2 py-1 text-white/60 transition hover:bg-white/10 hover:text-white"
+        >
+          <XIcon className="h-4 w-4" />
+          Exit
+        </button>
       </div>
 
-      <div className="gravity-space relative h-[26rem] w-full overflow-hidden rounded-2xl border border-amber-900/10 shadow-sm">
+      <div className="relative flex-1 overflow-hidden rounded-2xl border border-white/10">
         {floaters.map((f) => (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -341,13 +368,24 @@ export function GravityGame({ setId, cards }: { setId: string; cards: Card[] }) 
           />
         ))}
         {words.map((word) => {
+          if (word.status !== "falling") {
+            return (
+              <div
+                key={word.id}
+                style={{ left: `${word.leftPct}%`, top: `${word.frozenTopPct ?? 0}%` }}
+                className={`gravity-explosion absolute ${
+                  word.status === "exploding-correct" ? "gravity-explosion-correct" : "gravity-explosion-landed"
+                }`}
+              />
+            );
+          }
           const isActive = word.id === activeWordId;
           return (
             <div
               key={word.id}
               onAnimationEnd={() => handleLand(word.id)}
               style={{ left: `${word.leftPct}%`, animationDuration: `${word.durationMs}ms` }}
-              className={`gravity-word gravity-asteroid gravity-asteroid-${word.shape} absolute z-0 flex max-w-[9rem] -translate-x-1/2 items-center justify-center px-3 py-2.5 text-center text-xs font-medium transition-shadow sm:text-sm ${
+              className={`gravity-word gravity-asteroid gravity-asteroid-${word.shape} absolute z-0 flex max-w-[10rem] -translate-x-1/2 items-center justify-center px-4 py-3 text-center text-sm font-medium transition-shadow sm:max-w-[12rem] sm:text-base ${
                 isActive ? "z-10 shadow-[0_0_0_3px_rgba(251,191,36,0.9),0_0_18px_rgba(251,191,36,0.7)]" : ""
               }`}
             >
