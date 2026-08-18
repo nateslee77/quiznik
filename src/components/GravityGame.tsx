@@ -5,7 +5,6 @@ import Link from "next/link";
 import type { Direction } from "@/lib/generateQuiz";
 import { matchQuality } from "@/lib/fuzzyMatch";
 import { shuffle } from "@/lib/shuffle";
-import { HAPPY_REACTION_GIFS, SAD_REACTION_GIFS } from "@/lib/reactionGifs";
 import { MASCOT_SKINS } from "@/lib/mascotSkins";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { useMascot } from "@/components/mascot/MascotContext";
@@ -38,11 +37,7 @@ const MAX_SPAWN_MS = 2800;
 const MIN_FALL_MS = 6000;
 const MAX_FALL_MS = 14000;
 const FLOATER_INTERVAL_MS = 5000;
-const FLOATER_GIFS = [
-  ...HAPPY_REACTION_GIFS,
-  ...SAD_REACTION_GIFS,
-  ...MASCOT_SKINS.map((s) => s.gif),
-];
+const FLOATER_GIFS = MASCOT_SKINS.map((s) => s.gif);
 
 const DIRECTION_OPTIONS: { value: Direction | "mixed"; label: string }[] = [
   { value: "term-to-definition", label: "Term → Def" },
