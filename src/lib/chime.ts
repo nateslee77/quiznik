@@ -13,10 +13,10 @@ function getContext(): AudioContext | null {
 function tone(audioCtx: AudioContext, freq: number, startTime: number, duration: number, gain: number) {
   const osc = audioCtx.createOscillator();
   const env = audioCtx.createGain();
-  osc.type = "sine";
+  osc.type = "square";
   osc.frequency.value = freq;
   env.gain.setValueAtTime(0, startTime);
-  env.gain.linearRampToValueAtTime(gain, startTime + 0.015);
+  env.gain.linearRampToValueAtTime(gain, startTime + 0.008);
   env.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
   osc.connect(env).connect(audioCtx.destination);
   osc.start(startTime);
@@ -24,10 +24,11 @@ function tone(audioCtx: AudioContext, freq: number, startTime: number, duration:
 }
 
 // Called from a user-gesture-driven click handler on every correct answer.
+// Classic 8-bit "coin get" blip — quick ascending square-wave two-note hit.
 export function playCorrectChime() {
   const audioCtx = getContext();
   if (!audioCtx) return;
   const now = audioCtx.currentTime;
-  tone(audioCtx, 880, now, 0.18, 0.18); // A5
-  tone(audioCtx, 1318.5, now + 0.09, 0.22, 0.16); // E6
+  tone(audioCtx, 988, now, 0.09, 0.12); // B5
+  tone(audioCtx, 1319, now + 0.08, 0.22, 0.12); // E6
 }
