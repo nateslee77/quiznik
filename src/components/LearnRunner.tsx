@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { buildQuestion, type Direction } from "@/lib/generateQuiz";
 import { matchQuality } from "@/lib/fuzzyMatch";
+import { playCorrectChime } from "@/lib/chime";
 import { buildRound, type ProgressSnapshot, type RoundCardState } from "@/lib/learnRound";
 import { resetStudyProgress } from "@/app/sets/actions";
 import { SegmentedControl } from "@/components/SegmentedControl";
@@ -319,7 +320,10 @@ export function LearnRunner({
     const correct = choiceIndex === activeQuestion.correctIndex;
     setAnswerWasCorrect(correct);
     setMascot(correct ? "correct" : "wrong");
-    if (correct) addCoins(LEARN_CORRECT_COINS);
+    if (correct) {
+      addCoins(LEARN_CORRECT_COINS);
+      playCorrectChime();
+    }
     void submitResult(currentCardId, correct);
   }
 
@@ -329,7 +333,10 @@ export function LearnRunner({
     setWrittenChecked(true);
     setAnswerWasCorrect(correct);
     setMascot(correct ? "correct" : "wrong");
-    if (correct) addCoins(LEARN_CORRECT_COINS);
+    if (correct) {
+      addCoins(LEARN_CORRECT_COINS);
+      playCorrectChime();
+    }
     void submitResult(currentCardId, correct);
   }
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { generateQuiz, type QuizQuestion, type QuizSettings, type Direction, type QuestionType } from "@/lib/generateQuiz";
 import { isCloseEnough } from "@/lib/fuzzyMatch";
+import { playCorrectChime } from "@/lib/chime";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { useMascot } from "@/components/mascot/MascotContext";
 import { useCoins } from "@/components/coins/CoinsContext";
@@ -93,6 +94,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
     setSelected(choiceIndex);
     const correct = choiceIndex === question.correctIndex;
     setMascot(correct ? "correct" : "wrong");
+    if (correct) playCorrectChime();
     setAnswers((prev) => [...prev, { question, correct }]);
   }
 
@@ -102,6 +104,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
     setWrittenChecked(true);
     setWrittenCorrect(correct);
     setMascot(correct ? "correct" : "wrong");
+    if (correct) playCorrectChime();
     setAnswers((prev) => [...prev, { question, correct }]);
   }
 
