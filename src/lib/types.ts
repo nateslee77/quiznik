@@ -24,6 +24,7 @@ export type Card = {
   definition: string;
   position: number;
   image_path: string | null;
+  distractors: string[] | null;
   created_at: string;
 };
 

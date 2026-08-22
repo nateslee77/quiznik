@@ -2,11 +2,16 @@
 
 import { useActionState, useEffect, useId, useMemo, useRef, useState } from "react";
 import { createSet, type CreateSetState } from "@/app/sets/actions";
-import { parseFlashcardText, TERM_SEPARATORS, type TermSeparator } from "@/lib/parseFlashcards";
+import {
+  parseFlashcardText,
+  parseFlashcardTextWithChoices,
+  TERM_SEPARATORS,
+  type TermSeparator,
+} from "@/lib/parseFlashcards";
 import { useImageDrop } from "@/lib/useImageDrop";
 import { ImageIcon, SpinnerIcon, XIcon } from "@/components/icons";
 
-type Row = { id: string; term: string; definition: string; image: File | null };
+type Row = { id: string; term: string; definition: string; image: File | null; distractors?: string[] };
 
 const initialState: CreateSetState = { error: "" };
 
@@ -33,6 +38,7 @@ function ManualRow({
   onRemove: () => void;
   termRef: (el: HTMLInputElement | null) => void;
 }) {
+  const distractorCount = row.distractors?.length ?? 0;
   const inputRef = useRef<HTMLInputElement>(null);
   const previewUrl = useMemo(() => (row.image ? URL.createObjectURL(row.image) : null), [row.image]);
 
@@ -125,6 +131,14 @@ function ManualRow({
           </button>
         )}
       </div>
+        {distractorCount > 0 ? (
+          <span
+            title={`${distractorCount} custom wrong answer${distractorCount === 1 ? "" : "s"} attached`}
+            className="shrink-0 self-center rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-medium text-rose-500 sm:mt-1"
+          >
+            +{distractorCount}
+          </span>
+        ) : null}
         <button
           type="button"
           onClick={onRemove}
@@ -146,15 +160,22 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
   const [tab, setTab] = useState<"manual" | "paste">("manual");
   const [pasteText, setPasteText] = useState("");
   const [separator, setSeparator] = useState<TermSeparator>("tab");
+  const [pasteMode, setPasteMode] = useState<"simple" | "choices">("simple");
   const termRefs = useRef<Map<string, HTMLInputElement>>(new Map());
 
-  const preview = useMemo(() => parseFlashcardText(pasteText, separator), [pasteText, separator]);
+  const preview = useMemo(
+    () =>
+      pasteMode === "choices"
+        ? parseFlashcardTextWithChoices(pasteText)
+        : parseFlashcardText(pasteText, separator),
+    [pasteText, separator, pasteMode],
+  );
 
   const cardsJson = useMemo(
     () =>
       JSON.stringify(
         rows
-          .map((r) => ({ id: r.id, term: r.term, definition: r.definition }))
+          .map((r) => ({ id: r.id, term: r.term, definition: r.definition, distractors: r.distractors }))
           .filter((c) => c.term.trim() && c.definition.trim()),
       ),
     [rows],
@@ -210,6 +231,8 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
     setPasteText("");
     setTab("manual");
   }
+
+  const choicesFormatExample = "mitochondria\n*the powerhouse of the cell\nthe cell's genetic archive\nthe site of protein synthesis\n\nphotosynthesis\n*how plants convert light into energy\nhow plants absorb water\nhow plants release oxygen at night";
 
   const validCount = rows.filter((r) => r.term.trim() && r.definition.trim()).length;
 
@@ -297,37 +320,71 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2 text-sm">
-              <label htmlFor={`${idBase}-sep`} className="text-amber-950/50">
-                Between term and definition:
-              </label>
-              <select
-                id={`${idBase}-sep`}
-                value={separator}
-                onChange={(e) => setSeparator(e.target.value as TermSeparator)}
-                className="rounded-md border border-amber-900/20 bg-white px-2 py-1 text-sm"
+            <div className="flex gap-1 self-start rounded-lg bg-amber-200/50 p-1 text-xs">
+              <button
+                type="button"
+                onClick={() => setPasteMode("simple")}
+                className={`rounded-md px-2.5 py-1 font-medium transition ${
+                  pasteMode === "simple" ? "bg-rose-400 text-white shadow-sm" : "text-amber-950/50"
+                }`}
               >
-                {Object.entries(TERM_SEPARATORS).map(([key, { label }]) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
+                Term + definition
+              </button>
+              <button
+                type="button"
+                onClick={() => setPasteMode("choices")}
+                className={`rounded-md px-2.5 py-1 font-medium transition ${
+                  pasteMode === "choices" ? "bg-rose-400 text-white shadow-sm" : "text-amber-950/50"
+                }`}
+              >
+                With answer choices
+              </button>
             </div>
+
+            {pasteMode === "simple" ? (
+              <div className="flex items-center gap-2 text-sm">
+                <label htmlFor={`${idBase}-sep`} className="text-amber-950/50">
+                  Between term and definition:
+                </label>
+                <select
+                  id={`${idBase}-sep`}
+                  value={separator}
+                  onChange={(e) => setSeparator(e.target.value as TermSeparator)}
+                  className="rounded-md border border-amber-900/20 bg-white px-2 py-1 text-sm"
+                >
+                  {Object.entries(TERM_SEPARATORS).map(([key, { label }]) => (
+                    <option key={key} value={key}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <p className="text-xs text-amber-950/60">
+                One card per block, separated by a blank line. First line is the term; the rest are answer
+                choices — mark the correct one with <code className="rounded bg-amber-100 px-1">*</code>{" "}
+                (otherwise the first choice is used).
+              </p>
+            )}
+
             <textarea
               value={pasteText}
               onChange={(e) => setPasteText(e.target.value)}
               onKeyDown={insertTab}
               rows={8}
-              placeholder={"mitochondria\tthe powerhouse of the cell\nphotosynthesis\thow plants convert light into energy"}
+              placeholder={
+                pasteMode === "choices"
+                  ? choicesFormatExample
+                  : "mitochondria\tthe powerhouse of the cell\nphotosynthesis\thow plants convert light into energy"
+              }
               className="w-full resize-y rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 font-mono text-sm outline-none focus:border-rose-400"
             />
             <div className="flex items-center justify-between">
               <p className="text-xs text-amber-950/60">
-                One card per line.{" "}
+                {pasteMode === "choices" ? "One block per card." : "One card per line."}{" "}
                 {pasteText.trim()
                   ? `${preview.cards.length} card${preview.cards.length === 1 ? "" : "s"} found${
-                      preview.skipped ? `, ${preview.skipped} line(s) skipped` : ""
+                      preview.skipped ? `, ${preview.skipped} skipped` : ""
                     }.`
                   : ""}
               </p>

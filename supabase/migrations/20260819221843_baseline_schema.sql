@@ -1,12 +1,5 @@
 -- Quiznik schema: flashcard sets + cards, owned per-user via auth.uid()
---
--- This file is a point-in-time snapshot kept for readability. It was folded
--- into supabase/migrations/20260819221843_baseline_schema.sql as the CLI
--- baseline; `supabase db push` (run automatically on push to main, see
--- .github/workflows/supabase-migrate.yml) is now what actually applies
--- schema changes. For a NEW change: run `supabase migration new <name>`,
--- write the SQL in the generated file, and mirror it here too so this
--- snapshot stays current.
+-- Run this in the Supabase SQL editor (or `supabase db push` if using the CLI).
 
 create extension if not exists "pgcrypto";
 

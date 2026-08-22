@@ -93,6 +93,7 @@ export async function createSet(
         term: card.term.trim(),
         definition: card.definition.trim(),
         position: i,
+        distractors: card.distractors?.length ? card.distractors : null,
       })),
     )
     .select("id, position")
@@ -272,6 +273,7 @@ export async function addCardsBulk(setId: string, cards: ParsedCard[]) {
       term: card.term.trim(),
       definition: card.definition.trim(),
       position: base + i,
+      distractors: card.distractors?.length ? card.distractors : null,
     })),
   );
   if (error) throw new Error(error.message);

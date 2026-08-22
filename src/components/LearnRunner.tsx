@@ -693,7 +693,16 @@ export function LearnRunner({
             {!answerWasCorrect ? (
               <button
                 type="button"
-                onMouseUp={() => gradeWritten(true)}
+                onClick={(e) => {
+                  // Enter/Space-activated clicks report detail === 0; real
+                  // taps and mouse clicks are >= 1. Filtering on that (rather
+                  // than binding to onMouseUp, which never fires on touch)
+                  // keeps this button unreachable from the keyboard — the
+                  // global Enter handler still owns advancing — while
+                  // actually working on phones/tablets.
+                  if (e.detail === 0) return;
+                  gradeWritten(true);
+                }}
                 className="self-start text-xs text-amber-950/40 underline decoration-dotted hover:text-amber-950/70"
               >
                 Actually, mark it correct

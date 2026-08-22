@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:new": "supabase migration new",
+    "db:push": "supabase db push --linked"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",
@@ -22,6 +24,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
+    "supabase": "^2.115.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

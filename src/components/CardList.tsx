@@ -12,6 +12,7 @@ import {
 } from "@/app/sets/actions";
 import {
   parseFlashcardText,
+  parseFlashcardTextWithChoices,
   TERM_SEPARATORS,
   type ParsedCard,
   type TermSeparator,
@@ -353,8 +354,15 @@ function PasteCardsPanel({
 }) {
   const [pasteText, setPasteText] = useState("");
   const [separator, setSeparator] = useState<TermSeparator>("tab");
+  const [pasteMode, setPasteMode] = useState<"simple" | "choices">("simple");
 
-  const preview = useMemo(() => parseFlashcardText(pasteText, separator), [pasteText, separator]);
+  const preview = useMemo(
+    () =>
+      pasteMode === "choices"
+        ? parseFlashcardTextWithChoices(pasteText)
+        : parseFlashcardText(pasteText, separator),
+    [pasteText, separator, pasteMode],
+  );
 
   // Keep Tab usable inside the textarea (it types the delimiter instead of
   // moving browser focus).
@@ -377,37 +385,71 @@ function PasteCardsPanel({
 
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-dashed border-amber-900/20 p-3">
-      <div className="flex items-center gap-2 text-sm">
-        <label htmlFor="cardlist-sep" className="text-amber-950/50">
-          Between term and definition:
-        </label>
-        <select
-          id="cardlist-sep"
-          value={separator}
-          onChange={(e) => setSeparator(e.target.value as TermSeparator)}
-          className="rounded-md border border-amber-900/20 bg-white px-2 py-1 text-sm"
+      <div className="flex gap-1 self-start rounded-lg bg-amber-200/50 p-1 text-xs">
+        <button
+          type="button"
+          onClick={() => setPasteMode("simple")}
+          className={`rounded-md px-2.5 py-1 font-medium transition ${
+            pasteMode === "simple" ? "bg-rose-400 text-white shadow-sm" : "text-amber-950/50"
+          }`}
         >
-          {Object.entries(TERM_SEPARATORS).map(([key, { label }]) => (
-            <option key={key} value={key}>
-              {label}
-            </option>
-          ))}
-        </select>
+          Term + definition
+        </button>
+        <button
+          type="button"
+          onClick={() => setPasteMode("choices")}
+          className={`rounded-md px-2.5 py-1 font-medium transition ${
+            pasteMode === "choices" ? "bg-rose-400 text-white shadow-sm" : "text-amber-950/50"
+          }`}
+        >
+          With answer choices
+        </button>
       </div>
+
+      {pasteMode === "simple" ? (
+        <div className="flex items-center gap-2 text-sm">
+          <label htmlFor="cardlist-sep" className="text-amber-950/50">
+            Between term and definition:
+          </label>
+          <select
+            id="cardlist-sep"
+            value={separator}
+            onChange={(e) => setSeparator(e.target.value as TermSeparator)}
+            className="rounded-md border border-amber-900/20 bg-white px-2 py-1 text-sm"
+          >
+            {Object.entries(TERM_SEPARATORS).map(([key, { label }]) => (
+              <option key={key} value={key}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : (
+        <p className="text-xs text-amber-950/60">
+          One card per block, separated by a blank line. First line is the term; the rest are answer
+          choices — mark the correct one with <code className="rounded bg-amber-100 px-1">*</code> (otherwise
+          the first choice is used).
+        </p>
+      )}
+
       <textarea
         value={pasteText}
         onChange={(e) => setPasteText(e.target.value)}
         onKeyDown={insertTab}
         rows={6}
-        placeholder={"mitochondria\tthe powerhouse of the cell\nphotosynthesis\thow plants convert light into energy"}
+        placeholder={
+          pasteMode === "choices"
+            ? "mitochondria\n*the powerhouse of the cell\nthe cell's genetic archive\nthe site of protein synthesis\n\nphotosynthesis\n*how plants convert light into energy\nhow plants absorb water\nhow plants release oxygen at night"
+            : "mitochondria\tthe powerhouse of the cell\nphotosynthesis\thow plants convert light into energy"
+        }
         className="w-full resize-y rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 font-mono text-sm outline-none focus:border-rose-400"
       />
       <div className="flex items-center justify-between">
         <p className="text-xs text-amber-950/60">
-          One card per line.{" "}
+          {pasteMode === "choices" ? "One block per card." : "One card per line."}{" "}
           {pasteText.trim()
             ? `${preview.cards.length} card${preview.cards.length === 1 ? "" : "s"} found${
-                preview.skipped ? `, ${preview.skipped} line(s) skipped` : ""
+                preview.skipped ? `, ${preview.skipped} skipped` : ""
               }.`
             : ""}
         </p>
@@ -476,6 +518,7 @@ function tempCard(setId: string, position: number, term: string, definition: str
     definition,
     position,
     image_path: null,
+    distractors: null,
     created_at: new Date().toISOString(),
   };
 }

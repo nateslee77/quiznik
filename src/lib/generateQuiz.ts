@@ -46,8 +46,29 @@ export function buildQuestion(
     return { card, type, direction, prompt, answer, choices: [], correctIndex: -1 };
   }
 
-  const distractorPool = shuffle(allCards.filter((c) => c.id !== card.id).map((c) => c[answerField]));
-  const choices = shuffle([answer, ...distractorPool.slice(0, MAX_CHOICES - 1)]);
+  // Author-supplied wrong answers (pasted in alongside the term/definition)
+  // only make sense on the definition side — they were written as "wrong
+  // definitions" for this term, not wrong terms — so they're only used when
+  // the answer field is the definition. Otherwise (or if there aren't
+  // enough of them), fall back to / top up with real answers pulled from
+  // other cards.
+  const ownDistractors =
+    answerField === "definition" ? shuffle((card.distractors ?? []).filter((d) => d && d !== answer)) : [];
+  const needed = MAX_CHOICES - 1;
+  const chosenOwn = ownDistractors.slice(0, needed);
+
+  let choicePool = chosenOwn;
+  if (choicePool.length < needed) {
+    const pool = shuffle(
+      allCards
+        .filter((c) => c.id !== card.id)
+        .map((c) => c[answerField])
+        .filter((a) => a !== answer && !choicePool.includes(a)),
+    );
+    choicePool = [...choicePool, ...pool.slice(0, needed - choicePool.length)];
+  }
+
+  const choices = shuffle([answer, ...choicePool]);
   return { card, type, direction, prompt, answer, choices, correctIndex: choices.indexOf(answer) };
 }
 

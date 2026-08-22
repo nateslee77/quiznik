@@ -281,8 +281,9 @@ export function LibraryBrowser({
         data-drop-target={folder.id}
         draggable={false}
         onClick={suppressClickAfterDrag}
+        onContextMenu={(e) => e.preventDefault()}
         onPointerDown={(e) => beginDrag(e, { kind: "folder", id: folder.id, title: folder.name })}
-        className={`flex touch-manipulation items-center gap-3 rounded-2xl border border-amber-200/70 bg-amber-50/50 p-3.5 transition select-none hover:border-amber-300 hover:bg-amber-50 ${dropZoneClass(folder.id)} ${draggingPayload?.id === folder.id ? "opacity-40" : ""}`}
+        className={`flex touch-manipulation items-center gap-3 rounded-2xl border border-amber-200/70 bg-amber-50/50 p-3.5 transition select-none hover:border-amber-300 hover:bg-amber-50 [-webkit-touch-callout:none] ${dropZoneClass(folder.id)} ${draggingPayload?.id === folder.id ? "opacity-40" : ""}`}
       >
         <span className="flex h-11 w-11 shrink-0 items-center justify-center">
           <FolderIcon className="h-8 w-8 text-amber-400" />
@@ -300,8 +301,9 @@ export function LibraryBrowser({
       href={`/sets/${deck.id}`}
       draggable={false}
       onClick={suppressClickAfterDrag}
+      onContextMenu={(e) => e.preventDefault()}
       onPointerDown={(e) => beginDrag(e, { kind: "deck", id: deck.id, title: deck.title })}
-      className={`flex touch-manipulation items-center gap-3 rounded-2xl border border-amber-900/10 bg-white p-3.5 transition select-none hover:border-amber-900/15 hover:bg-orange-50 ${draggingPayload?.id === deck.id ? "opacity-40" : ""}`}
+      className={`flex touch-manipulation items-center gap-3 rounded-2xl border border-amber-900/10 bg-white p-3.5 transition select-none hover:border-amber-900/15 hover:bg-orange-50 [-webkit-touch-callout:none] ${draggingPayload?.id === deck.id ? "opacity-40" : ""}`}
     >
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-500">
         <DeckIcon className="h-5 w-5" />
