@@ -14,7 +14,7 @@ function CardFace({
 }) {
   const imageUrl = cardImageUrl(card.image_path);
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl border border-amber-900/10 bg-white p-6 text-center shadow-sm [backface-visibility:hidden] lg:gap-4 lg:p-10">
+    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl border border-amber-900/10 bg-surface p-6 text-center shadow-sm [backface-visibility:hidden] lg:gap-4 lg:p-10">
       <span className="text-xs font-medium uppercase tracking-wide text-amber-950/60 lg:text-sm">
         {label}
       </span>

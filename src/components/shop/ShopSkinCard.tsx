@@ -50,7 +50,7 @@ export function ShopSkinCard({
   }
 
   return (
-    <div className="flex flex-col items-center gap-2 rounded-2xl border border-amber-900/10 bg-white p-4 text-center">
+    <div className="flex flex-col items-center gap-2 rounded-2xl border border-amber-900/10 bg-surface p-4 text-center">
       {equipped ? (
         <span className="self-end rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-rose-500">
           Equipped

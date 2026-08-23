@@ -85,7 +85,7 @@ function ManualRow({
           value={row.term}
           onChange={(e) => onTermChange(e.target.value)}
           placeholder="Term"
-          className="w-full min-w-0 flex-1 rounded-lg border border-amber-900/20 bg-white px-3 py-2 text-sm outline-none focus:border-rose-400"
+          className="w-full min-w-0 flex-1 rounded-lg border border-amber-900/20 bg-surface px-3 py-2 text-sm outline-none focus:border-rose-400"
         />
       </div>
       <AutoTextarea
@@ -93,7 +93,7 @@ function ManualRow({
         onChange={(e) => onDefinitionChange(e.target.value)}
         onKeyDown={onDefinitionKeyDown}
         placeholder="Definition"
-        className="w-full min-w-0 flex-1 rounded-lg border border-amber-900/20 bg-white px-3 py-2 text-sm outline-none focus:border-rose-400"
+        className="w-full min-w-0 flex-1 rounded-lg border border-amber-900/20 bg-surface px-3 py-2 text-sm outline-none focus:border-rose-400"
       />
       <div className="flex items-center justify-end gap-2 sm:contents">
       <div className="mt-1 shrink-0">
@@ -250,7 +250,7 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
           id={`${idBase}-title`}
           name="title"
           required
-          className="w-full rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 text-base outline-none focus:border-rose-400"
+          className="w-full rounded-lg border border-amber-900/20 bg-surface px-3.5 py-2.5 text-base outline-none focus:border-rose-400"
           placeholder="e.g. Spanish Verbs — Unit 3"
         />
       </div>
@@ -262,7 +262,7 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
         <input
           id={`${idBase}-desc`}
           name="description"
-          className="w-full rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 text-base outline-none focus:border-rose-400"
+          className="w-full rounded-lg border border-amber-900/20 bg-surface px-3.5 py-2.5 text-base outline-none focus:border-rose-400"
           placeholder="What's this set for?"
         />
       </div>
@@ -357,7 +357,7 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
                   id={`${idBase}-sep`}
                   value={separator}
                   onChange={(e) => setSeparator(e.target.value as TermSeparator)}
-                  className="rounded-md border border-amber-900/20 bg-white px-2 py-1 text-sm"
+                  className="rounded-md border border-amber-900/20 bg-surface px-2 py-1 text-sm"
                 >
                   {Object.entries(TERM_SEPARATORS).map(([key, { label }]) => (
                     <option key={key} value={key}>
@@ -387,7 +387,7 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
                   ? choicesFormatExample
                   : "mitochondria\tthe powerhouse of the cell\nphotosynthesis\thow plants convert light into energy"
               }
-              className="w-full resize-y rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 font-mono text-sm outline-none focus:border-rose-400"
+              className="w-full resize-y rounded-lg border border-amber-900/20 bg-surface px-3.5 py-2.5 font-mono text-sm outline-none focus:border-rose-400"
             />
             <div className="flex items-center justify-between">
               <p className="text-xs text-amber-950/60">

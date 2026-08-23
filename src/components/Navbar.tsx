@@ -4,7 +4,7 @@ import Link from "next/link";
 // shell instead (see AppShell), which the root layout switches on.
 export function Navbar() {
   return (
-    <header className="sticky top-0 z-10 border-b border-amber-900/10 bg-white/80 backdrop-blur">
+    <header className="sticky top-0 z-10 border-b border-amber-900/10 bg-surface/80 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2 text-lg font-semibold tracking-tight">
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-400 text-xs font-semibold text-white">

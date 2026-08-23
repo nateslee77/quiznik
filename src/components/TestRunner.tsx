@@ -161,7 +161,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
 
   if (phase === "setup") {
     return (
-      <div className="rounded-2xl border border-amber-900/10 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-amber-900/10 bg-surface p-6 shadow-sm">
         <div className="mb-6 flex items-center gap-2">
           <GearIcon className="h-5 w-5 text-amber-950/60" />
           <h2 className="text-lg font-medium">Test settings</h2>
@@ -195,7 +195,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
               onChange={(e) =>
                 setCount(Math.max(1, Math.min(cards.length, Number(e.target.value) || 1)))
               }
-              className="w-20 rounded-lg border border-amber-900/20 bg-white px-3 py-1.5 text-sm outline-none focus:border-rose-400"
+              className="w-20 rounded-lg border border-amber-900/20 bg-surface px-3 py-1.5 text-sm outline-none focus:border-rose-400"
             />
           </div>
 
@@ -302,7 +302,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
         Question {index + 1} of {questions.length}
       </p>
 
-      <div className="rounded-2xl border border-amber-900/10 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-amber-900/10 bg-surface p-6 shadow-sm">
         {cardImageUrl(question.card.image_path) ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -361,7 +361,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
               value={writtenInput}
               onChange={(e) => setWrittenInput(e.target.value)}
               placeholder="Type your answer…"
-              className="w-full rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 text-base outline-none focus:border-rose-400"
+              className="w-full rounded-lg border border-amber-900/20 bg-surface px-3.5 py-2.5 text-base outline-none focus:border-rose-400"
             />
             <button
               onClick={checkWritten}

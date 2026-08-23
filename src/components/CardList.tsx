@@ -96,7 +96,7 @@ function CardImageControl({
           type="button"
           onClick={onRemove}
           aria-label="Remove photo"
-          className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-white text-amber-950/60 shadow ring-1 ring-amber-900/15 hover:text-red-600"
+          className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-surface text-amber-950/60 shadow ring-1 ring-amber-900/15 hover:text-red-600"
         >
           <XIcon className="h-3 w-3" />
         </button>
@@ -208,12 +208,12 @@ function EditableCard({
         <AutoTextarea
           value={term}
           onChange={(e) => setTerm(e.target.value)}
-          className="w-full min-w-0 flex-1 rounded-md border border-amber-900/20 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-rose-400"
+          className="w-full min-w-0 flex-1 rounded-md border border-amber-900/20 bg-surface px-2.5 py-1.5 text-sm outline-none focus:border-rose-400"
         />
         <AutoTextarea
           value={definition}
           onChange={(e) => setDefinition(e.target.value)}
-          className="w-full min-w-0 flex-1 rounded-md border border-amber-900/20 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-rose-400"
+          className="w-full min-w-0 flex-1 rounded-md border border-amber-900/20 bg-surface px-2.5 py-1.5 text-sm outline-none focus:border-rose-400"
         />
         <div className="flex gap-2 sm:contents">
           <button
@@ -328,7 +328,7 @@ function AddCardRow({
           value={term}
           onChange={(e) => setTerm(e.target.value)}
           placeholder="Term"
-          className="w-full min-w-0 flex-1 rounded-md border border-amber-900/20 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-rose-400"
+          className="w-full min-w-0 flex-1 rounded-md border border-amber-900/20 bg-surface px-2.5 py-1.5 text-sm outline-none focus:border-rose-400"
         />
       </div>
       <AutoTextarea
@@ -340,7 +340,7 @@ function AddCardRow({
           e.preventDefault();
           submit();
         }}
-        className="w-full min-w-0 flex-1 rounded-md border border-amber-900/20 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-rose-400"
+        className="w-full min-w-0 flex-1 rounded-md border border-amber-900/20 bg-surface px-2.5 py-1.5 text-sm outline-none focus:border-rose-400"
       />
       <button
         onClick={submit}
@@ -423,7 +423,7 @@ function PasteCardsPanel({
             id="cardlist-sep"
             value={separator}
             onChange={(e) => setSeparator(e.target.value as TermSeparator)}
-            className="rounded-md border border-amber-900/20 bg-white px-2 py-1 text-sm"
+            className="rounded-md border border-amber-900/20 bg-surface px-2 py-1 text-sm"
           >
             {Object.entries(TERM_SEPARATORS).map(([key, { label }]) => (
               <option key={key} value={key}>
@@ -453,7 +453,7 @@ function PasteCardsPanel({
             ? "mitochondria\n*the powerhouse of the cell\nthe cell's genetic archive\nthe site of protein synthesis\n\nphotosynthesis\n*how plants convert light into energy\nhow plants absorb water\nhow plants release oxygen at night\n\n```python\ndef add(a, b):\n    return a + b\n\nprint(add(2, 3))\n```\n*5\n6\nError\nNone"
             : "mitochondria\tthe powerhouse of the cell\nphotosynthesis\thow plants convert light into energy"
         }
-        className="w-full resize-y rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 font-mono text-sm outline-none focus:border-rose-400"
+        className="w-full resize-y rounded-lg border border-amber-900/20 bg-surface px-3.5 py-2.5 font-mono text-sm outline-none focus:border-rose-400"
       />
       <div className="flex items-center justify-between">
         <p className="text-xs text-amber-950/60">

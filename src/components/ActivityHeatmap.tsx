@@ -37,12 +37,14 @@ function cellTitle(cell: DayCell): string {
   return `${dateLabel} — ${cell.bucket.total} answered, ${cell.bucket.correct} correct`;
 }
 
+// Mobile-first smaller (a 53-column Yearly grid has no wrap points, so its
+// cells must be the tightest on the cramped viewport, not the roomy one).
 function Cell({ cell, max }: { cell: DayCell; max: number }) {
-  if (cell.future) return <div className="h-3.5 w-3.5 rounded-sm sm:h-3 sm:w-3" />;
+  if (cell.future) return <div className="h-2.5 w-2.5 shrink-0 rounded-sm sm:h-3.5 sm:w-3.5" />;
   return (
     <div
       title={cellTitle(cell)}
-      className={`h-3.5 w-3.5 rounded-sm transition sm:h-3 sm:w-3 ${intensityClass(cell.bucket?.total ?? 0, max)}`}
+      className={`h-2.5 w-2.5 shrink-0 rounded-sm transition sm:h-3.5 sm:w-3.5 ${intensityClass(cell.bucket?.total ?? 0, max)}`}
     />
   );
 }
@@ -69,18 +71,18 @@ function WeekGrid({ weeks }: { weeks: DayCell[][] }) {
   const monthLabels = computeMonthLabels(weeks);
 
   return (
-    <div className="overflow-x-auto">
+    <div className="min-w-0 overflow-x-auto">
       <div className="inline-flex flex-col gap-1">
         <div className="flex gap-1">
           {monthLabels.map((label, i) => (
-            <span key={i} className="w-3.5 text-[10px] text-amber-950/40 sm:w-3">
+            <span key={i} className="w-2.5 shrink-0 text-[10px] text-amber-950/40 sm:w-3.5">
               {label}
             </span>
           ))}
         </div>
         <div className="flex gap-1">
           {weeks.map((col, i) => (
-            <div key={i} className="flex flex-col gap-1">
+            <div key={i} className="flex shrink-0 flex-col gap-1">
               {col.map((cell) => (
                 <Cell key={cell.key} cell={cell} max={max} />
               ))}
@@ -109,9 +111,9 @@ function DayStrip({ days }: { days: DayCell[] }) {
 
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-amber-900/10 bg-white p-3 text-center">
-      <p className="text-lg font-semibold tracking-tight">{value}</p>
-      <p className="text-[11px] text-amber-950/50">{label}</p>
+    <div className="min-w-0 rounded-xl border border-amber-900/10 bg-surface p-3 text-center">
+      <p className="truncate text-base font-semibold tracking-tight sm:text-lg">{value}</p>
+      <p className="truncate text-[11px] text-amber-950/50">{label}</p>
     </div>
   );
 }
@@ -152,20 +154,20 @@ export function ActivityHeatmap({ events }: { events: StudyEvent[] }) {
   // so the server-rendered HTML can't disagree with the client's.
   if (!ready) {
     return (
-      <div className="flex flex-col gap-4">
+      <div className="min-w-0 flex flex-col gap-4">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <StatTile label="Studied today" value="—" />
           <StatTile label="Decks today" value="—" />
           <StatTile label="Pace" value="—" />
           <StatTile label="Accuracy today" value="—" />
         </div>
-        <div className="h-40 rounded-2xl border border-amber-900/10 bg-white p-4" />
+        <div className="h-40 rounded-2xl border border-amber-900/10 bg-surface p-4" />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="min-w-0 flex flex-col gap-4">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <StatTile label="Studied today" value={String(today.studiedCards)} />
         <StatTile label="Decks today" value={String(today.decksStudied)} />
@@ -173,10 +175,10 @@ export function ActivityHeatmap({ events }: { events: StudyEvent[] }) {
         <StatTile label="Accuracy today" value={today.accuracyPct === null ? "—" : `${today.accuracyPct}%`} />
       </div>
 
-      <div className="rounded-2xl border border-amber-900/10 bg-white p-4">
-        <div className="mb-3 flex items-center justify-between gap-3">
+      <div className="min-w-0 rounded-2xl border border-amber-900/10 bg-surface p-4">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-sm font-medium text-amber-950/60">Activity</h3>
-          <div className="w-48">
+          <div className="w-full sm:w-48">
             <SegmentedControl options={VIEW_OPTIONS} value={view} onChange={setView} />
           </div>
         </div>

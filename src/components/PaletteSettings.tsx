@@ -20,9 +20,14 @@ export function PaletteSettings() {
             }`}
           >
             <span
-              className="h-8 w-8 rounded-full border border-black/10 shadow-sm"
-              style={{ backgroundColor: p.swatch }}
-            />
+              className="relative flex h-8 w-8 items-center justify-center rounded-full border border-black/10 shadow-sm"
+              style={{ backgroundColor: p.background }}
+            >
+              <span
+                className="h-3.5 w-3.5 rounded-full border border-black/10"
+                style={{ backgroundColor: p.swatch }}
+              />
+            </span>
             <span className="text-xs font-medium">{p.label}</span>
           </button>
         );

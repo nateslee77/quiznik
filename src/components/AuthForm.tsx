@@ -30,7 +30,7 @@ export function AuthForm({ action, mode, next }: Props) {
           type="email"
           required
           autoComplete="email"
-          className="w-full rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 text-base outline-none transition focus:border-rose-400"
+          className="w-full rounded-lg border border-amber-900/20 bg-surface px-3.5 py-2.5 text-base outline-none transition focus:border-rose-400"
           placeholder="you@example.com"
         />
       </div>
@@ -46,7 +46,7 @@ export function AuthForm({ action, mode, next }: Props) {
           required
           minLength={8}
           autoComplete={isLogin ? "current-password" : "new-password"}
-          className="w-full rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 text-base outline-none transition focus:border-rose-400"
+          className="w-full rounded-lg border border-amber-900/20 bg-surface px-3.5 py-2.5 text-base outline-none transition focus:border-rose-400"
           placeholder="••••••••"
         />
       </div>

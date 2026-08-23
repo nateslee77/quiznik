@@ -214,7 +214,7 @@ export function DockedMascot() {
     >
       {isReaction ? (
         <div
-          className={`rounded-2xl border-2 bg-white p-2 shadow-lg transition-opacity ${
+          className={`rounded-2xl border-2 bg-surface p-2 shadow-lg transition-opacity ${
             displayState === "correct" ? "border-emerald-400" : "border-red-400"
           } ${fading ? "opacity-0" : "opacity-100"}`}
           style={{ transitionDuration: `${REACTION_FADE_MS}ms` }}

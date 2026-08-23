@@ -411,7 +411,7 @@ export function LearnRunner({
 
   if (phase === "setup") {
     return (
-      <div className="rounded-2xl border border-amber-900/10 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-amber-900/10 bg-surface p-6 shadow-sm">
         <div className="mb-6 flex items-center gap-2">
           <GearIcon className="h-5 w-5 text-amber-950/60" />
           <h2 className="text-lg font-medium">Learn settings</h2>
@@ -434,7 +434,7 @@ export function LearnRunner({
               min={1}
               value={maxNew}
               onChange={(e) => setMaxNew(Math.max(1, Number(e.target.value) || 1))}
-              className="w-20 rounded-lg border border-amber-900/20 bg-white px-3 py-1.5 text-sm outline-none focus:border-rose-400"
+              className="w-20 rounded-lg border border-amber-900/20 bg-surface px-3 py-1.5 text-sm outline-none focus:border-rose-400"
             />
           </div>
 
@@ -448,7 +448,7 @@ export function LearnRunner({
               min={1}
               value={maxReview}
               onChange={(e) => setMaxReview(Math.max(1, Number(e.target.value) || 1))}
-              className="w-20 rounded-lg border border-amber-900/20 bg-white px-3 py-1.5 text-sm outline-none focus:border-rose-400"
+              className="w-20 rounded-lg border border-amber-900/20 bg-surface px-3 py-1.5 text-sm outline-none focus:border-rose-400"
             />
           </div>
 
@@ -600,7 +600,7 @@ export function LearnRunner({
         </button>
       </div>
 
-      <div className="rounded-2xl border border-amber-900/10 bg-white p-6 shadow-sm sm:p-8">
+      <div className="rounded-2xl border border-amber-900/10 bg-surface p-6 shadow-sm sm:p-8">
         {cardImageUrl(activeQuestion.card.image_path) ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -678,7 +678,7 @@ export function LearnRunner({
               value={writtenInput}
               onChange={(e) => setWrittenInput(e.target.value)}
               placeholder="Type your answer…"
-              className="w-full rounded-xl border border-amber-900/20 bg-white px-3.5 py-2.5 text-base outline-none transition focus:border-rose-400"
+              className="w-full rounded-xl border border-amber-900/20 bg-surface px-3.5 py-2.5 text-base outline-none transition focus:border-rose-400"
             />
             <button
               onClick={checkWritten}

@@ -268,7 +268,7 @@ export function GravityGame({ setId, cards }: { setId: string; cards: Card[] }) 
 
   if (phase === "setup") {
     return (
-      <div className="rounded-2xl border border-amber-900/10 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-amber-900/10 bg-surface p-6 shadow-sm">
         <div className="mb-6 flex items-center gap-2">
           <GearIcon className="h-5 w-5 text-amber-950/60" />
           <h2 className="text-lg font-medium">Gravity settings</h2>

@@ -303,7 +303,7 @@ export function LibraryBrowser({
       onClick={suppressClickAfterDrag}
       onContextMenu={(e) => e.preventDefault()}
       onPointerDown={(e) => beginDrag(e, { kind: "deck", id: deck.id, title: deck.title })}
-      className={`flex touch-manipulation items-center gap-3 rounded-2xl border border-amber-900/10 bg-white p-3.5 transition select-none hover:border-amber-900/15 hover:bg-orange-50 [-webkit-touch-callout:none] ${draggingPayload?.id === deck.id ? "opacity-40" : ""}`}
+      className={`flex touch-manipulation items-center gap-3 rounded-2xl border border-amber-900/10 bg-surface p-3.5 transition select-none hover:border-amber-900/15 hover:bg-orange-50 [-webkit-touch-callout:none] ${draggingPayload?.id === deck.id ? "opacity-40" : ""}`}
     >
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-500">
         <DeckIcon className="h-5 w-5" />
@@ -336,7 +336,7 @@ export function LibraryBrowser({
         }
       }}
       placeholder="Folder name…"
-      className="rounded-xl border border-rose-300 bg-white px-3 py-2 text-sm outline-none placeholder:text-amber-950/40"
+      className="rounded-xl border border-rose-300 bg-surface px-3 py-2 text-sm outline-none placeholder:text-amber-950/40"
     />
   ) : (
     <button
@@ -357,7 +357,7 @@ export function LibraryBrowser({
     draggingPayload && dragPos ? (
       <div
         aria-hidden
-        className="pointer-events-none fixed z-50 flex items-center gap-2 rounded-xl border border-rose-300 bg-white px-3 py-2 text-sm font-medium shadow-lg"
+        className="pointer-events-none fixed z-50 flex items-center gap-2 rounded-xl border border-rose-300 bg-surface px-3 py-2 text-sm font-medium shadow-lg"
         style={{ left: dragPos.x + 12, top: dragPos.y + 12 }}
       >
         {draggingPayload.kind === "folder" ? (
@@ -485,7 +485,7 @@ export function LibraryBrowser({
         </div>
       </div>
 
-      <div className="mb-4 flex items-center gap-2 rounded-xl border border-amber-900/15 bg-white px-3.5 py-2.5 text-sm text-amber-950/50">
+      <div className="mb-4 flex items-center gap-2 rounded-xl border border-amber-900/15 bg-surface px-3.5 py-2.5 text-sm text-amber-950/50">
         <SearchIcon className="h-4 w-4" />
         Search your library
         <span className="ml-auto rounded-md border border-amber-900/15 px-1.5 py-0.5 text-[10px] text-amber-950/40">

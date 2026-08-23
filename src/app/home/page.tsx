@@ -43,7 +43,7 @@ export default async function HomePage() {
   const recent = sets.slice(0, 4);
 
   return (
-    <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-8">
+    <div className="mx-auto min-w-0 w-full max-w-5xl flex-1 px-4 py-8 sm:px-8">
       <div className="flex items-center gap-4">
         <MascotPlaceholder variant="idle" className="h-14 w-14 shrink-0" />
         <div className="flex-1">
@@ -108,7 +108,7 @@ export default async function HomePage() {
                 <Link
                   key={set.id}
                   href={`/sets/${set.id}`}
-                  className="flex items-center gap-3 rounded-2xl border border-amber-900/10 bg-white p-4 transition hover:border-amber-900/15 hover:bg-orange-50"
+                  className="flex items-center gap-3 rounded-2xl border border-amber-900/10 bg-surface p-4 transition hover:border-amber-900/15 hover:bg-orange-50"
                 >
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-500">
                     <DeckIcon className="h-5 w-5" />

@@ -6,7 +6,7 @@ export function MascotSettings() {
   const enabled = useMascotEnabled();
 
   return (
-    <label className="flex items-center justify-between rounded-xl border border-amber-900/10 bg-white px-4 py-3 text-sm font-medium">
+    <label className="flex items-center justify-between rounded-xl border border-amber-900/10 bg-surface px-4 py-3 text-sm font-medium">
       <span>
         Show the floating mascot
         <span className="block text-xs font-normal text-amber-950/50">

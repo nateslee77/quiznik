@@ -46,7 +46,7 @@ export function AppShell({
       <div className="relative z-10 flex min-h-full flex-1">
         {/* Desktop sidebar (collapsible) */}
         {!collapsed ? (
-          <aside className="sticky top-0 hidden h-screen w-60 shrink-0 border-r border-amber-900/10 bg-white/60 lg:block">
+          <aside className="sticky top-0 hidden h-screen w-60 shrink-0 border-r border-amber-900/10 bg-surface/60 lg:block">
             <Sidebar folders={folders} onCollapse={() => setCollapsed(true)} />
           </aside>
         ) : (
@@ -54,7 +54,7 @@ export function AppShell({
             type="button"
             onClick={() => setCollapsed(false)}
             aria-label="Open sidebar"
-            className="fixed left-3 top-3 z-30 hidden rounded-xl border border-amber-900/10 bg-white/90 p-2 text-amber-950/60 shadow-sm transition hover:bg-orange-50 hover:text-amber-950 lg:flex"
+            className="fixed left-3 top-3 z-30 hidden rounded-xl border border-amber-900/10 bg-surface/90 p-2 text-amber-950/60 shadow-sm transition hover:bg-orange-50 hover:text-amber-950 lg:flex"
           >
             <MenuIcon className="h-5 w-5" />
           </button>
@@ -63,7 +63,7 @@ export function AppShell({
         {/* Mobile top bar + slide-over drawer */}
         <div
           id="mobile-topbar"
-          className="fixed inset-x-0 top-0 z-30 flex h-14 items-center gap-3 border-b border-amber-900/10 bg-white/80 px-4 backdrop-blur lg:hidden"
+          className="fixed inset-x-0 top-0 z-30 flex h-14 items-center gap-3 border-b border-amber-900/10 bg-surface/80 px-4 backdrop-blur lg:hidden"
         >
           <button
             type="button"
@@ -89,7 +89,7 @@ export function AppShell({
               onClick={() => setDrawerOpen(false)}
               aria-hidden
             />
-            <aside className="absolute inset-y-0 left-0 w-72 border-r border-amber-900/15 bg-[#fff7f0]">
+            <aside className="absolute inset-y-0 left-0 w-72 border-r border-amber-900/15 bg-background">
               <Sidebar folders={folders} onNavigate={() => setDrawerOpen(false)} />
             </aside>
           </div>

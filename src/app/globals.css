@@ -1,23 +1,37 @@
 @import "tailwindcss";
 
-:root {
-  --background: #fff7f0;
-  --foreground: #45322b;
-}
-
 /* ---- Palettes -------------------------------------------------------
    Every component in this app just uses Tailwind's built-in rose/amber/
-   orange utility classes directly (bg-rose-400, text-amber-950/60, etc) —
-   there's no separate design-token layer. Rather than retrofit every
-   component to a new token system, the palette switcher hijacks those
-   three color families themselves: `--color-rose-400` etc below are
-   registered in `@theme inline` as live var() references (not
-   build-time-inlined values), pointing at `--pal-rose-400` etc, which
-   `:root` sets to the default (Peach Blossom) and each
-   [data-palette="..."] block overrides. Flip the `data-palette` attribute
-   on <html> and every rose/amber/orange-based class site-wide re-colors,
-   with zero changes needed in any component file. */
+   orange utility classes directly (bg-rose-400, text-amber-950/60, etc),
+   plus `bg-white` for every card/panel surface — there's no separate
+   design-token layer. Rather than retrofit every component to a new token
+   system, the palette switcher hijacks those color families themselves:
+   `--color-rose-400` etc below are registered in `@theme inline` as live
+   var() references (not build-time-inlined values), pointing at
+   `--pal-rose-400` etc, which `:root` sets to the default (Peach Blossom)
+   and each [data-palette="..."] block overrides. Flip the `data-palette`
+   attribute on <html> and every rose/amber/orange-based class site-wide
+   re-colors, with zero changes needed in any component file.
+
+   `--pal-background`/`--pal-foreground`/`--pal-surface` extend the same
+   trick to the page background, base text color, and card surfaces
+   (component files use `bg-surface` instead of literal `bg-white`, wired
+   the same way) — this is what lets a palette go properly dark instead of
+   just recoloring accents on a fixed light page. Light palettes below
+   don't set these three at all: they simply inherit :root's default
+   (identical to the app's original look), only the dark palettes
+   (Midnight/Charcoal/Onyx) override them. amber/orange also get their
+   LIGHTNESS INVERTED per shade for those three specifically — amber-950
+   is this app's primary body-text shade, and text that dark would be
+   unreadable against a dark page; rose (buttons/badges) doesn't need
+   inverting since e.g. a light rose-100 chip with rose-500 text is
+   self-contained regardless of what the page around it looks like. */
 :root {
+  --background: var(--pal-background);
+  --foreground: var(--pal-foreground);
+  --pal-background: #fff7f0;
+  --pal-foreground: #45322b;
+  --pal-surface: #ffffff;
   --pal-rose-50: #fff1f2;
   --pal-rose-100: #ffe4e6;
   --pal-rose-200: #fecdd3;
@@ -424,6 +438,126 @@
   --pal-orange-950: #431407;
 }
 
+/* Midnight (dark) */
+[data-palette="midnight"] {
+  --pal-background: #14121f;
+  --pal-foreground: #d3cfe7;
+  --pal-surface: #1e1a30;
+  --pal-rose-50: #f7f3fd;
+  --pal-rose-100: #f0e7fc;
+  --pal-rose-200: #e2d3f8;
+  --pal-rose-300: #cbaff2;
+  --pal-rose-400: #ad82ea;
+  --pal-rose-500: #8e56dd;
+  --pal-rose-600: #7336c9;
+  --pal-rose-700: #5d28a9;
+  --pal-rose-800: #50248d;
+  --pal-rose-900: #462279;
+  --pal-rose-950: #240e43;
+  --pal-amber-50: #08070e;
+  --pal-amber-100: #161326;
+  --pal-amber-200: #2e2750;
+  --pal-amber-300: #463c79;
+  --pal-amber-400: #564a95;
+  --pal-amber-500: #6456a8;
+  --pal-amber-600: #776bb4;
+  --pal-amber-700: #8d83be;
+  --pal-amber-800: #a098c6;
+  --pal-amber-900: #afa9ce;
+  --pal-amber-950: #d3cfe7;
+  --pal-orange-50: #07060c;
+  --pal-orange-100: #100e1c;
+  --pal-orange-200: #211c3a;
+  --pal-orange-300: #372f5e;
+  --pal-orange-400: #4d4285;
+  --pal-orange-500: #5d509f;
+  --pal-orange-600: #6a5dab;
+  --pal-orange-700: #8378b8;
+  --pal-orange-800: #9991c1;
+  --pal-orange-900: #aca5cb;
+  --pal-orange-950: #d3d0e5;
+}
+
+/* Charcoal (grey) */
+[data-palette="charcoal"] {
+  --pal-background: #242426;
+  --pal-foreground: #dddbd9;
+  --pal-surface: #2f2f32;
+  --pal-rose-50: #fef3f2;
+  --pal-rose-100: #fee9e5;
+  --pal-rose-200: #fcd5cf;
+  --pal-rose-300: #f9b3a8;
+  --pal-rose-400: #f48878;
+  --pal-rose-500: #eb5e48;
+  --pal-rose-600: #d73e27;
+  --pal-rose-700: #b52f1b;
+  --pal-rose-800: #982a19;
+  --pal-rose-900: #822719;
+  --pal-rose-950: #481109;
+  --pal-amber-50: #0b0a09;
+  --pal-amber-100: #1e1d1b;
+  --pal-amber-200: #3f3c38;
+  --pal-amber-300: #605a55;
+  --pal-amber-400: #767069;
+  --pal-amber-500: #867f78;
+  --pal-amber-600: #969089;
+  --pal-amber-700: #a6a19b;
+  --pal-amber-800: #b3afab;
+  --pal-amber-900: #bfbcb8;
+  --pal-amber-950: #dddbd9;
+  --pal-orange-50: #0a0908;
+  --pal-orange-100: #161514;
+  --pal-orange-200: #2e2b28;
+  --pal-orange-300: #4b4742;
+  --pal-orange-400: #69645e;
+  --pal-orange-500: #7e7771;
+  --pal-orange-600: #8b847d;
+  --pal-orange-700: #9d9893;
+  --pal-orange-800: #ada9a5;
+  --pal-orange-900: #bbb8b5;
+  --pal-orange-950: #dcdad8;
+}
+
+/* Onyx (black) */
+[data-palette="onyx"] {
+  --pal-background: #0a0a0b;
+  --pal-foreground: #dcdbda;
+  --pal-surface: #17171a;
+  --pal-rose-50: #fff1f8;
+  --pal-rose-100: #fee5f2;
+  --pal-rose-200: #fdcee6;
+  --pal-rose-300: #fba6d1;
+  --pal-rose-400: #f874b6;
+  --pal-rose-500: #ef449a;
+  --pal-rose-600: #dc227f;
+  --pal-rose-700: #ba1668;
+  --pal-rose-800: #9b1659;
+  --pal-rose-900: #85164e;
+  --pal-rose-950: #4a0729;
+  --pal-amber-50: #0a0a0a;
+  --pal-amber-100: #1d1d1c;
+  --pal-amber-200: #3d3c3a;
+  --pal-amber-300: #5d5b58;
+  --pal-amber-400: #73716c;
+  --pal-amber-500: #83807b;
+  --pal-amber-600: #93918c;
+  --pal-amber-700: #a3a19e;
+  --pal-amber-800: #b1b0ad;
+  --pal-amber-900: #bdbcba;
+  --pal-amber-950: #dcdbda;
+  --pal-orange-50: #090909;
+  --pal-orange-100: #161514;
+  --pal-orange-200: #2c2b2a;
+  --pal-orange-300: #494744;
+  --pal-orange-400: #666461;
+  --pal-orange-500: #7b7974;
+  --pal-orange-600: #878581;
+  --pal-orange-700: #9b9995;
+  --pal-orange-800: #abaaa7;
+  --pal-orange-900: #bab9b6;
+  --pal-orange-950: #dbdad9;
+}
+
 /* Scales every rem-based Tailwind utility app-wide — text, spacing, icons,
    container widths — uniformly by 1.5x, since almost the whole UI is built
    on Tailwind's rem scale. Media query breakpoints (sm/lg/etc) are defined
@@ -447,6 +581,7 @@ html {
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--pal-surface);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 

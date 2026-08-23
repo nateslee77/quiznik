@@ -115,7 +115,7 @@ export function MatchGame({ setId, cards }: { setId: string; cards: Card[] }) {
 
   if (phase === "setup") {
     return (
-      <div className="rounded-2xl border border-amber-900/10 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-amber-900/10 bg-surface p-6 shadow-sm">
         <div className="mb-6 flex items-center gap-2">
           <GearIcon className="h-5 w-5 text-amber-950/60" />
           <h2 className="text-lg font-medium">Match settings</h2>
@@ -134,7 +134,7 @@ export function MatchGame({ setId, cards }: { setId: string; cards: Card[] }) {
             onChange={(e) =>
               setPairCount(Math.max(3, Math.min(cards.length, Number(e.target.value) || 3)))
             }
-            className="w-20 rounded-lg border border-amber-900/20 bg-white px-3 py-1.5 text-sm outline-none focus:border-rose-400"
+            className="w-20 rounded-lg border border-amber-900/20 bg-surface px-3 py-1.5 text-sm outline-none focus:border-rose-400"
           />
         </div>
 
@@ -198,7 +198,7 @@ export function MatchGame({ setId, cards }: { setId: string; cards: Card[] }) {
           const isSelected = selected.includes(tile.key);
           const isWrong = wrongPair?.includes(tile.key) ?? false;
 
-          let stateClasses = "border-amber-900/15 bg-white hover:border-rose-300";
+          let stateClasses = "border-amber-900/15 bg-surface hover:border-rose-300";
           if (isWrong) stateClasses = "border-red-500 bg-red-50 text-red-600";
           else if (isSelected) stateClasses = "border-rose-400 bg-rose-50";
 

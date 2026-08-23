@@ -1,8 +1,10 @@
 import { useSyncExternalStore } from "react";
 
 // Each id matches a `[data-palette="..."]` block in globals.css. `swatch`
-// is that palette's rose-400 (its primary accent color), used for the
-// little preview dot in Settings.
+// is that palette's rose-400 (its primary accent color) and `background`
+// its page background, used together for the two-tone preview swatch in
+// Settings — important once background varies too, since an accent dot
+// alone wouldn't show that Midnight/Charcoal/Onyx are dark themes.
 export type PaletteId =
   | "peach"
   | "mint"
@@ -13,21 +15,27 @@ export type PaletteId =
   | "seafoam"
   | "periwinkle"
   | "coral"
-  | "lilac";
+  | "lilac"
+  | "midnight"
+  | "charcoal"
+  | "onyx";
 
-export type PaletteOption = { id: PaletteId; label: string; swatch: string };
+export type PaletteOption = { id: PaletteId; label: string; swatch: string; background: string };
 
 export const PALETTES: PaletteOption[] = [
-  { id: "peach", label: "Peach Blossom", swatch: "#fb7185" },
-  { id: "mint", label: "Minty Fresh", swatch: "#7bf1ca" },
-  { id: "lavender", label: "Lavender Dream", swatch: "#ad7fed" },
-  { id: "sky", label: "Sky Blossom", swatch: "#7bc0f1" },
-  { id: "lemon", label: "Lemon Sorbet", swatch: "#f8d074" },
-  { id: "bubblegum", label: "Bubblegum", swatch: "#fb71c1" },
-  { id: "seafoam", label: "Seafoam", swatch: "#7fede4" },
-  { id: "periwinkle", label: "Periwinkle", swatch: "#7b85f1" },
-  { id: "coral", label: "Coral Reef", swatch: "#f88674" },
-  { id: "lilac", label: "Lilac Fields", swatch: "#db7fed" },
+  { id: "peach", label: "Peach Blossom", swatch: "#fb7185", background: "#fff7f0" },
+  { id: "mint", label: "Minty Fresh", swatch: "#7bf1ca", background: "#fff7f0" },
+  { id: "lavender", label: "Lavender Dream", swatch: "#ad7fed", background: "#fff7f0" },
+  { id: "sky", label: "Sky Blossom", swatch: "#7bc0f1", background: "#fff7f0" },
+  { id: "lemon", label: "Lemon Sorbet", swatch: "#f8d074", background: "#fff7f0" },
+  { id: "bubblegum", label: "Bubblegum", swatch: "#fb71c1", background: "#fff7f0" },
+  { id: "seafoam", label: "Seafoam", swatch: "#7fede4", background: "#fff7f0" },
+  { id: "periwinkle", label: "Periwinkle", swatch: "#7b85f1", background: "#fff7f0" },
+  { id: "coral", label: "Coral Reef", swatch: "#f88674", background: "#fff7f0" },
+  { id: "lilac", label: "Lilac Fields", swatch: "#db7fed", background: "#fff7f0" },
+  { id: "midnight", label: "Midnight", swatch: "#ad82ea", background: "#14121f" },
+  { id: "charcoal", label: "Charcoal", swatch: "#f48878", background: "#242426" },
+  { id: "onyx", label: "Onyx", swatch: "#f874b6", background: "#0a0a0b" },
 ];
 
 const DEFAULT_PALETTE: PaletteId = "peach";

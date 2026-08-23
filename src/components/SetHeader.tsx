@@ -45,18 +45,18 @@ export function SetHeader({ set, folders }: { set: FlashcardSet; folders: Folder
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="rounded-xl border border-amber-900/20 bg-white px-3.5 py-2 text-xl font-semibold outline-none focus:border-rose-400"
+          className="rounded-xl border border-amber-900/20 bg-surface px-3.5 py-2 text-xl font-semibold outline-none focus:border-rose-400"
         />
         <input
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Description (optional)"
-          className="rounded-xl border border-amber-900/20 bg-white px-3.5 py-2 text-sm outline-none focus:border-rose-400"
+          className="rounded-xl border border-amber-900/20 bg-surface px-3.5 py-2 text-sm outline-none focus:border-rose-400"
         />
         <select
           value={folderId}
           onChange={(e) => setFolderId(e.target.value)}
-          className="rounded-xl border border-amber-900/20 bg-white px-3 py-2 text-sm outline-none focus:border-rose-400"
+          className="rounded-xl border border-amber-900/20 bg-surface px-3 py-2 text-sm outline-none focus:border-rose-400"
         >
           <option value="">No folder</option>
           {[...folders]
