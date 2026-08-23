@@ -14,6 +14,7 @@ import { LEARN_CORRECT_COINS, STAGE_BONUS } from "@/lib/coins";
 import { GearIcon } from "@/components/icons";
 import { cardImageUrl } from "@/lib/supabase/storage";
 import { STAGE_COLORS, STAGE_LABELS, type Stage } from "@/lib/studyStage";
+import { FormattedText } from "@/components/FormattedText";
 import type { Card } from "@/lib/types";
 
 type ProgressRow = {
@@ -602,7 +603,9 @@ export function LearnRunner({
             className="mb-4 max-h-48 max-w-full rounded-xl object-contain"
           />
         ) : null}
-        <h2 className="mb-6 text-xl font-medium sm:text-2xl">{activeQuestion.prompt}</h2>
+        <div className="mb-6 text-xl font-medium sm:text-2xl">
+          <FormattedText text={activeQuestion.prompt} />
+        </div>
 
         {activeQuestion.type === "multiple_choice" ? (
           <>
@@ -626,7 +629,7 @@ export function LearnRunner({
                     disabled={selectedIndex !== null}
                     className={`rounded-xl border px-4 py-3 text-left text-sm transition disabled:cursor-default ${stateClasses}`}
                   >
-                    {choice}
+                    <FormattedText text={choice} copyable={false} />
                   </button>
                 );
               })}
@@ -682,12 +685,17 @@ export function LearnRunner({
           <div className="flex flex-col gap-4">
             {answerWasCorrect ? (
               <div className="rounded-xl border border-emerald-500 bg-emerald-50 p-3 text-sm text-emerald-700">
-                Correct! <span className="text-amber-950/60">({activeQuestion.answer})</span>
+                Correct!{" "}
+                <span className="text-amber-950/60">
+                  (<FormattedText text={activeQuestion.answer} />)
+                </span>
               </div>
             ) : (
               <div className="rounded-xl border border-red-500 bg-red-50 p-3 text-sm text-red-600">
                 Not quite. Correct answer:{" "}
-                <span className="font-medium">{activeQuestion.answer}</span>
+                <span className="font-medium">
+                  <FormattedText text={activeQuestion.answer} />
+                </span>
               </div>
             )}
             {!answerWasCorrect ? (

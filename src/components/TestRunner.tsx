@@ -12,6 +12,7 @@ import { TEST_CORRECT_COINS, testCompletionBonus } from "@/lib/coins";
 import { awardTestCoins } from "@/app/sets/actions";
 import { GearIcon } from "@/components/icons";
 import { cardImageUrl } from "@/lib/supabase/storage";
+import { FormattedText } from "@/components/FormattedText";
 import type { Card } from "@/lib/types";
 
 type Answered = { question: QuizQuestion; correct: boolean };
@@ -240,8 +241,12 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
                   key={q.card.id}
                   className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm"
                 >
-                  <p className="font-medium">{q.prompt}</p>
-                  <p className="mt-0.5 text-amber-950/60">{q.answer}</p>
+                  <div className="font-medium">
+                    <FormattedText text={q.prompt} />
+                  </div>
+                  <div className="mt-0.5 text-amber-950/60">
+                    <FormattedText text={q.answer} />
+                  </div>
                 </div>
               ))}
             </div>
@@ -302,7 +307,9 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
             className="mb-4 max-h-48 max-w-full rounded-xl object-contain"
           />
         ) : null}
-        <h2 className="mb-6 text-xl font-medium sm:text-2xl">{question.prompt}</h2>
+        <div className="mb-6 text-xl font-medium sm:text-2xl">
+          <FormattedText text={question.prompt} />
+        </div>
 
         {question.type === "multiple_choice" ? (
           <>
@@ -328,7 +335,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
                     disabled={selected !== null}
                     className={`rounded-lg border px-4 py-3 text-left text-sm transition disabled:cursor-default ${stateClasses}`}
                   >
-                    {choice}
+                    <FormattedText text={choice} copyable={false} />
                   </button>
                 );
               })}
@@ -370,7 +377,10 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
             >
               {writtenCorrect ? "Correct!" : (
                 <>
-                  Not quite. Correct answer: <span className="font-medium">{question.answer}</span>
+                  Not quite. Correct answer:{" "}
+                  <span className="font-medium">
+                    <FormattedText text={question.answer} />
+                  </span>
                 </>
               )}
             </div>

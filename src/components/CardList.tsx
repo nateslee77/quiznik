@@ -20,6 +20,8 @@ import {
 import { cardImageUrl } from "@/lib/supabase/storage";
 import { useImageDrop } from "@/lib/useImageDrop";
 import { ImageIcon, SpinnerIcon, XIcon } from "@/components/icons";
+import { FormattedText } from "@/components/FormattedText";
+import { AutoTextarea } from "@/components/AutoTextarea";
 import { STAGE_COLORS, STAGE_LABELS, type Stage } from "@/lib/studyStage";
 import type { Card, StudyStatus } from "@/lib/types";
 
@@ -203,12 +205,12 @@ function EditableCard({
         className={`flex flex-col gap-2 rounded-lg border p-2 transition sm:flex-row sm:items-start sm:gap-2 ${dropRing || "border-amber-900/20"}`}
       >
         {imageControl}
-        <input
+        <AutoTextarea
           value={term}
           onChange={(e) => setTerm(e.target.value)}
           className="w-full min-w-0 flex-1 rounded-md border border-amber-900/20 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-rose-400"
         />
-        <input
+        <AutoTextarea
           value={definition}
           onChange={(e) => setDefinition(e.target.value)}
           className="w-full min-w-0 flex-1 rounded-md border border-amber-900/20 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-rose-400"
@@ -248,10 +250,12 @@ function EditableCard({
       ) : null}
       {imageControl}
       <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-2 sm:gap-4">
-        <p className="whitespace-pre-wrap break-words text-base font-medium">{card.term}</p>
-        <p className="whitespace-pre-wrap break-words text-base text-amber-950/60">
-          {card.definition}
-        </p>
+        <div className="text-base font-medium">
+          <FormattedText text={card.term} />
+        </div>
+        <div className="text-base text-amber-950/60">
+          <FormattedText text={card.definition} />
+        </div>
       </div>
       <div className="flex shrink-0 gap-1 self-start sm:self-center">
         <button
@@ -296,7 +300,7 @@ function AddCardRow({
   return (
     <div
       {...dropHandlers}
-      className={`flex flex-col gap-2 rounded-lg border border-dashed p-3 transition sm:flex-row sm:items-center ${
+      className={`flex flex-col gap-2 rounded-lg border border-dashed p-3 transition sm:flex-row sm:items-start ${
         isOver ? "border-rose-400 bg-rose-50" : "border-amber-900/20"
       }`}
     >
@@ -320,18 +324,22 @@ function AddCardRow({
         >
           <ImageIcon className="h-4 w-4" />
         </button>
-        <input
+        <AutoTextarea
           value={term}
           onChange={(e) => setTerm(e.target.value)}
           placeholder="Term"
           className="w-full min-w-0 flex-1 rounded-md border border-amber-900/20 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-rose-400"
         />
       </div>
-      <input
+      <AutoTextarea
         value={definition}
         onChange={(e) => setDefinition(e.target.value)}
         placeholder="Definition"
-        onKeyDown={(e) => e.key === "Enter" && submit()}
+        onKeyDown={(e) => {
+          if (e.key !== "Enter" || e.shiftKey) return;
+          e.preventDefault();
+          submit();
+        }}
         className="w-full min-w-0 flex-1 rounded-md border border-amber-900/20 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-rose-400"
       />
       <button
@@ -502,7 +510,15 @@ function AddCardsSection({
       </div>
 
       {tab === "add" ? (
-        <AddCardRow onAdd={onAdd} />
+        <>
+          <AddCardRow onAdd={onAdd} />
+          <p className="text-xs text-amber-950/50">
+            Got code? Paste it straight into Term or Definition, wrapped in triple backticks with the
+            language name — e.g. <code className="rounded bg-amber-100 px-1">```python</code> on its own
+            line, your code, then <code className="rounded bg-amber-100 px-1">```</code> — and it&rsquo;ll
+            render in its own formatted box.
+          </p>
+        </>
       ) : (
         <PasteCardsPanel onBulkAdd={onBulkAdd} onDone={() => setTab("add")} />
       )}

@@ -10,6 +10,7 @@ import {
 } from "@/lib/parseFlashcards";
 import { useImageDrop } from "@/lib/useImageDrop";
 import { ImageIcon, SpinnerIcon, XIcon } from "@/components/icons";
+import { AutoTextarea } from "@/components/AutoTextarea";
 
 type Row = { id: string; term: string; definition: string; image: File | null; distractors?: string[] };
 
@@ -33,10 +34,10 @@ function ManualRow({
   index: number;
   onTermChange: (value: string) => void;
   onDefinitionChange: (value: string) => void;
-  onDefinitionKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  onDefinitionKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   onImageChange: (file: File | null) => void;
   onRemove: () => void;
-  termRef: (el: HTMLInputElement | null) => void;
+  termRef: (el: HTMLTextAreaElement | null) => void;
 }) {
   const distractorCount = row.distractors?.length ?? 0;
   const inputRef = useRef<HTMLInputElement>(null);
@@ -79,7 +80,7 @@ function ManualRow({
           below that, each group stacks as its own full-width row instead. */}
       <div className="flex items-center gap-2 sm:contents">
         <span className="w-5 shrink-0 text-right text-xs text-amber-950/60 sm:mt-2.5">{index + 1}</span>
-        <input
+        <AutoTextarea
           ref={termRef}
           value={row.term}
           onChange={(e) => onTermChange(e.target.value)}
@@ -87,7 +88,7 @@ function ManualRow({
           className="w-full min-w-0 flex-1 rounded-lg border border-amber-900/20 bg-white px-3 py-2 text-sm outline-none focus:border-rose-400"
         />
       </div>
-      <input
+      <AutoTextarea
         value={row.definition}
         onChange={(e) => onDefinitionChange(e.target.value)}
         onKeyDown={onDefinitionKeyDown}
@@ -161,7 +162,7 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
   const [pasteText, setPasteText] = useState("");
   const [separator, setSeparator] = useState<TermSeparator>("tab");
   const [pasteMode, setPasteMode] = useState<"simple" | "choices">("simple");
-  const termRefs = useRef<Map<string, HTMLInputElement>>(new Map());
+  const termRefs = useRef<Map<string, HTMLTextAreaElement>>(new Map());
 
   const preview = useMemo(
     () =>
@@ -195,8 +196,8 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
 
   // Enter in a row's Definition field jumps to (or creates) the next row's
   // Term field, so a whole deck can be typed without touching the mouse.
-  function handleDefinitionKeyDown(e: React.KeyboardEvent<HTMLInputElement>, rowId: string) {
-    if (e.key !== "Enter") return;
+  function handleDefinitionKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>, rowId: string) {
+    if (e.key !== "Enter" || e.shiftKey) return;
     e.preventDefault();
     const idx = rows.findIndex((r) => r.id === rowId);
     const next = rows[idx + 1];
@@ -294,6 +295,12 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
 
         {tab === "manual" ? (
           <div className="flex flex-col gap-2">
+            <p className="text-xs text-amber-950/50">
+              Pasting code? Wrap it in triple backticks with the language name — e.g.{" "}
+              <code className="rounded bg-amber-100 px-1">```python</code> on its own line, your code, then{" "}
+              <code className="rounded bg-amber-100 px-1">```</code> — and it&rsquo;ll show up in its own
+              formatted, syntax-highlighted box. Term and Definition both grow to fit multi-line pastes.
+            </p>
             {rows.map((row, i) => (
               <ManualRow
                 key={row.id}
