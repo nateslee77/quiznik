@@ -233,7 +233,7 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
     setTab("manual");
   }
 
-  const choicesFormatExample = "mitochondria\n*the powerhouse of the cell\nthe cell's genetic archive\nthe site of protein synthesis\n\nphotosynthesis\n*how plants convert light into energy\nhow plants absorb water\nhow plants release oxygen at night";
+  const choicesFormatExample = "mitochondria\n*the powerhouse of the cell\nthe cell's genetic archive\nthe site of protein synthesis\n\nphotosynthesis\n*how plants convert light into energy\nhow plants absorb water\nhow plants release oxygen at night\n\n```python print(2 + 3)```\n*5\n6\nError\nNone";
 
   const validCount = rows.filter((r) => r.term.trim() && r.definition.trim()).length;
 
@@ -370,7 +370,10 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
               <p className="text-xs text-amber-950/60">
                 One card per block, separated by a blank line. First line is the term; the rest are answer
                 choices — mark the correct one with <code className="rounded bg-amber-100 px-1">*</code>{" "}
-                (otherwise the first choice is used).
+                (otherwise the first choice is used). For code, keep the{" "}
+                <code className="rounded bg-amber-100 px-1">```lang ... ```</code> fence on a single line,
+                like the third example below — multi-line snippets need the &ldquo;Type manually&rdquo; tab
+                instead.
               </p>
             )}
 

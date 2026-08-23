@@ -436,7 +436,9 @@ function PasteCardsPanel({
         <p className="text-xs text-amber-950/60">
           One card per block, separated by a blank line. First line is the term; the rest are answer
           choices — mark the correct one with <code className="rounded bg-amber-100 px-1">*</code> (otherwise
-          the first choice is used).
+          the first choice is used). For code, keep the{" "}
+          <code className="rounded bg-amber-100 px-1">```lang ... ```</code> fence on a single line, like
+          the third example below — multi-line snippets need the &ldquo;Add card&rdquo; box instead.
         </p>
       )}
 
@@ -447,7 +449,7 @@ function PasteCardsPanel({
         rows={6}
         placeholder={
           pasteMode === "choices"
-            ? "mitochondria\n*the powerhouse of the cell\nthe cell's genetic archive\nthe site of protein synthesis\n\nphotosynthesis\n*how plants convert light into energy\nhow plants absorb water\nhow plants release oxygen at night"
+            ? "mitochondria\n*the powerhouse of the cell\nthe cell's genetic archive\nthe site of protein synthesis\n\nphotosynthesis\n*how plants convert light into energy\nhow plants absorb water\nhow plants release oxygen at night\n\n```python print(2 + 3)```\n*5\n6\nError\nNone"
             : "mitochondria\tthe powerhouse of the cell\nphotosynthesis\thow plants convert light into energy"
         }
         className="w-full resize-y rounded-lg border border-amber-900/20 bg-white px-3.5 py-2.5 font-mono text-sm outline-none focus:border-rose-400"
