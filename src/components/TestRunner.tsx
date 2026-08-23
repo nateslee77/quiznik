@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { generateQuiz, type QuizQuestion, type QuizSettings, type Direction, type QuestionType } from "@/lib/generateQuiz";
 import { isCloseEnough } from "@/lib/fuzzyMatch";
-import { playCorrectChime } from "@/lib/chime";
+import { playCorrectChime, playWrongChime } from "@/lib/chime";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { useMascot } from "@/components/mascot/MascotContext";
 import { useCoins } from "@/components/coins/CoinsContext";
 import { TEST_CORRECT_COINS, testCompletionBonus } from "@/lib/coins";
-import { awardTestCoins } from "@/app/sets/actions";
+import { awardTestCoins, logStudyEvent } from "@/app/sets/actions";
 import { GearIcon } from "@/components/icons";
 import { cardImageUrl } from "@/lib/supabase/storage";
 import { FormattedText } from "@/components/FormattedText";
@@ -96,6 +96,8 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
     const correct = choiceIndex === question.correctIndex;
     setMascot(correct ? "correct" : "wrong");
     if (correct) playCorrectChime();
+    else playWrongChime();
+    void logStudyEvent(setId, question.card.id, "test", correct);
     setAnswers((prev) => [...prev, { question, correct }]);
   }
 
@@ -106,6 +108,8 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
     setWrittenCorrect(correct);
     setMascot(correct ? "correct" : "wrong");
     if (correct) playCorrectChime();
+    else playWrongChime();
+    void logStudyEvent(setId, question.card.id, "test", correct);
     setAnswers((prev) => [...prev, { question, correct }]);
   }
 

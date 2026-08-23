@@ -21,6 +21,25 @@ export type ParseResult = {
   skipped: number;
 };
 
+// Both bulk-paste formats below are line-oriented (one card per line, or
+// blank-line-separated blocks split into per-line choices) — which breaks a
+// pasted ```lang\n...\n``` code fence, since the format can't tell "a
+// newline inside my code" from "a newline that means start a new
+// line/card". The fix: before doing any line/blank-line splitting, swap
+// every real newline *inside* a fence for this sentinel (never appears in
+// real text, so it can't collide), do the normal split, then swap it back
+// per extracted field. The fence survives as a single opaque "line" through
+// the whole split, then unfolds back into real multi-line code at the end.
+const FENCE_GUARD = "\u0000";
+
+function guardFences(text: string): string {
+  return text.replace(/```[\s\S]*?```/g, (block) => block.replace(/\r?\n/g, FENCE_GUARD));
+}
+
+function unguard(text: string): string {
+  return text.replaceAll(FENCE_GUARD, "\n");
+}
+
 // Each non-empty line becomes one card, split into term/definition on the
 // FIRST occurrence of the chosen separator, so definitions may safely
 // contain the separator character again.
@@ -29,7 +48,7 @@ export function parseFlashcardText(
   separator: TermSeparator,
 ): ParseResult {
   const token = SEPARATOR_TOKENS[separator];
-  const lines = text.split(/\r?\n/).map((line) => line.trim());
+  const lines = guardFences(text).split(/\r?\n/).map((line) => unguard(line).trim());
   const cards: ParsedCard[] = [];
   let skipped = 0;
 
@@ -62,7 +81,7 @@ export function parseFlashcardText(
 // someone hand-author their own wrong answers instead of relying on
 // randomly-drawn or AI-generated distractors.
 export function parseFlashcardTextWithChoices(text: string): ParseResult {
-  const blocks = text
+  const blocks = guardFences(text)
     .split(/\r?\n\s*\r?\n/)
     .map((block) => block.trim())
     .filter(Boolean);
@@ -72,7 +91,7 @@ export function parseFlashcardTextWithChoices(text: string): ParseResult {
   for (const block of blocks) {
     const lines = block
       .split(/\r?\n/)
-      .map((line) => line.trim())
+      .map((line) => unguard(line).trim())
       .filter(Boolean);
 
     const [term, ...optionLines] = lines;

@@ -2,16 +2,32 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { MascotPlaceholder } from "@/components/landing/MascotPlaceholder";
 import { CoinBalance } from "@/components/coins/CoinBalance";
+import { ActivityHeatmap } from "@/components/ActivityHeatmap";
 import { BoltIcon, DeckIcon, PlusIcon } from "@/components/icons";
 import type { SetWithCardCount } from "@/lib/types";
+import { lookbackCutoffIso, type StudyEvent } from "@/lib/activity";
+
+// 53 weeks back covers the full "Yearly" heatmap view (a GitHub-style
+// 53-column grid), which is the widest range any view needs.
+const ACTIVITY_LOOKBACK_DAYS = 371;
 
 export default async function HomePage() {
   const supabase = await createClient();
 
-  const [setsRes, progressRes] = await Promise.all([
+  const lookbackCutoff = lookbackCutoffIso(ACTIVITY_LOOKBACK_DAYS);
+
+  const [setsRes, progressRes, eventsRes] = await Promise.all([
     supabase.from("sets").select("*, cards(count)").order("updated_at", { ascending: false }),
     supabase.from("study_progress").select("set_id, status").in("status", ["seen", "review"]),
+    supabase
+      .from("study_events")
+      .select("created_at, correct, set_id, card_id")
+      .gte("created_at", lookbackCutoff)
+      .order("created_at", { ascending: false })
+      .limit(20000),
   ]);
+
+  const events: StudyEvent[] = eventsRes.data ?? [];
 
   const sets: SetWithCardCount[] =
     setsRes.data?.map((row) => ({
@@ -39,6 +55,10 @@ export default async function HomePage() {
           </p>
         </div>
         <CoinBalance />
+      </div>
+
+      <div className="mt-6">
+        <ActivityHeatmap events={events} />
       </div>
 
       {totalDue > 0 ? (

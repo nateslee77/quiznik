@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { MascotPlaceholder, type MascotState } from "@/components/landing/MascotPlaceholder";
+import { useMascotEnabled } from "@/lib/mascotSettings";
 
 type MascotContextValue = {
   state: MascotState;
@@ -137,6 +138,7 @@ function clampPos(
 // The always-visible companion. Drag it anywhere; the spot is remembered.
 export function DockedMascot() {
   const { state, skinId } = useMascot();
+  const mascotOn = useMascotEnabled();
   const { displayState, fading } = useHeldMascotState(state);
   const isReaction = displayState === "correct" || displayState === "wrong";
   const widgetRef = useRef<HTMLDivElement>(null);
@@ -197,6 +199,8 @@ export function DockedMascot() {
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
   }
+
+  if (!mascotOn) return null;
 
   return (
     <div

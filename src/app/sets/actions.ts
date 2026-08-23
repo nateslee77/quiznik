@@ -374,6 +374,31 @@ export async function awardGameCoins(setId: string, amount: number, reason: stri
   if (error) throw new Error(error.message);
 }
 
+// Fire-and-forget from every answer in Test/Learn (the two modes with an
+// explicit "submit an answer" moment) — feeds the daily activity heatmap
+// and today's stats. Never throws: a logging failure shouldn't interrupt
+// the quiz the way a coin-award failure legitimately should surface.
+export async function logStudyEvent(
+  setId: string,
+  cardId: string,
+  mode: "test" | "learn",
+  correct: boolean,
+) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  await supabase.from("study_events").insert({
+    user_id: user.id,
+    set_id: setId,
+    card_id: cardId,
+    mode,
+    correct,
+  });
+}
+
 export async function moveFolder(folderId: string, newParentId: string | null) {
   if (folderId === newParentId) return;
 

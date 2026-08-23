@@ -5,6 +5,425 @@
   --foreground: #45322b;
 }
 
+/* ---- Palettes -------------------------------------------------------
+   Every component in this app just uses Tailwind's built-in rose/amber/
+   orange utility classes directly (bg-rose-400, text-amber-950/60, etc) —
+   there's no separate design-token layer. Rather than retrofit every
+   component to a new token system, the palette switcher hijacks those
+   three color families themselves: `--color-rose-400` etc below are
+   registered in `@theme inline` as live var() references (not
+   build-time-inlined values), pointing at `--pal-rose-400` etc, which
+   `:root` sets to the default (Peach Blossom) and each
+   [data-palette="..."] block overrides. Flip the `data-palette` attribute
+   on <html> and every rose/amber/orange-based class site-wide re-colors,
+   with zero changes needed in any component file. */
+:root {
+  --pal-rose-50: #fff1f2;
+  --pal-rose-100: #ffe4e6;
+  --pal-rose-200: #fecdd3;
+  --pal-rose-300: #fda4af;
+  --pal-rose-400: #fb7185;
+  --pal-rose-500: #f43f5e;
+  --pal-rose-600: #e11d48;
+  --pal-rose-700: #be123c;
+  --pal-rose-800: #9f1239;
+  --pal-rose-900: #881337;
+  --pal-rose-950: #4c0519;
+  --pal-amber-50: #fffbeb;
+  --pal-amber-100: #fef3c7;
+  --pal-amber-200: #fde68a;
+  --pal-amber-300: #fcd34d;
+  --pal-amber-400: #fbbf24;
+  --pal-amber-500: #f59e0b;
+  --pal-amber-600: #d97706;
+  --pal-amber-700: #b45309;
+  --pal-amber-800: #92400e;
+  --pal-amber-900: #78350f;
+  --pal-amber-950: #451a03;
+  --pal-orange-50: #fff7ed;
+  --pal-orange-100: #ffedd5;
+  --pal-orange-200: #fed7aa;
+  --pal-orange-300: #fdba74;
+  --pal-orange-400: #fb923c;
+  --pal-orange-500: #f97316;
+  --pal-orange-600: #ea580c;
+  --pal-orange-700: #c2410c;
+  --pal-orange-800: #9a3412;
+  --pal-orange-900: #7c2d12;
+  --pal-orange-950: #431407;
+}
+
+/* Minty Fresh */
+[data-palette="mint"] {
+  --pal-rose-50: #f2fefa;
+  --pal-rose-100: #e6fdf5;
+  --pal-rose-200: #d1faec;
+  --pal-rose-300: #abf6dd;
+  --pal-rose-400: #7bf1ca;
+  --pal-rose-500: #4de6b3;
+  --pal-rose-600: #2cd29b;
+  --pal-rose-700: #1fb180;
+  --pal-rose-800: #1d946c;
+  --pal-rose-900: #1c7f5e;
+  --pal-rose-950: #0a4733;
+  --pal-amber-50: #effaf8;
+  --pal-amber-100: #d3f2ea;
+  --pal-amber-200: #a4e3d3;
+  --pal-amber-300: #74d5bd;
+  --pal-amber-400: #54cbad;
+  --pal-amber-500: #40c0a0;
+  --pal-amber-600: #35aa8d;
+  --pal-amber-700: #2f8e76;
+  --pal-amber-800: #2c7462;
+  --pal-amber-900: #276052;
+  --pal-amber-950: #12362d;
+  --pal-orange-50: #eefef6;
+  --pal-orange-100: #d7fdea;
+  --pal-orange-200: #aefad4;
+  --pal-orange-300: #7bf6b8;
+  --pal-orange-400: #46f19b;
+  --pal-orange-500: #21ee88;
+  --pal-orange-600: #17df7b;
+  --pal-orange-700: #15b967;
+  --pal-orange-800: #199356;
+  --pal-orange-900: #177747;
+  --pal-orange-950: #0a4025;
+}
+
+/* Lavender Dream */
+[data-palette="lavender"] {
+  --pal-rose-50: #f7f2fe;
+  --pal-rose-100: #f0e7fc;
+  --pal-rose-200: #e2d2f9;
+  --pal-rose-300: #cbadf4;
+  --pal-rose-400: #ad7fed;
+  --pal-rose-500: #8d51e2;
+  --pal-rose-600: #7231cd;
+  --pal-rose-700: #5d23ad;
+  --pal-rose-800: #4f2091;
+  --pal-rose-900: #461f7c;
+  --pal-rose-950: #240c45;
+  --pal-amber-50: #f4f0fa;
+  --pal-amber-100: #e0d6ef;
+  --pal-amber-200: #bfaadd;
+  --pal-amber-300: #9e7dcc;
+  --pal-amber-400: #875fc0;
+  --pal-amber-500: #774bb5;
+  --pal-amber-600: #68409f;
+  --pal-amber-700: #583885;
+  --pal-amber-800: #4b326e;
+  --pal-amber-900: #402c5b;
+  --pal-amber-950: #221533;
+  --pal-orange-50: #f6eefe;
+  --pal-orange-100: #ead8fc;
+  --pal-orange-200: #d4b0f8;
+  --pal-orange-300: #b87ef3;
+  --pal-orange-400: #9b4aed;
+  --pal-orange-500: #8827e8;
+  --pal-orange-600: #7b1dd9;
+  --pal-orange-700: #671ab4;
+  --pal-orange-800: #561c90;
+  --pal-orange-900: #471a74;
+  --pal-orange-950: #250b3f;
+}
+
+/* Sky Blossom */
+[data-palette="sky"] {
+  --pal-rose-50: #f2f9fe;
+  --pal-rose-100: #e6f3fd;
+  --pal-rose-200: #d1e9fa;
+  --pal-rose-300: #abd7f6;
+  --pal-rose-400: #7bc0f1;
+  --pal-rose-500: #4da6e6;
+  --pal-rose-600: #2c8dd2;
+  --pal-rose-700: #1f74b1;
+  --pal-rose-800: #1d6294;
+  --pal-rose-900: #1c567f;
+  --pal-rose-950: #0a2e47;
+  --pal-amber-50: #f0f5fa;
+  --pal-amber-100: #d5e3f0;
+  --pal-amber-200: #a7c3e0;
+  --pal-amber-300: #79a5d0;
+  --pal-amber-400: #5a90c5;
+  --pal-amber-500: #4580bb;
+  --pal-amber-600: #3b70a4;
+  --pal-amber-700: #345f89;
+  --pal-amber-800: #2f5071;
+  --pal-amber-900: #29445e;
+  --pal-amber-950: #142435;
+  --pal-orange-50: #eef9fe;
+  --pal-orange-100: #d7f0fd;
+  --pal-orange-200: #aee1fa;
+  --pal-orange-300: #7bcdf6;
+  --pal-orange-400: #46b8f1;
+  --pal-orange-500: #21aaee;
+  --pal-orange-600: #179cdf;
+  --pal-orange-700: #1582b9;
+  --pal-orange-800: #196a93;
+  --pal-orange-900: #175777;
+  --pal-orange-950: #0a2e40;
+}
+
+/* Lemon Sorbet */
+[data-palette="lemon"] {
+  --pal-rose-50: #fffbf1;
+  --pal-rose-100: #fef7e5;
+  --pal-rose-200: #fdefce;
+  --pal-rose-300: #fbe1a6;
+  --pal-rose-400: #f8d074;
+  --pal-rose-500: #efbc44;
+  --pal-rose-600: #dca422;
+  --pal-rose-700: #ba8916;
+  --pal-rose-800: #9b7316;
+  --pal-rose-900: #856416;
+  --pal-rose-950: #4a3607;
+  --pal-amber-50: #faf7ef;
+  --pal-amber-100: #f2e8d3;
+  --pal-amber-200: #e3cea4;
+  --pal-amber-300: #d5b574;
+  --pal-amber-400: #cba354;
+  --pal-amber-500: #c09540;
+  --pal-amber-600: #aa8335;
+  --pal-amber-700: #8e6e2f;
+  --pal-amber-800: #745c2c;
+  --pal-amber-900: #604d27;
+  --pal-amber-950: #362a12;
+  --pal-orange-50: #fffaed;
+  --pal-orange-100: #fef4d6;
+  --pal-orange-200: #fce8ac;
+  --pal-orange-300: #fad977;
+  --pal-orange-400: #f6c941;
+  --pal-orange-500: #f3bd1c;
+  --pal-orange-600: #e4b012;
+  --pal-orange-700: #bd9211;
+  --pal-orange-800: #977615;
+  --pal-orange-900: #796015;
+  --pal-orange-950: #423308;
+}
+
+/* Bubblegum */
+[data-palette="bubblegum"] {
+  --pal-rose-50: #fff1f9;
+  --pal-rose-100: #ffe4f4;
+  --pal-rose-200: #fecdea;
+  --pal-rose-300: #fda4d8;
+  --pal-rose-400: #fb71c1;
+  --pal-rose-500: #f43fa9;
+  --pal-rose-600: #e11d8f;
+  --pal-rose-700: #be1276;
+  --pal-rose-800: #9f1264;
+  --pal-rose-900: #881357;
+  --pal-rose-950: #4c052e;
+  --pal-amber-50: #faf0f6;
+  --pal-amber-100: #efd6e7;
+  --pal-amber-200: #ddaacc;
+  --pal-amber-300: #cc7db2;
+  --pal-amber-400: #c05fa0;
+  --pal-amber-500: #b54b92;
+  --pal-amber-600: #9f407f;
+  --pal-amber-700: #85386b;
+  --pal-amber-800: #6e325a;
+  --pal-amber-900: #5b2c4b;
+  --pal-amber-950: #331529;
+  --pal-orange-50: #ffedf6;
+  --pal-orange-100: #ffd5ea;
+  --pal-orange-200: #feaad4;
+  --pal-orange-300: #fd74b8;
+  --pal-orange-400: #fb3c9b;
+  --pal-orange-500: #f91688;
+  --pal-orange-600: #ea0c7b;
+  --pal-orange-700: #c20c67;
+  --pal-orange-800: #9a1256;
+  --pal-orange-900: #7c1247;
+  --pal-orange-950: #430725;
+}
+
+/* Seafoam */
+[data-palette="seafoam"] {
+  --pal-rose-50: #f2fefd;
+  --pal-rose-100: #e7fcfb;
+  --pal-rose-200: #d2f9f6;
+  --pal-rose-300: #adf4ee;
+  --pal-rose-400: #7fede4;
+  --pal-rose-500: #51e2d6;
+  --pal-rose-600: #31cdc0;
+  --pal-rose-700: #23ada1;
+  --pal-rose-800: #209188;
+  --pal-rose-900: #1f7c74;
+  --pal-rose-950: #0c4540;
+  --pal-amber-50: #f0fafa;
+  --pal-amber-100: #d5f0f0;
+  --pal-amber-200: #a7e0e0;
+  --pal-amber-300: #79d0d0;
+  --pal-amber-400: #5ac5c5;
+  --pal-amber-500: #45bbbb;
+  --pal-amber-600: #3ba4a4;
+  --pal-amber-700: #348989;
+  --pal-amber-800: #2f7171;
+  --pal-amber-900: #295e5e;
+  --pal-amber-950: #143535;
+  --pal-orange-50: #eefefb;
+  --pal-orange-100: #d8fcf6;
+  --pal-orange-200: #b0f8ec;
+  --pal-orange-300: #7ef3df;
+  --pal-orange-400: #4aedd2;
+  --pal-orange-500: #27e8c8;
+  --pal-orange-600: #1dd9ba;
+  --pal-orange-700: #1ab49b;
+  --pal-orange-800: #1c907d;
+  --pal-orange-900: #1a7465;
+  --pal-orange-950: #0b3f36;
+}
+
+/* Periwinkle */
+[data-palette="periwinkle"] {
+  --pal-rose-50: #f2f3fe;
+  --pal-rose-100: #e6e8fd;
+  --pal-rose-200: #d1d4fa;
+  --pal-rose-300: #abb1f6;
+  --pal-rose-400: #7b85f1;
+  --pal-rose-500: #4d59e6;
+  --pal-rose-600: #2c3ad2;
+  --pal-rose-700: #1f2bb1;
+  --pal-rose-800: #1d2794;
+  --pal-rose-900: #1c247f;
+  --pal-rose-950: #0a0f47;
+  --pal-amber-50: #f0f1fa;
+  --pal-amber-100: #d6d8ef;
+  --pal-amber-200: #aaaedd;
+  --pal-amber-300: #7d84cc;
+  --pal-amber-400: #5f67c0;
+  --pal-amber-500: #4b54b5;
+  --pal-amber-600: #40489f;
+  --pal-amber-700: #383e85;
+  --pal-amber-800: #32376e;
+  --pal-amber-900: #2c305b;
+  --pal-amber-950: #151833;
+  --pal-orange-50: #eeeefe;
+  --pal-orange-100: #d8d8fc;
+  --pal-orange-200: #b0b0f8;
+  --pal-orange-300: #7e7ef3;
+  --pal-orange-400: #4a4aed;
+  --pal-orange-500: #2727e8;
+  --pal-orange-600: #1d1dd9;
+  --pal-orange-700: #1a1ab4;
+  --pal-orange-800: #1c1c90;
+  --pal-orange-900: #1a1a74;
+  --pal-orange-950: #0b0b3f;
+}
+
+/* Coral Reef */
+[data-palette="coral"] {
+  --pal-rose-50: #fff3f1;
+  --pal-rose-100: #fee8e5;
+  --pal-rose-200: #fdd4ce;
+  --pal-rose-300: #fbb1a6;
+  --pal-rose-400: #f88674;
+  --pal-rose-500: #ef5a44;
+  --pal-rose-600: #dc3b22;
+  --pal-rose-700: #ba2c16;
+  --pal-rose-800: #9b2716;
+  --pal-rose-900: #852516;
+  --pal-rose-950: #4a1007;
+  --pal-amber-50: #faf2ef;
+  --pal-amber-100: #f2dbd3;
+  --pal-amber-200: #e3b4a4;
+  --pal-amber-300: #d58c74;
+  --pal-amber-400: #cb7254;
+  --pal-amber-500: #c06040;
+  --pal-amber-600: #aa5235;
+  --pal-amber-700: #8e472f;
+  --pal-amber-800: #743e2c;
+  --pal-amber-900: #603527;
+  --pal-amber-950: #361b12;
+  --pal-orange-50: #fff1ed;
+  --pal-orange-100: #ffddd5;
+  --pal-orange-200: #febbaa;
+  --pal-orange-300: #fd8f74;
+  --pal-orange-400: #fb623c;
+  --pal-orange-500: #f94316;
+  --pal-orange-600: #ea380c;
+  --pal-orange-700: #c2300c;
+  --pal-orange-800: #9a2d12;
+  --pal-orange-900: #7c2712;
+  --pal-orange-950: #431307;
+}
+
+/* Lilac Fields */
+[data-palette="lilac"] {
+  --pal-rose-50: #fcf2fe;
+  --pal-rose-100: #f9e7fc;
+  --pal-rose-200: #f3d2f9;
+  --pal-rose-300: #e8adf4;
+  --pal-rose-400: #db7fed;
+  --pal-rose-500: #ca51e2;
+  --pal-rose-600: #b331cd;
+  --pal-rose-700: #9623ad;
+  --pal-rose-800: #7e2091;
+  --pal-rose-900: #6d1f7c;
+  --pal-rose-950: #3b0c45;
+  --pal-amber-50: #f8f0fa;
+  --pal-amber-100: #ebd6ef;
+  --pal-amber-200: #d5aadd;
+  --pal-amber-300: #bf7dcc;
+  --pal-amber-400: #b05fc0;
+  --pal-amber-500: #a34bb5;
+  --pal-amber-600: #8f409f;
+  --pal-amber-700: #783885;
+  --pal-amber-800: #64326e;
+  --pal-amber-900: #532c5b;
+  --pal-amber-950: #2e1533;
+  --pal-orange-50: #fceefe;
+  --pal-orange-100: #f9d8fc;
+  --pal-orange-200: #f2b0f8;
+  --pal-orange-300: #e97ef3;
+  --pal-orange-400: #df4aed;
+  --pal-orange-500: #d827e8;
+  --pal-orange-600: #ca1dd9;
+  --pal-orange-700: #a71ab4;
+  --pal-orange-800: #861c90;
+  --pal-orange-900: #6d1a74;
+  --pal-orange-950: #3a0b3f;
+}
+
+/* Peach Blossom (explicit — same values as the :root default above, so
+   picking it in Settings looks identical to never having chosen at all). */
+[data-palette="peach"] {
+  --pal-rose-50: #fff1f2;
+  --pal-rose-100: #ffe4e6;
+  --pal-rose-200: #fecdd3;
+  --pal-rose-300: #fda4af;
+  --pal-rose-400: #fb7185;
+  --pal-rose-500: #f43f5e;
+  --pal-rose-600: #e11d48;
+  --pal-rose-700: #be123c;
+  --pal-rose-800: #9f1239;
+  --pal-rose-900: #881337;
+  --pal-rose-950: #4c0519;
+  --pal-amber-50: #fffbeb;
+  --pal-amber-100: #fef3c7;
+  --pal-amber-200: #fde68a;
+  --pal-amber-300: #fcd34d;
+  --pal-amber-400: #fbbf24;
+  --pal-amber-500: #f59e0b;
+  --pal-amber-600: #d97706;
+  --pal-amber-700: #b45309;
+  --pal-amber-800: #92400e;
+  --pal-amber-900: #78350f;
+  --pal-amber-950: #451a03;
+  --pal-orange-50: #fff7ed;
+  --pal-orange-100: #ffedd5;
+  --pal-orange-200: #fed7aa;
+  --pal-orange-300: #fdba74;
+  --pal-orange-400: #fb923c;
+  --pal-orange-500: #f97316;
+  --pal-orange-600: #ea580c;
+  --pal-orange-700: #c2410c;
+  --pal-orange-800: #9a3412;
+  --pal-orange-900: #7c2d12;
+  --pal-orange-950: #431407;
+}
+
 /* Scales every rem-based Tailwind utility app-wide — text, spacing, icons,
    container widths — uniformly by 1.5x, since almost the whole UI is built
    on Tailwind's rem scale. Media query breakpoints (sm/lg/etc) are defined
@@ -30,6 +449,43 @@ html {
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Redirects Tailwind's built-in rose/amber/orange utility classes
+     (bg-rose-400, text-amber-950/60, ...) through the palette variables
+     above, so switching `data-palette` re-colors every one of them. */
+  --color-rose-50: var(--pal-rose-50);
+  --color-rose-100: var(--pal-rose-100);
+  --color-rose-200: var(--pal-rose-200);
+  --color-rose-300: var(--pal-rose-300);
+  --color-rose-400: var(--pal-rose-400);
+  --color-rose-500: var(--pal-rose-500);
+  --color-rose-600: var(--pal-rose-600);
+  --color-rose-700: var(--pal-rose-700);
+  --color-rose-800: var(--pal-rose-800);
+  --color-rose-900: var(--pal-rose-900);
+  --color-rose-950: var(--pal-rose-950);
+  --color-amber-50: var(--pal-amber-50);
+  --color-amber-100: var(--pal-amber-100);
+  --color-amber-200: var(--pal-amber-200);
+  --color-amber-300: var(--pal-amber-300);
+  --color-amber-400: var(--pal-amber-400);
+  --color-amber-500: var(--pal-amber-500);
+  --color-amber-600: var(--pal-amber-600);
+  --color-amber-700: var(--pal-amber-700);
+  --color-amber-800: var(--pal-amber-800);
+  --color-amber-900: var(--pal-amber-900);
+  --color-amber-950: var(--pal-amber-950);
+  --color-orange-50: var(--pal-orange-50);
+  --color-orange-100: var(--pal-orange-100);
+  --color-orange-200: var(--pal-orange-200);
+  --color-orange-300: var(--pal-orange-300);
+  --color-orange-400: var(--pal-orange-400);
+  --color-orange-500: var(--pal-orange-500);
+  --color-orange-600: var(--pal-orange-600);
+  --color-orange-700: var(--pal-orange-700);
+  --color-orange-800: var(--pal-orange-800);
+  --color-orange-900: var(--pal-orange-900);
+  --color-orange-950: var(--pal-orange-950);
 }
 
 body {

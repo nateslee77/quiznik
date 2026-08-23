@@ -4,9 +4,9 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { buildQuestion, type Direction } from "@/lib/generateQuiz";
 import { matchQuality } from "@/lib/fuzzyMatch";
-import { playCorrectChime } from "@/lib/chime";
+import { playCorrectChime, playWrongChime } from "@/lib/chime";
 import { buildRound, type ProgressSnapshot, type RoundCardState } from "@/lib/learnRound";
-import { resetStudyProgress } from "@/app/sets/actions";
+import { logStudyEvent, resetStudyProgress } from "@/app/sets/actions";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { useMascot } from "@/components/mascot/MascotContext";
 import { useCoins } from "@/components/coins/CoinsContext";
@@ -324,7 +324,10 @@ export function LearnRunner({
     if (correct) {
       addCoins(LEARN_CORRECT_COINS);
       playCorrectChime();
+    } else {
+      playWrongChime();
     }
+    void logStudyEvent(setId, currentCardId, "learn", correct);
     void submitResult(currentCardId, correct);
   }
 
@@ -337,7 +340,10 @@ export function LearnRunner({
     if (correct) {
       addCoins(LEARN_CORRECT_COINS);
       playCorrectChime();
+    } else {
+      playWrongChime();
     }
+    void logStudyEvent(setId, currentCardId, "learn", correct);
     void submitResult(currentCardId, correct);
   }
 

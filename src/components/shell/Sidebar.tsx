@@ -7,6 +7,7 @@ import { CoinBalance } from "@/components/coins/CoinBalance";
 import { FolderTree } from "@/components/shell/FolderTree";
 import {
   ChatIcon,
+  GearIcon,
   HomeIcon,
   LibraryIcon,
   MenuIcon,
@@ -110,6 +111,13 @@ export function Sidebar({
         active={pathname === "/shop"}
         icon={<SparkleIcon className="h-4 w-4" />}
         label="Shop"
+        onNavigate={onNavigate}
+      />
+      <NavLink
+        href="/settings"
+        active={pathname === "/settings"}
+        icon={<GearIcon className="h-4 w-4" />}
+        label="Settings"
         onNavigate={onNavigate}
       />
 
