@@ -1,6 +1,7 @@
 import { GearIcon } from "@/components/icons";
 import { SoundSettings } from "@/components/SoundSettings";
 import { PaletteSettings } from "@/components/PaletteSettings";
+import { BackgroundSettings } from "@/components/BackgroundSettings";
 import { MascotSettings } from "@/components/MascotSettings";
 
 export default function SettingsPage() {
@@ -13,8 +14,13 @@ export default function SettingsPage() {
 
       <div className="flex flex-col gap-10">
         <section>
-          <h2 className="mb-3 text-sm font-medium text-amber-950/50">Appearance</h2>
+          <h2 className="mb-3 text-sm font-medium text-amber-950/50">Accent color</h2>
           <PaletteSettings />
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-sm font-medium text-amber-950/50">Background</h2>
+          <BackgroundSettings />
         </section>
 
         <section>

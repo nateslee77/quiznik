@@ -1,31 +1,31 @@
 @import "tailwindcss";
 
-/* ---- Palettes -------------------------------------------------------
+/* ---- Palette (accent color) + Background (light/dark) ---------------
    Every component in this app just uses Tailwind's built-in rose/amber/
    orange utility classes directly (bg-rose-400, text-amber-950/60, etc),
-   plus `bg-white` for every card/panel surface — there's no separate
+   plus `bg-surface` for every card/panel surface — there's no separate
    design-token layer. Rather than retrofit every component to a new token
-   system, the palette switcher hijacks those color families themselves:
-   `--color-rose-400` etc below are registered in `@theme inline` as live
-   var() references (not build-time-inlined values), pointing at
-   `--pal-rose-400` etc, which `:root` sets to the default (Peach Blossom)
-   and each [data-palette="..."] block overrides. Flip the `data-palette`
-   attribute on <html> and every rose/amber/orange-based class site-wide
-   re-colors, with zero changes needed in any component file.
+   system, the palette/background switchers hijack those color families
+   themselves: `--color-rose-400` etc below are registered in `@theme
+   inline` as live var() references (not build-time-inlined values),
+   pointing at `--pal-rose-400` etc.
 
-   `--pal-background`/`--pal-foreground`/`--pal-surface` extend the same
-   trick to the page background, base text color, and card surfaces
-   (component files use `bg-surface` instead of literal `bg-white`, wired
-   the same way) — this is what lets a palette go properly dark instead of
-   just recoloring accents on a fixed light page. Light palettes below
-   don't set these three at all: they simply inherit :root's default
-   (identical to the app's original look), only the dark palettes
-   (Midnight/Charcoal/Onyx) override them. amber/orange also get their
-   LIGHTNESS INVERTED per shade for those three specifically — amber-950
-   is this app's primary body-text shade, and text that dark would be
-   unreadable against a dark page; rose (buttons/badges) doesn't need
-   inverting since e.g. a light rose-100 chip with rose-500 text is
-   self-contained regardless of what the page around it looks like. */
+   These are two INDEPENDENT choices, each with its own <html> attribute:
+     - `data-palette` (10 options) sets only --pal-rose-* — the accent
+       color used for buttons, active states, badges. Rose doesn't need
+       to change with light/dark since e.g. a light rose-100 chip with
+       rose-500 text is self-contained regardless of what the page around
+       it looks like.
+     - `data-background` (Cream/Midnight/Charcoal/Onyx) sets
+       --pal-background/--pal-foreground/--pal-surface plus the neutral
+       --pal-amber-*/--pal-orange-* ramps (used for body text, borders,
+       secondary surfaces). amber/orange get their LIGHTNESS INVERTED per
+       shade on dark backgrounds — amber-950 is this app's primary
+       body-text shade, and text that dark would be unreadable against a
+       dark page.
+   Any palette combines with any background: pick a bright accent on a
+   dark page, or a muted one on the cream page, independently. :root
+   below holds the defaults (Peach Blossom accent, Cream background). */
 :root {
   --background: var(--pal-background);
   --foreground: var(--pal-foreground);
@@ -80,28 +80,6 @@
   --pal-rose-800: #1d946c;
   --pal-rose-900: #1c7f5e;
   --pal-rose-950: #0a4733;
-  --pal-amber-50: #effaf8;
-  --pal-amber-100: #d3f2ea;
-  --pal-amber-200: #a4e3d3;
-  --pal-amber-300: #74d5bd;
-  --pal-amber-400: #54cbad;
-  --pal-amber-500: #40c0a0;
-  --pal-amber-600: #35aa8d;
-  --pal-amber-700: #2f8e76;
-  --pal-amber-800: #2c7462;
-  --pal-amber-900: #276052;
-  --pal-amber-950: #12362d;
-  --pal-orange-50: #eefef6;
-  --pal-orange-100: #d7fdea;
-  --pal-orange-200: #aefad4;
-  --pal-orange-300: #7bf6b8;
-  --pal-orange-400: #46f19b;
-  --pal-orange-500: #21ee88;
-  --pal-orange-600: #17df7b;
-  --pal-orange-700: #15b967;
-  --pal-orange-800: #199356;
-  --pal-orange-900: #177747;
-  --pal-orange-950: #0a4025;
 }
 
 /* Lavender Dream */
@@ -117,28 +95,6 @@
   --pal-rose-800: #4f2091;
   --pal-rose-900: #461f7c;
   --pal-rose-950: #240c45;
-  --pal-amber-50: #f4f0fa;
-  --pal-amber-100: #e0d6ef;
-  --pal-amber-200: #bfaadd;
-  --pal-amber-300: #9e7dcc;
-  --pal-amber-400: #875fc0;
-  --pal-amber-500: #774bb5;
-  --pal-amber-600: #68409f;
-  --pal-amber-700: #583885;
-  --pal-amber-800: #4b326e;
-  --pal-amber-900: #402c5b;
-  --pal-amber-950: #221533;
-  --pal-orange-50: #f6eefe;
-  --pal-orange-100: #ead8fc;
-  --pal-orange-200: #d4b0f8;
-  --pal-orange-300: #b87ef3;
-  --pal-orange-400: #9b4aed;
-  --pal-orange-500: #8827e8;
-  --pal-orange-600: #7b1dd9;
-  --pal-orange-700: #671ab4;
-  --pal-orange-800: #561c90;
-  --pal-orange-900: #471a74;
-  --pal-orange-950: #250b3f;
 }
 
 /* Sky Blossom */
@@ -154,28 +110,6 @@
   --pal-rose-800: #1d6294;
   --pal-rose-900: #1c567f;
   --pal-rose-950: #0a2e47;
-  --pal-amber-50: #f0f5fa;
-  --pal-amber-100: #d5e3f0;
-  --pal-amber-200: #a7c3e0;
-  --pal-amber-300: #79a5d0;
-  --pal-amber-400: #5a90c5;
-  --pal-amber-500: #4580bb;
-  --pal-amber-600: #3b70a4;
-  --pal-amber-700: #345f89;
-  --pal-amber-800: #2f5071;
-  --pal-amber-900: #29445e;
-  --pal-amber-950: #142435;
-  --pal-orange-50: #eef9fe;
-  --pal-orange-100: #d7f0fd;
-  --pal-orange-200: #aee1fa;
-  --pal-orange-300: #7bcdf6;
-  --pal-orange-400: #46b8f1;
-  --pal-orange-500: #21aaee;
-  --pal-orange-600: #179cdf;
-  --pal-orange-700: #1582b9;
-  --pal-orange-800: #196a93;
-  --pal-orange-900: #175777;
-  --pal-orange-950: #0a2e40;
 }
 
 /* Lemon Sorbet */
@@ -191,28 +125,6 @@
   --pal-rose-800: #9b7316;
   --pal-rose-900: #856416;
   --pal-rose-950: #4a3607;
-  --pal-amber-50: #faf7ef;
-  --pal-amber-100: #f2e8d3;
-  --pal-amber-200: #e3cea4;
-  --pal-amber-300: #d5b574;
-  --pal-amber-400: #cba354;
-  --pal-amber-500: #c09540;
-  --pal-amber-600: #aa8335;
-  --pal-amber-700: #8e6e2f;
-  --pal-amber-800: #745c2c;
-  --pal-amber-900: #604d27;
-  --pal-amber-950: #362a12;
-  --pal-orange-50: #fffaed;
-  --pal-orange-100: #fef4d6;
-  --pal-orange-200: #fce8ac;
-  --pal-orange-300: #fad977;
-  --pal-orange-400: #f6c941;
-  --pal-orange-500: #f3bd1c;
-  --pal-orange-600: #e4b012;
-  --pal-orange-700: #bd9211;
-  --pal-orange-800: #977615;
-  --pal-orange-900: #796015;
-  --pal-orange-950: #423308;
 }
 
 /* Bubblegum */
@@ -228,28 +140,6 @@
   --pal-rose-800: #9f1264;
   --pal-rose-900: #881357;
   --pal-rose-950: #4c052e;
-  --pal-amber-50: #faf0f6;
-  --pal-amber-100: #efd6e7;
-  --pal-amber-200: #ddaacc;
-  --pal-amber-300: #cc7db2;
-  --pal-amber-400: #c05fa0;
-  --pal-amber-500: #b54b92;
-  --pal-amber-600: #9f407f;
-  --pal-amber-700: #85386b;
-  --pal-amber-800: #6e325a;
-  --pal-amber-900: #5b2c4b;
-  --pal-amber-950: #331529;
-  --pal-orange-50: #ffedf6;
-  --pal-orange-100: #ffd5ea;
-  --pal-orange-200: #feaad4;
-  --pal-orange-300: #fd74b8;
-  --pal-orange-400: #fb3c9b;
-  --pal-orange-500: #f91688;
-  --pal-orange-600: #ea0c7b;
-  --pal-orange-700: #c20c67;
-  --pal-orange-800: #9a1256;
-  --pal-orange-900: #7c1247;
-  --pal-orange-950: #430725;
 }
 
 /* Seafoam */
@@ -265,28 +155,6 @@
   --pal-rose-800: #209188;
   --pal-rose-900: #1f7c74;
   --pal-rose-950: #0c4540;
-  --pal-amber-50: #f0fafa;
-  --pal-amber-100: #d5f0f0;
-  --pal-amber-200: #a7e0e0;
-  --pal-amber-300: #79d0d0;
-  --pal-amber-400: #5ac5c5;
-  --pal-amber-500: #45bbbb;
-  --pal-amber-600: #3ba4a4;
-  --pal-amber-700: #348989;
-  --pal-amber-800: #2f7171;
-  --pal-amber-900: #295e5e;
-  --pal-amber-950: #143535;
-  --pal-orange-50: #eefefb;
-  --pal-orange-100: #d8fcf6;
-  --pal-orange-200: #b0f8ec;
-  --pal-orange-300: #7ef3df;
-  --pal-orange-400: #4aedd2;
-  --pal-orange-500: #27e8c8;
-  --pal-orange-600: #1dd9ba;
-  --pal-orange-700: #1ab49b;
-  --pal-orange-800: #1c907d;
-  --pal-orange-900: #1a7465;
-  --pal-orange-950: #0b3f36;
 }
 
 /* Periwinkle */
@@ -302,28 +170,6 @@
   --pal-rose-800: #1d2794;
   --pal-rose-900: #1c247f;
   --pal-rose-950: #0a0f47;
-  --pal-amber-50: #f0f1fa;
-  --pal-amber-100: #d6d8ef;
-  --pal-amber-200: #aaaedd;
-  --pal-amber-300: #7d84cc;
-  --pal-amber-400: #5f67c0;
-  --pal-amber-500: #4b54b5;
-  --pal-amber-600: #40489f;
-  --pal-amber-700: #383e85;
-  --pal-amber-800: #32376e;
-  --pal-amber-900: #2c305b;
-  --pal-amber-950: #151833;
-  --pal-orange-50: #eeeefe;
-  --pal-orange-100: #d8d8fc;
-  --pal-orange-200: #b0b0f8;
-  --pal-orange-300: #7e7ef3;
-  --pal-orange-400: #4a4aed;
-  --pal-orange-500: #2727e8;
-  --pal-orange-600: #1d1dd9;
-  --pal-orange-700: #1a1ab4;
-  --pal-orange-800: #1c1c90;
-  --pal-orange-900: #1a1a74;
-  --pal-orange-950: #0b0b3f;
 }
 
 /* Coral Reef */
@@ -339,28 +185,6 @@
   --pal-rose-800: #9b2716;
   --pal-rose-900: #852516;
   --pal-rose-950: #4a1007;
-  --pal-amber-50: #faf2ef;
-  --pal-amber-100: #f2dbd3;
-  --pal-amber-200: #e3b4a4;
-  --pal-amber-300: #d58c74;
-  --pal-amber-400: #cb7254;
-  --pal-amber-500: #c06040;
-  --pal-amber-600: #aa5235;
-  --pal-amber-700: #8e472f;
-  --pal-amber-800: #743e2c;
-  --pal-amber-900: #603527;
-  --pal-amber-950: #361b12;
-  --pal-orange-50: #fff1ed;
-  --pal-orange-100: #ffddd5;
-  --pal-orange-200: #febbaa;
-  --pal-orange-300: #fd8f74;
-  --pal-orange-400: #fb623c;
-  --pal-orange-500: #f94316;
-  --pal-orange-600: #ea380c;
-  --pal-orange-700: #c2300c;
-  --pal-orange-800: #9a2d12;
-  --pal-orange-900: #7c2712;
-  --pal-orange-950: #431307;
 }
 
 /* Lilac Fields */
@@ -376,28 +200,6 @@
   --pal-rose-800: #7e2091;
   --pal-rose-900: #6d1f7c;
   --pal-rose-950: #3b0c45;
-  --pal-amber-50: #f8f0fa;
-  --pal-amber-100: #ebd6ef;
-  --pal-amber-200: #d5aadd;
-  --pal-amber-300: #bf7dcc;
-  --pal-amber-400: #b05fc0;
-  --pal-amber-500: #a34bb5;
-  --pal-amber-600: #8f409f;
-  --pal-amber-700: #783885;
-  --pal-amber-800: #64326e;
-  --pal-amber-900: #532c5b;
-  --pal-amber-950: #2e1533;
-  --pal-orange-50: #fceefe;
-  --pal-orange-100: #f9d8fc;
-  --pal-orange-200: #f2b0f8;
-  --pal-orange-300: #e97ef3;
-  --pal-orange-400: #df4aed;
-  --pal-orange-500: #d827e8;
-  --pal-orange-600: #ca1dd9;
-  --pal-orange-700: #a71ab4;
-  --pal-orange-800: #861c90;
-  --pal-orange-900: #6d1a74;
-  --pal-orange-950: #3a0b3f;
 }
 
 /* Peach Blossom (explicit — same values as the :root default above, so
@@ -414,6 +216,19 @@
   --pal-rose-800: #9f1239;
   --pal-rose-900: #881337;
   --pal-rose-950: #4c0519;
+}
+
+/* ---- Backgrounds ------------------------------------------------------
+   `data-background` on <html> is the independent counterpart to
+   `data-palette` above — it never touches --pal-rose-*, only page
+   background/text/surface and the neutral amber/orange ramps, so any
+   accent palette works over any background. */
+
+/* Cream (explicit — same values as the :root default above). */
+[data-background="cream"] {
+  --pal-background: #fff7f0;
+  --pal-foreground: #45322b;
+  --pal-surface: #ffffff;
   --pal-amber-50: #fffbeb;
   --pal-amber-100: #fef3c7;
   --pal-amber-200: #fde68a;
@@ -439,21 +254,10 @@
 }
 
 /* Midnight (dark) */
-[data-palette="midnight"] {
+[data-background="midnight"] {
   --pal-background: #14121f;
   --pal-foreground: #d3cfe7;
   --pal-surface: #1e1a30;
-  --pal-rose-50: #f7f3fd;
-  --pal-rose-100: #f0e7fc;
-  --pal-rose-200: #e2d3f8;
-  --pal-rose-300: #cbaff2;
-  --pal-rose-400: #ad82ea;
-  --pal-rose-500: #8e56dd;
-  --pal-rose-600: #7336c9;
-  --pal-rose-700: #5d28a9;
-  --pal-rose-800: #50248d;
-  --pal-rose-900: #462279;
-  --pal-rose-950: #240e43;
   --pal-amber-50: #08070e;
   --pal-amber-100: #161326;
   --pal-amber-200: #2e2750;
@@ -479,21 +283,10 @@
 }
 
 /* Charcoal (grey) */
-[data-palette="charcoal"] {
+[data-background="charcoal"] {
   --pal-background: #242426;
   --pal-foreground: #dddbd9;
   --pal-surface: #2f2f32;
-  --pal-rose-50: #fef3f2;
-  --pal-rose-100: #fee9e5;
-  --pal-rose-200: #fcd5cf;
-  --pal-rose-300: #f9b3a8;
-  --pal-rose-400: #f48878;
-  --pal-rose-500: #eb5e48;
-  --pal-rose-600: #d73e27;
-  --pal-rose-700: #b52f1b;
-  --pal-rose-800: #982a19;
-  --pal-rose-900: #822719;
-  --pal-rose-950: #481109;
   --pal-amber-50: #0b0a09;
   --pal-amber-100: #1e1d1b;
   --pal-amber-200: #3f3c38;
@@ -519,21 +312,10 @@
 }
 
 /* Onyx (black) */
-[data-palette="onyx"] {
+[data-background="onyx"] {
   --pal-background: #0a0a0b;
   --pal-foreground: #dcdbda;
   --pal-surface: #17171a;
-  --pal-rose-50: #fff1f8;
-  --pal-rose-100: #fee5f2;
-  --pal-rose-200: #fdcee6;
-  --pal-rose-300: #fba6d1;
-  --pal-rose-400: #f874b6;
-  --pal-rose-500: #ef449a;
-  --pal-rose-600: #dc227f;
-  --pal-rose-700: #ba1668;
-  --pal-rose-800: #9b1659;
-  --pal-rose-900: #85164e;
-  --pal-rose-950: #4a0729;
   --pal-amber-50: #0a0a0a;
   --pal-amber-100: #1d1d1c;
   --pal-amber-200: #3d3c3a;

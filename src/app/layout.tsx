@@ -57,14 +57,15 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-background text-foreground">
-        {/* Blocking (not React-hydrated) so the saved palette applies
-            before first paint — avoids a flash of the default palette on
-            load. Mirrored non-blocking in src/lib/palette.ts for the React
-            side (Settings page, and re-applying if this ever no-ops). */}
+        {/* Blocking (not React-hydrated) so the saved palette + background
+            apply before first paint — avoids a flash of the defaults on
+            load. Mirrored non-blocking in src/lib/palette.ts and
+            src/lib/background.ts for the React side (Settings page, and
+            re-applying if this ever no-ops). */}
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "(function(){try{var p=localStorage.getItem('quiznik-palette');if(p)document.documentElement.setAttribute('data-palette',p);}catch(e){}})();",
+              "(function(){try{var p=localStorage.getItem('quiznik-palette');if(p)document.documentElement.setAttribute('data-palette',p);var b=localStorage.getItem('quiznik-background');if(b)document.documentElement.setAttribute('data-background',b);}catch(e){}})();",
           }}
         />
         <div
