@@ -18,7 +18,7 @@
        it looks like.
      - `data-background` (Cream/Midnight/Charcoal/Onyx) sets
        --pal-background/--pal-foreground/--pal-surface plus the neutral
-       --pal-amber-*/--pal-orange-* ramps (used for body text, borders,
+       --pal-amber-* / --pal-orange-* ramps (used for body text, borders,
        secondary surfaces). amber/orange get their LIGHTNESS INVERTED per
        shade on dark backgrounds — amber-950 is this app's primary
        body-text shade, and text that dark would be unreadable against a
