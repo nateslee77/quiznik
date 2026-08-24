@@ -200,7 +200,7 @@ export function MatchGame({ setId, cards }: { setId: string; cards: Card[] }) {
 
           let stateClasses = "border-amber-900/15 bg-surface hover:border-rose-300";
           if (isWrong) stateClasses = "border-red-500 bg-red-50 text-red-600";
-          else if (isSelected) stateClasses = "border-rose-400 bg-rose-50";
+          else if (isSelected) stateClasses = "border-rose-400 bg-rose-50 text-rose-700";
 
           return (
             <button

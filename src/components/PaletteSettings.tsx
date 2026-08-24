@@ -16,7 +16,9 @@ export function PaletteSettings() {
             onClick={() => setPalette(p.id)}
             aria-pressed={active}
             className={`flex flex-col items-center gap-2 rounded-xl border p-3 text-center transition ${
-              active ? "border-rose-400 bg-rose-50 ring-2 ring-rose-300" : "border-amber-900/10 hover:bg-orange-100/70"
+              active
+                ? "border-rose-400 bg-rose-50 text-rose-700 ring-2 ring-rose-300"
+                : "border-amber-900/10 hover:bg-orange-100/70"
             }`}
           >
             <span

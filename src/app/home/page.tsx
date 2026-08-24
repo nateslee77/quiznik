@@ -70,8 +70,13 @@ export default async function HomePage() {
             <BoltIcon className="h-5 w-5" />
           </span>
           <span className="flex-1">
-            <span className="block text-sm font-medium">Start reviewing</span>
-            <span className="block text-xs text-amber-950/60">
+            {/* Explicit rose text, not the ambient foreground: this card's
+                bg-rose-100 stays a light chip regardless of the page's
+                background theme (see globals.css), so its text needs to be
+                self-contained rose too — inheriting --foreground would flip
+                light-on-light on a dark background theme. */}
+            <span className="block text-sm font-medium text-rose-700">Start reviewing</span>
+            <span className="block text-xs text-rose-600/70">
               {totalDue} due card{totalDue === 1 ? "" : "s"} across your decks
             </span>
           </span>

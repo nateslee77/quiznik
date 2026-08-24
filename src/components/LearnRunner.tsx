@@ -46,6 +46,15 @@ type StoredRound = {
   roundSize: number;
   cardStates: Record<string, RoundCardState>;
   doneCardIds: string[];
+  // The setup settings a round was started with — restored alongside the
+  // queue so "Keep learning" after a resume builds the *next* round with
+  // the same direction/limits, instead of silently falling back to this
+  // component's hardcoded defaults (each of these is a plain useState that
+  // otherwise has no idea a round was ever resumed).
+  maxNew: number;
+  maxReview: number;
+  direction: Direction | "mixed";
+  includeMastered: boolean;
 };
 
 // Resumes an in-progress round left off from a previous visit (leaving the
@@ -89,7 +98,7 @@ function StageTile({ stage, count }: { stage: Stage; count: number }) {
   return (
     <div className={`rounded-xl border p-2.5 text-center ${colors.border} ${colors.bg}`}>
       <p className={`text-lg font-semibold ${colors.text}`}>{count}</p>
-      <p className="text-[11px] text-amber-950/50">{STAGE_LABELS[stage]}</p>
+      <p className="text-[11px] text-amber-950/70">{STAGE_LABELS[stage]}</p>
     </div>
   );
 }
@@ -169,12 +178,22 @@ export function LearnRunner({
         localStorage.removeItem(ROUND_STORAGE_PREFIX + setId);
         return;
       }
-      const stored: StoredRound = { phase, queue, roundSize, cardStates, doneCardIds: [...doneCardIds] };
+      const stored: StoredRound = {
+        phase,
+        queue,
+        roundSize,
+        cardStates,
+        doneCardIds: [...doneCardIds],
+        maxNew,
+        maxReview,
+        direction,
+        includeMastered,
+      };
       localStorage.setItem(ROUND_STORAGE_PREFIX + setId, JSON.stringify(stored));
     } catch {
       // storage unavailable — round just won't persist across visits
     }
-  }, [setId, phase, queue, roundSize, cardStates, doneCardIds]);
+  }, [setId, phase, queue, roundSize, cardStates, doneCardIds, maxNew, maxReview, direction, includeMastered]);
 
   // Resumes a stored round strictly after the first client render (so that
   // render still matches the server's, avoiding a hydration mismatch) —
@@ -191,6 +210,13 @@ export function LearnRunner({
     setRoundSize(stored.roundSize);
     setCardStates(stored.cardStates);
     setDoneCardIds(new Set(stored.doneCardIds));
+    // Guarded with `??` rather than trusted outright: a round stored before
+    // this fix won't have these fields at all, so this falls back to the
+    // component's normal defaults instead of setting state to undefined.
+    setMaxNew(stored.maxNew ?? DEFAULT_MAX_NEW);
+    setMaxReview(stored.maxReview ?? DEFAULT_MAX_REVIEW);
+    setDirection(stored.direction ?? "definition-to-term");
+    setIncludeMastered(stored.includeMastered ?? false);
     /* eslint-enable react-hooks/set-state-in-effect */
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
