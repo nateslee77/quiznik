@@ -212,7 +212,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
 
         <button
           onClick={() => startTest()}
-          className="mt-6 w-full rounded-lg bg-rose-400 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-rose-300"
+          className="mt-6 w-full rounded-lg bg-rose-400 px-4 py-2.5 text-sm font-medium text-rose-contrast transition hover:bg-rose-300"
         >
           Start test
         </button>
@@ -269,7 +269,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
         <div className="mt-3 flex w-full max-w-md gap-3">
           <button
             onClick={() => startTest()}
-            className="flex-1 rounded-lg bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300"
+            className="flex-1 rounded-lg bg-rose-400 px-4 py-3 text-sm font-medium text-rose-contrast transition hover:bg-rose-300"
           >
             Retake (same settings)
           </button>
@@ -348,7 +348,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
             {selected !== null ? (
               <button
                 onClick={nextQuestion}
-                className="mt-6 w-full rounded-lg bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300"
+                className="mt-6 w-full rounded-lg bg-rose-400 px-4 py-3 text-sm font-medium text-rose-contrast transition hover:bg-rose-300"
               >
                 {index + 1 === questions.length ? "See results" : "Next question →"}
               </button>
@@ -365,7 +365,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
             />
             <button
               onClick={checkWritten}
-              className="rounded-lg bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300"
+              className="rounded-lg bg-rose-400 px-4 py-3 text-sm font-medium text-rose-contrast transition hover:bg-rose-300"
             >
               Check answer
             </button>
@@ -390,7 +390,7 @@ export function TestRunner({ setId, cards }: { setId: string; cards: Card[] }) {
             </div>
             <button
               onClick={nextQuestion}
-              className="rounded-lg bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300"
+              className="rounded-lg bg-rose-400 px-4 py-3 text-sm font-medium text-rose-contrast transition hover:bg-rose-300"
             >
               {index + 1 === questions.length ? "See results" : "Next question →"}
             </button>

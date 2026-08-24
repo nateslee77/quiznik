@@ -72,7 +72,7 @@ export function SetHeader({ set, folders }: { set: FlashcardSet; folders: Folder
           <button
             onClick={save}
             disabled={pending}
-            className="rounded-xl bg-rose-400 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-rose-300 disabled:opacity-50"
+            className="rounded-xl bg-rose-400 px-3 py-1.5 text-sm font-medium text-rose-contrast transition hover:bg-rose-300 disabled:opacity-50"
           >
             Save
           </button>

@@ -20,7 +20,7 @@ export default async function Home() {
         {user ? (
           <Link
             href="/home"
-            className="rounded-xl bg-rose-400 px-6 py-3 text-base font-medium text-white transition hover:bg-rose-300"
+            className="rounded-xl bg-rose-400 px-6 py-3 text-base font-medium text-rose-contrast transition hover:bg-rose-300"
           >
             Get started
           </Link>
@@ -34,7 +34,7 @@ export default async function Home() {
             </Link>
             <Link
               href="/signup"
-              className="rounded-xl bg-rose-400 px-6 py-3 text-base font-medium text-white transition hover:bg-rose-300"
+              className="rounded-xl bg-rose-400 px-6 py-3 text-base font-medium text-rose-contrast transition hover:bg-rose-300"
             >
               Sign up
             </Link>

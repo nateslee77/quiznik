@@ -315,7 +315,7 @@ export function LibraryBrowser({
         </span>
       </span>
       {deck.due > 0 ? (
-        <span className="rounded-full bg-rose-400 px-2 py-0.5 text-xs font-semibold text-white">
+        <span className="rounded-full bg-rose-400 px-2 py-0.5 text-xs font-semibold text-rose-contrast">
           {deck.due}
         </span>
       ) : null}
@@ -410,7 +410,7 @@ export function LibraryBrowser({
             <FolderControls folder={activeFolder} />
             <Link
               href={`/sets/new?folder=${activeFolder.id}`}
-              className="flex shrink-0 items-center gap-1.5 rounded-xl bg-rose-400 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-rose-300"
+              className="flex shrink-0 items-center gap-1.5 rounded-xl bg-rose-400 px-3.5 py-2 text-sm font-medium text-rose-contrast transition hover:bg-rose-300"
             >
               <PlusIcon className="h-4 w-4" />
               New deck
@@ -432,7 +432,7 @@ export function LibraryBrowser({
               <p className="text-sm text-amber-950/60">This folder is empty.</p>
               <Link
                 href={`/sets/new?folder=${activeFolder.id}`}
-                className="flex items-center gap-2 rounded-xl bg-rose-400 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-300"
+                className="flex items-center gap-2 rounded-xl bg-rose-400 px-4 py-2 text-sm font-medium text-rose-contrast transition hover:bg-rose-300"
               >
                 <PlusIcon className="h-4 w-4" />
                 Create flashcards
@@ -477,7 +477,7 @@ export function LibraryBrowser({
           {newFolderControl}
           <Link
             href="/sets/new"
-            className="flex shrink-0 items-center gap-1.5 rounded-xl bg-rose-400 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-rose-300"
+            className="flex shrink-0 items-center gap-1.5 rounded-xl bg-rose-400 px-3.5 py-2 text-sm font-medium text-rose-contrast transition hover:bg-rose-300"
           >
             <PlusIcon className="h-4 w-4" />
             New deck
@@ -516,7 +516,7 @@ export function LibraryBrowser({
             <p className="text-sm text-amber-950/60">Nothing here yet.</p>
             <Link
               href="/sets/new"
-              className="flex items-center gap-2 rounded-xl bg-rose-400 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-300"
+              className="flex items-center gap-2 rounded-xl bg-rose-400 px-4 py-2 text-sm font-medium text-rose-contrast transition hover:bg-rose-300"
             >
               <PlusIcon className="h-4 w-4" />
               Create a deck

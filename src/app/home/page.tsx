@@ -75,7 +75,7 @@ export default async function HomePage() {
               {totalDue} due card{totalDue === 1 ? "" : "s"} across your decks
             </span>
           </span>
-          <span className="rounded-full bg-rose-400 px-2.5 py-0.5 text-xs font-semibold text-white">
+          <span className="rounded-full bg-rose-400 px-2.5 py-0.5 text-xs font-semibold text-rose-contrast">
             {totalDue}
           </span>
         </Link>
@@ -94,7 +94,7 @@ export default async function HomePage() {
             <p className="text-sm text-amber-950/60">No decks yet — make your first one.</p>
             <Link
               href="/sets/new"
-              className="flex items-center gap-2 rounded-xl bg-rose-400 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-300"
+              className="flex items-center gap-2 rounded-xl bg-rose-400 px-4 py-2 text-sm font-medium text-rose-contrast transition hover:bg-rose-300"
             >
               <PlusIcon className="h-4 w-4" />
               New deck
@@ -120,7 +120,7 @@ export default async function HomePage() {
                     </span>
                   </span>
                   {due > 0 ? (
-                    <span className="rounded-full bg-rose-400 px-2 py-0.5 text-xs font-semibold text-white">
+                    <span className="rounded-full bg-rose-400 px-2 py-0.5 text-xs font-semibold text-rose-contrast">
                       {due}
                     </span>
                   ) : null}

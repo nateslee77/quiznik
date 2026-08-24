@@ -65,7 +65,7 @@ export function Sidebar({
           onClick={onNavigate}
           className="flex flex-1 items-center gap-2.5 rounded-xl px-2 py-2 transition hover:bg-orange-100/70"
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-400 text-sm font-semibold text-white">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-400 text-sm font-semibold text-rose-contrast">
             Q
           </span>
           <span className="flex-1 truncate text-sm font-semibold">Quiznik</span>
@@ -124,7 +124,7 @@ export function Sidebar({
       <Link
         href="/sets/new"
         onClick={onNavigate}
-        className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-rose-400 px-3 py-2 text-sm font-medium text-white transition hover:bg-rose-300"
+        className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-rose-400 px-3 py-2 text-sm font-medium text-rose-contrast transition hover:bg-rose-300"
       >
         <PlusIcon className="h-4 w-4" />
         New deck

@@ -140,7 +140,7 @@ export function MatchGame({ setId, cards }: { setId: string; cards: Card[] }) {
 
         <button
           onClick={startGame}
-          className="mt-6 w-full rounded-lg bg-rose-400 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-rose-300"
+          className="mt-6 w-full rounded-lg bg-rose-400 px-4 py-2.5 text-sm font-medium text-rose-contrast transition hover:bg-rose-300"
         >
           Start
         </button>
@@ -161,7 +161,7 @@ export function MatchGame({ setId, cards }: { setId: string; cards: Card[] }) {
         <div className="mt-8 flex w-full max-w-md gap-3">
           <button
             onClick={startGame}
-            className="flex-1 rounded-lg bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300"
+            className="flex-1 rounded-lg bg-rose-400 px-4 py-3 text-sm font-medium text-rose-contrast transition hover:bg-rose-300"
           >
             Play again
           </button>

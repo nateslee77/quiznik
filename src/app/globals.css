@@ -80,6 +80,7 @@
   --pal-rose-800: #1d946c;
   --pal-rose-900: #1c7f5e;
   --pal-rose-950: #0a4733;
+  --pal-rose-contrast: var(--pal-rose-950);
 }
 
 /* Lavender Dream */
@@ -125,6 +126,7 @@
   --pal-rose-800: #9b7316;
   --pal-rose-900: #856416;
   --pal-rose-950: #4a3607;
+  --pal-rose-contrast: var(--pal-rose-950);
 }
 
 /* Bubblegum */
@@ -155,6 +157,7 @@
   --pal-rose-800: #209188;
   --pal-rose-900: #1f7c74;
   --pal-rose-950: #0c4540;
+  --pal-rose-contrast: var(--pal-rose-950);
 }
 
 /* Periwinkle */
@@ -216,6 +219,11 @@
   --pal-rose-800: #9f1239;
   --pal-rose-900: #881337;
   --pal-rose-950: #4c0519;
+  /* Readable text/icon color for anything sitting on a rose-400 surface
+     (buttons, badges, the logo mark) — white for accents saturated/dark
+     enough for it to stay legible, otherwise a dark ink so pastel accents
+     (Mint/Seafoam/Lemon) don't wash the text out. */
+  --pal-rose-contrast: #ffffff;
 }
 
 /* ---- Backgrounds ------------------------------------------------------
@@ -381,6 +389,7 @@ html {
   --color-rose-800: var(--pal-rose-800);
   --color-rose-900: var(--pal-rose-900);
   --color-rose-950: var(--pal-rose-950);
+  --color-rose-contrast: var(--pal-rose-contrast);
   --color-amber-50: var(--pal-amber-50);
   --color-amber-100: var(--pal-amber-100);
   --color-amber-200: var(--pal-amber-200);

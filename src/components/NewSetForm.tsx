@@ -274,7 +274,7 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
             onClick={() => setTab("manual")}
             className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition ${
               tab === "manual"
-                ? "bg-rose-400 text-white shadow-sm"
+                ? "bg-rose-400 text-rose-contrast shadow-sm"
                 : "text-amber-950/50"
             }`}
           >
@@ -285,7 +285,7 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
             onClick={() => setTab("paste")}
             className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition ${
               tab === "paste"
-                ? "bg-rose-400 text-white shadow-sm"
+                ? "bg-rose-400 text-rose-contrast shadow-sm"
                 : "text-amber-950/50"
             }`}
           >
@@ -332,7 +332,7 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
                 type="button"
                 onClick={() => setPasteMode("simple")}
                 className={`rounded-md px-2.5 py-1 font-medium transition ${
-                  pasteMode === "simple" ? "bg-rose-400 text-white shadow-sm" : "text-amber-950/50"
+                  pasteMode === "simple" ? "bg-rose-400 text-rose-contrast shadow-sm" : "text-amber-950/50"
                 }`}
               >
                 Term + definition
@@ -341,7 +341,7 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
                 type="button"
                 onClick={() => setPasteMode("choices")}
                 className={`rounded-md px-2.5 py-1 font-medium transition ${
-                  pasteMode === "choices" ? "bg-rose-400 text-white shadow-sm" : "text-amber-950/50"
+                  pasteMode === "choices" ? "bg-rose-400 text-rose-contrast shadow-sm" : "text-amber-950/50"
                 }`}
               >
                 With answer choices
@@ -402,7 +402,7 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
                 type="button"
                 onClick={importParsed}
                 disabled={preview.cards.length === 0}
-                className="rounded-lg bg-rose-400 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-rose-300 disabled:opacity-40"
+                className="rounded-lg bg-rose-400 px-3 py-1.5 text-sm font-medium text-rose-contrast transition hover:bg-rose-300 disabled:opacity-40"
               >
                 Add {preview.cards.length || ""} card{preview.cards.length === 1 ? "" : "s"}
               </button>
@@ -420,7 +420,7 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
       <button
         type="submit"
         disabled={pending || validCount === 0}
-        className="flex w-full items-center justify-center gap-2 rounded-lg bg-rose-400 px-4 py-2.5 text-base font-medium text-white transition hover:bg-rose-300 disabled:opacity-50"
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-rose-400 px-4 py-2.5 text-base font-medium text-rose-contrast transition hover:bg-rose-300 disabled:opacity-50"
       >
         {pending ? <SpinnerIcon className="h-4 w-4 animate-spin" /> : null}
         {pending ? "Creating…" : `Create set (${validCount} card${validCount === 1 ? "" : "s"})`}

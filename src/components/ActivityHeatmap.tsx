@@ -37,14 +37,28 @@ function cellTitle(cell: DayCell): string {
   return `${dateLabel} — ${cell.bucket.total} answered, ${cell.bucket.correct} correct`;
 }
 
-// Mobile-first smaller (a 53-column Yearly grid has no wrap points, so its
-// cells must be the tightest on the cramped viewport, not the roomy one).
+// Mobile-first smaller (the Weekly grid has few enough columns to size
+// fixed and let the daily strip below determine the card's height).
 function Cell({ cell, max }: { cell: DayCell; max: number }) {
   if (cell.future) return <div className="h-2.5 w-2.5 shrink-0 rounded-sm sm:h-3.5 sm:w-3.5" />;
   return (
     <div
       title={cellTitle(cell)}
       className={`h-2.5 w-2.5 shrink-0 rounded-sm transition sm:h-3.5 sm:w-3.5 ${intensityClass(cell.bucket?.total ?? 0, max)}`}
+    />
+  );
+}
+
+// Yearly's 53 columns never fit a fixed cell size without either scrolling
+// or overflowing, so it scales cells to the card's actual width instead —
+// a CSS grid with `minmax(0, 1fr)` columns whose width and height (via
+// aspect-square) shrink together, always summing to exactly 100%.
+function FluidCell({ cell, max }: { cell: DayCell; max: number }) {
+  if (cell.future) return <div className="aspect-square w-full rounded-sm" />;
+  return (
+    <div
+      title={cellTitle(cell)}
+      className={`aspect-square w-full rounded-sm transition ${intensityClass(cell.bucket?.total ?? 0, max)}`}
     />
   );
 }
@@ -66,9 +80,38 @@ function computeMonthLabels(weeks: DayCell[][]): string[] {
   });
 }
 
-function WeekGrid({ weeks }: { weeks: DayCell[][] }) {
+// Weekly (12 columns) keeps a fixed cell size and scrolls if it ever needs
+// to; Yearly (53 columns) never fits a fixed size without either scrolling
+// or overflowing, so it goes fluid instead — a CSS grid with `minmax(0,
+// 1fr)` columns whose width always sums to exactly the card's width, with
+// aspect-square cells so height shrinks to match. No scrollbar either way.
+function WeekGrid({ weeks, fluid = false }: { weeks: DayCell[][]; fluid?: boolean }) {
   const max = Math.max(1, ...weeks.flat().map((c) => c.bucket?.total ?? 0));
   const monthLabels = computeMonthLabels(weeks);
+
+  if (fluid) {
+    const gridStyle = { gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))` };
+    return (
+      <div className="flex flex-col gap-1">
+        <div className="grid gap-[2px]" style={gridStyle}>
+          {monthLabels.map((label, i) => (
+            <span key={i} className="overflow-visible text-[9px] whitespace-nowrap text-amber-950/40">
+              {label}
+            </span>
+          ))}
+        </div>
+        <div className="grid gap-[2px]" style={gridStyle}>
+          {weeks.map((col, i) => (
+            <div key={i} className="flex flex-col gap-[2px]">
+              {col.map((cell) => (
+                <FluidCell key={cell.key} cell={cell} max={max} />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-w-0 overflow-x-auto">
@@ -182,7 +225,11 @@ export function ActivityHeatmap({ events }: { events: StudyEvent[] }) {
             <SegmentedControl options={VIEW_OPTIONS} value={view} onChange={setView} />
           </div>
         </div>
-        {cells.kind === "strip" ? <DayStrip days={cells.days} /> : <WeekGrid weeks={cells.weeks} />}
+        {cells.kind === "strip" ? (
+          <DayStrip days={cells.days} />
+        ) : (
+          <WeekGrid weeks={cells.weeks} fluid={view === "yearly"} />
+        )}
       </div>
     </div>
   );

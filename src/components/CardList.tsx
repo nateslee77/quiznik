@@ -219,7 +219,7 @@ function EditableCard({
           <button
             onClick={save}
             disabled={pending}
-            className="shrink-0 rounded-md bg-rose-400 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-rose-300"
+            className="shrink-0 rounded-md bg-rose-400 px-2.5 py-1.5 text-xs font-medium text-rose-contrast hover:bg-rose-300"
           >
             Save
           </button>
@@ -345,7 +345,7 @@ function AddCardRow({
       <button
         onClick={submit}
         disabled={!term.trim() || !definition.trim()}
-        className="shrink-0 rounded-md bg-rose-400 px-3 py-1.5 text-xs font-medium text-white hover:bg-rose-300 disabled:opacity-40"
+        className="shrink-0 rounded-md bg-rose-400 px-3 py-1.5 text-xs font-medium text-rose-contrast hover:bg-rose-300 disabled:opacity-40"
       >
         Add
       </button>
@@ -398,7 +398,7 @@ function PasteCardsPanel({
           type="button"
           onClick={() => setPasteMode("simple")}
           className={`rounded-md px-2.5 py-1 font-medium transition ${
-            pasteMode === "simple" ? "bg-rose-400 text-white shadow-sm" : "text-amber-950/50"
+            pasteMode === "simple" ? "bg-rose-400 text-rose-contrast shadow-sm" : "text-amber-950/50"
           }`}
         >
           Term + definition
@@ -407,7 +407,7 @@ function PasteCardsPanel({
           type="button"
           onClick={() => setPasteMode("choices")}
           className={`rounded-md px-2.5 py-1 font-medium transition ${
-            pasteMode === "choices" ? "bg-rose-400 text-white shadow-sm" : "text-amber-950/50"
+            pasteMode === "choices" ? "bg-rose-400 text-rose-contrast shadow-sm" : "text-amber-950/50"
           }`}
         >
           With answer choices
@@ -467,7 +467,7 @@ function PasteCardsPanel({
         <button
           onClick={submit}
           disabled={preview.cards.length === 0}
-          className="shrink-0 rounded-lg bg-rose-400 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-rose-300 disabled:opacity-40"
+          className="shrink-0 rounded-lg bg-rose-400 px-3 py-1.5 text-sm font-medium text-rose-contrast transition hover:bg-rose-300 disabled:opacity-40"
         >
           Add {preview.cards.length || ""} card{preview.cards.length === 1 ? "" : "s"}
         </button>
@@ -493,7 +493,7 @@ function AddCardsSection({
           onClick={() => setTab("add")}
           className={`rounded-md px-2.5 py-1 font-medium transition ${
             tab === "add"
-              ? "bg-rose-400 text-white shadow-sm"
+              ? "bg-rose-400 text-rose-contrast shadow-sm"
               : "text-amber-950/50"
           }`}
         >
@@ -504,7 +504,7 @@ function AddCardsSection({
           onClick={() => setTab("paste")}
           className={`rounded-md px-2.5 py-1 font-medium transition ${
             tab === "paste"
-              ? "bg-rose-400 text-white shadow-sm"
+              ? "bg-rose-400 text-rose-contrast shadow-sm"
               : "text-amber-950/50"
           }`}
         >

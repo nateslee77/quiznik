@@ -67,7 +67,7 @@ export function ShopSkinCard({
       ) : owned ? (
         <button
           onClick={equip}
-          className="mt-1 rounded-lg bg-rose-400 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-rose-300"
+          className="mt-1 rounded-lg bg-rose-400 px-3 py-1.5 text-xs font-medium text-rose-contrast transition hover:bg-rose-300"
         >
           Equip
         </button>

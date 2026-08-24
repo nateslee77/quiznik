@@ -477,7 +477,7 @@ export function LearnRunner({
 
         <button
           onClick={() => startRound()}
-          className="mt-6 w-full rounded-xl bg-rose-400 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-rose-300"
+          className="mt-6 w-full rounded-xl bg-rose-400 px-4 py-2.5 text-sm font-medium text-rose-contrast transition hover:bg-rose-300"
         >
           Start learning
         </button>
@@ -527,14 +527,14 @@ export function LearnRunner({
           {allMastered ? (
             <button
               onClick={() => startRound(true)}
-              className="flex-1 rounded-xl bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300"
+              className="flex-1 rounded-xl bg-rose-400 px-4 py-3 text-sm font-medium text-rose-contrast transition hover:bg-rose-300"
             >
               Refresher round
             </button>
           ) : (
             <button
               onClick={() => startRound()}
-              className="flex-1 rounded-xl bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300"
+              className="flex-1 rounded-xl bg-rose-400 px-4 py-3 text-sm font-medium text-rose-contrast transition hover:bg-rose-300"
             >
               Keep learning
             </button>
@@ -644,7 +644,7 @@ export function LearnRunner({
             {selectedIndex !== null ? (
               <button
                 onClick={advance}
-                className="mt-6 w-full rounded-xl bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300"
+                className="mt-6 w-full rounded-xl bg-rose-400 px-4 py-3 text-sm font-medium text-rose-contrast transition hover:bg-rose-300"
               >
                 Next →
               </button>
@@ -682,7 +682,7 @@ export function LearnRunner({
             />
             <button
               onClick={checkWritten}
-              className="rounded-xl bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300"
+              className="rounded-xl bg-rose-400 px-4 py-3 text-sm font-medium text-rose-contrast transition hover:bg-rose-300"
             >
               Check answer
             </button>
@@ -724,7 +724,7 @@ export function LearnRunner({
             ) : null}
             <button
               onClick={advance}
-              className="rounded-xl bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300"
+              className="rounded-xl bg-rose-400 px-4 py-3 text-sm font-medium text-rose-contrast transition hover:bg-rose-300"
             >
               Continue →
             </button>

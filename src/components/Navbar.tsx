@@ -7,7 +7,7 @@ export function Navbar() {
     <header className="sticky top-0 z-10 border-b border-amber-900/10 bg-surface/80 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2 text-lg font-semibold tracking-tight">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-400 text-xs font-semibold text-white">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-400 text-xs font-semibold text-rose-contrast">
             Q
           </span>
           Quiznik
@@ -22,7 +22,7 @@ export function Navbar() {
           </Link>
           <Link
             href="/signup"
-            className="rounded-lg bg-rose-400 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-rose-300"
+            className="rounded-lg bg-rose-400 px-3 py-1.5 text-sm font-medium text-rose-contrast transition hover:bg-rose-300"
           >
             Sign up
           </Link>

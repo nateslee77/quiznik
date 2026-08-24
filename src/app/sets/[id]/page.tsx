@@ -30,7 +30,7 @@ function ModeCard({
       className="relative flex flex-col gap-2 rounded-2xl border border-amber-900/10 bg-surface p-4 transition hover:border-rose-200 hover:bg-orange-50"
     >
       {recommended ? (
-        <span className="absolute right-3 top-3 rounded-full bg-rose-400 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+        <span className="absolute right-3 top-3 rounded-full bg-rose-400 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-rose-contrast">
           Recommended
         </span>
       ) : null}

@@ -66,7 +66,7 @@ export function AuthForm({ action, mode, next }: Props) {
       <button
         type="submit"
         disabled={pending}
-        className="mt-2 w-full rounded-lg bg-rose-400 px-4 py-2.5 text-base font-medium text-white transition hover:bg-rose-300 disabled:opacity-60"
+        className="mt-2 w-full rounded-lg bg-rose-400 px-4 py-2.5 text-base font-medium text-rose-contrast transition hover:bg-rose-300 disabled:opacity-60"
       >
         {pending ? "Please wait…" : isLogin ? "Log in" : "Create account"}
       </button>

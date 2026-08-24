@@ -95,7 +95,7 @@ export function StudyDeck({ cards }: { cards: Card[] }) {
           onClick={toggleShuffle}
           className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
             shuffled
-              ? "bg-rose-400 text-white"
+              ? "bg-rose-400 text-rose-contrast"
               : "border border-amber-900/20 text-amber-950/60"
           }`}
         >
@@ -141,14 +141,14 @@ export function StudyDeck({ cards }: { cards: Card[] }) {
         {atEnd ? (
           <button
             onClick={restart}
-            className="flex-1 rounded-lg bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300 lg:py-4 lg:text-base"
+            className="flex-1 rounded-lg bg-rose-400 px-4 py-3 text-sm font-medium text-rose-contrast transition hover:bg-rose-300 lg:py-4 lg:text-base"
           >
             Restart
           </button>
         ) : (
           <button
             onClick={next}
-            className="flex-1 rounded-lg bg-rose-400 px-4 py-3 text-sm font-medium text-white transition hover:bg-rose-300 lg:py-4 lg:text-base"
+            className="flex-1 rounded-lg bg-rose-400 px-4 py-3 text-sm font-medium text-rose-contrast transition hover:bg-rose-300 lg:py-4 lg:text-base"
           >
             Next →
           </button>
