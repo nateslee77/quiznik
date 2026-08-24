@@ -203,13 +203,19 @@ export function LearnRunner({
   const activeQuestion = useMemo(() => {
     if (!currentCard || !currentCardId) return null;
     const state = cardStates[currentCardId];
-    const questionType = (state?.phase ?? "multiple_choice") === "multiple_choice" ? "multiple_choice" : "written";
-    // Written answers are always "type the term" — typing a full definition
-    // back is slow and unreliable to grade, so this ignores the round's
-    // configured direction for written questions specifically.
-    const resolvedDirection: Direction =
-      questionType === "written" ? "definition-to-term" : state?.direction ?? "term-to-definition";
-    return buildQuestion(currentCard, cards, resolvedDirection, questionType);
+    // Whichever direction the round picked for this card — Term → Def,
+    // Def → Term, or (for "Mixed") whichever one resolveDirection landed on
+    // when the round started — holds for every question this card gets
+    // asked for the rest of the round, MC or written alike. The one place
+    // that can't be honored literally: typing a full definition back can't
+    // be graded reliably (fuzzyMatch only tolerates a couple characters of
+    // typo), so a card whose direction calls for that just keeps drilling
+    // as multiple-choice even after it graduates past the MC phase, rather
+    // than flipping to "type the term" and silently reversing direction.
+    const direction: Direction = state?.direction ?? "term-to-definition";
+    const graduated = (state?.phase ?? "multiple_choice") !== "multiple_choice";
+    const questionType = graduated && direction === "definition-to-term" ? "written" : "multiple_choice";
+    return buildQuestion(currentCard, cards, direction, questionType);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentCardId]);
 

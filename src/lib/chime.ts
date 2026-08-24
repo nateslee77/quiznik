@@ -8,6 +8,12 @@ export type ChimeOption = SynthChime | AudioChime;
 
 // ---- synthesis helpers (used by the two built-in correct chimes) ---------
 
+// The one peak gain every synth note plays at — matched to TARGET_PEAK
+// below (Web Audio's oscillator+gain-envelope scale isn't the same as a
+// decoded buffer's sample amplitude, so this is a separately-tuned value,
+// not literally equal to it, but picked to sound comparably loud).
+const SYNTH_PEAK_GAIN = 0.16;
+
 function tone(
   audioCtx: AudioContext,
   freq: number,
@@ -33,9 +39,11 @@ export const CORRECT_CHIMES: ChimeOption[] = [
     id: "correct-bright",
     label: "Bright",
     kind: "synth",
+    // Both notes share SYNTH_PEAK_GAIN (see below) so "Bright" doesn't play
+    // louder than "Sparkle" just because of which gain someone typed in.
     play: (audioCtx, now) => {
-      tone(audioCtx, 880, now, 0.18, 0.18); // A5
-      tone(audioCtx, 1318.5, now + 0.09, 0.22, 0.16); // E6
+      tone(audioCtx, 880, now, 0.18, SYNTH_PEAK_GAIN); // A5
+      tone(audioCtx, 1318.5, now + 0.09, 0.22, SYNTH_PEAK_GAIN); // E6
     },
   },
   {
@@ -43,9 +51,9 @@ export const CORRECT_CHIMES: ChimeOption[] = [
     label: "Sparkle",
     kind: "synth",
     play: (audioCtx, now) => {
-      tone(audioCtx, 1046.5, now, 0.12, 0.13, "triangle"); // C6
-      tone(audioCtx, 1318.5, now + 0.07, 0.12, 0.13, "triangle"); // E6
-      tone(audioCtx, 1568, now + 0.14, 0.18, 0.13, "triangle"); // G6
+      tone(audioCtx, 1046.5, now, 0.12, SYNTH_PEAK_GAIN, "triangle"); // C6
+      tone(audioCtx, 1318.5, now + 0.07, 0.12, SYNTH_PEAK_GAIN, "triangle"); // E6
+      tone(audioCtx, 1568, now + 0.14, 0.18, SYNTH_PEAK_GAIN, "triangle"); // G6
     },
   },
   { id: "correct-anime-wow", label: "Anime Wow", kind: "audio", src: "/sounds/correct-anime-wow.mp3" },
@@ -140,28 +148,108 @@ let ctx: AudioContext | null = null;
 function getContext(): AudioContext | null {
   if (typeof window === "undefined") return null;
   const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  const isNew = !ctx;
   if (!Ctor) return null;
   if (!ctx) ctx = new Ctor();
   if (ctx.state === "suspended") void ctx.resume();
+  if (isNew) warmAudioChimes(ctx);
   return ctx;
+}
+
+// ---- loudness normalization for the mp3-backed chimes --------------------
+//
+// The correct/wrong mp3s came from different sources with wildly different
+// mastering levels, so playing them all at one flat HTMLAudioElement volume
+// (the old approach) meant some chimes were jarringly louder than others.
+// Fixing that for real means measuring each file's own peak sample and
+// scaling playback gain to bring every chime to the same target peak — an
+// HTMLAudioElement's `.volume` can't do that (it has no idea how loud the
+// source material already is), so this decodes each file once via Web Audio
+// and plays it back through a GainNode carrying the computed correction.
+const TARGET_PEAK = 0.5;
+const MAX_NORMALIZE_GAIN = 4; // cap so a near-silent source file doesn't get blasted to full volume from noise floor alone
+const normalizedChimes = new Map<string, Promise<{ buffer: AudioBuffer; gain: number } | null>>();
+
+function peakAmplitude(buffer: AudioBuffer): number {
+  let peak = 0;
+  for (let ch = 0; ch < buffer.numberOfChannels; ch++) {
+    const data = buffer.getChannelData(ch);
+    for (let i = 0; i < data.length; i++) {
+      const abs = Math.abs(data[i]);
+      if (abs > peak) peak = abs;
+    }
+  }
+  return peak;
+}
+
+function loadNormalizedChime(audioCtx: AudioContext, src: string): Promise<{ buffer: AudioBuffer; gain: number } | null> {
+  let entry = normalizedChimes.get(src);
+  if (!entry) {
+    entry = fetch(src)
+      .then((res) => res.arrayBuffer())
+      .then((data) => audioCtx.decodeAudioData(data))
+      .then((buffer) => {
+        const peak = peakAmplitude(buffer);
+        const gain = peak > 0 ? Math.min(MAX_NORMALIZE_GAIN, TARGET_PEAK / peak) : 1;
+        return { buffer, gain };
+      })
+      .catch(() => null);
+    normalizedChimes.set(src, entry);
+  }
+  return entry;
+}
+
+// Kicks off decoding/measuring every mp3 chime as soon as an AudioContext
+// exists, so by the time round-robin playback actually reaches any given
+// chime it's almost always already normalized — only the very first chime
+// played in a session risks falling back to unnormalized playback below.
+function warmAudioChimes(audioCtx: AudioContext) {
+  for (const chime of ALL_CHIMES) {
+    if (chime.kind === "audio") void loadNormalizedChime(audioCtx, chime.src);
+  }
+}
+
+function playNormalizedAudioChime(audioCtx: AudioContext, src: string) {
+  void loadNormalizedChime(audioCtx, src).then((result) => {
+    if (!result) {
+      playUnnormalizedFallback(src);
+      return;
+    }
+    const source = audioCtx.createBufferSource();
+    const gainNode = audioCtx.createGain();
+    source.buffer = result.buffer;
+    gainNode.gain.value = result.gain;
+    source.connect(gainNode).connect(audioCtx.destination);
+    source.start();
+  });
+}
+
+// Only reached if decoding/fetching genuinely fails (e.g. an ancient
+// browser without decodeAudioData support) — better an un-normalized sound
+// than silence.
+function playUnnormalizedFallback(src: string) {
+  const audio = new Audio(src);
+  audio.volume = 0.7;
+  void audio.play().catch(() => {
+    // autoplay/permission failure — silently no-op
+  });
 }
 
 // Always plays this exact option, regardless of its enabled state — used by
 // the Settings page's per-row Preview button so you can hear a chime before
 // switching it on.
 export function previewChime(option: ChimeOption) {
+  const audioCtx = getContext();
   if (option.kind === "synth") {
-    const audioCtx = getContext();
     if (!audioCtx) return;
     option.play(audioCtx, audioCtx.currentTime);
     return;
   }
-  if (typeof window === "undefined") return;
-  const audio = new Audio(option.src);
-  audio.volume = 0.7;
-  void audio.play().catch(() => {
-    // autoplay/permission failure — silently no-op
-  });
+  if (!audioCtx) {
+    if (typeof window !== "undefined") playUnnormalizedFallback(option.src);
+    return;
+  }
+  playNormalizedAudioChime(audioCtx, option.src);
 }
 
 // Round-robin: every enabled chime for a state gets used in turn, one per
