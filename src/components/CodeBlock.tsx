@@ -23,9 +23,9 @@ export function CodeBlock({ lang, code, copyable = true }: { lang?: string; code
   }
 
   return (
-    <div className="my-2 overflow-hidden rounded-lg border border-slate-200 bg-slate-50 text-left">
-      <div className="flex items-center justify-between border-b border-slate-200 bg-slate-100/80 px-3 py-1">
-        <span className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
+    <div className="my-2 overflow-hidden rounded-lg border border-amber-900/15 bg-amber-900/5 text-left">
+      <div className="flex items-center justify-between border-b border-amber-900/15 bg-amber-900/10 px-3 py-1">
+        <span className="text-[11px] font-medium uppercase tracking-wide text-amber-950/50">
           {displayLanguage(lang)}
         </span>
         {copyable ? (
@@ -35,7 +35,7 @@ export function CodeBlock({ lang, code, copyable = true }: { lang?: string; code
               e.stopPropagation();
               void copy();
             }}
-            className="rounded px-1.5 py-0.5 text-[11px] font-medium text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
+            className="rounded px-1.5 py-0.5 text-[11px] font-medium text-amber-950/50 transition hover:bg-amber-900/15 hover:text-amber-950/80"
           >
             {copied ? "Copied!" : "Copy"}
           </button>

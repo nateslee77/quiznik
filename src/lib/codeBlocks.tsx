@@ -120,10 +120,10 @@ function keywordsFor(lang?: string): Set<string> {
 const TOKEN_RE = /(\/\/.*$)|(#.*$)|(\/\*[\s\S]*?\*\/)|("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|(\b\d+(?:\.\d+)?\b)|([A-Za-z_$][A-Za-z0-9_$]*)/gm;
 
 const TOKEN_CLASSES = {
-  comment: "text-slate-400 italic",
-  string: "text-emerald-700",
-  number: "text-sky-700",
-  keyword: "text-rose-600 font-medium",
+  comment: "text-code-comment italic",
+  string: "text-code-string",
+  number: "text-code-number",
+  keyword: "text-code-keyword font-medium",
 };
 
 export function highlightCode(code: string, lang?: string): ReactNode[] {

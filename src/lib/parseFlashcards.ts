@@ -87,6 +87,13 @@ export function parseFlashcardTextWithChoices(text: string): ParseResult {
     .filter(Boolean);
   const cards: ParsedCard[] = [];
   let skipped = 0;
+  // A prompt like "What is printed?" pasted directly above a fenced code
+  // block, with the blank line Markdown convention puts before a fence, is
+  // indistinguishable at the blank-line-split level from two separate
+  // cards — it lands as its own zero-option block. Rather than drop it,
+  // hold it and prepend it to whichever later block turns out to have the
+  // answer choices, so the prompt and its code stay together as one card.
+  let pendingPrefix = "";
 
   for (const block of blocks) {
     const lines = block
@@ -99,16 +106,23 @@ export function parseFlashcardTextWithChoices(text: string): ParseResult {
       .map((line) => ({ text: line.replace(/^\*\s*/, "").trim(), marked: line.startsWith("*") }))
       .filter((o) => o.text);
 
-    if (!term || options.length === 0) {
-      skipped += 1;
+    if (!term) continue;
+
+    if (options.length === 0) {
+      pendingPrefix = pendingPrefix ? `${pendingPrefix}\n${lines.join("\n")}` : lines.join("\n");
       continue;
     }
+
+    const fullTerm = pendingPrefix ? `${pendingPrefix}\n${term}` : term;
+    pendingPrefix = "";
 
     const correct = options.find((o) => o.marked) ?? options[0];
     const distractors = options.filter((o) => o !== correct).map((o) => o.text);
 
-    cards.push({ term, definition: correct.text, distractors: distractors.length ? distractors : undefined });
+    cards.push({ term: fullTerm, definition: correct.text, distractors: distractors.length ? distractors : undefined });
   }
+
+  if (pendingPrefix) skipped += 1;
 
   return { cards, skipped };
 }

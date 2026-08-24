@@ -65,6 +65,16 @@
   --pal-orange-800: #9a3412;
   --pal-orange-900: #7c2d12;
   --pal-orange-950: #431407;
+  /* Code-block syntax colors — background-owned (like amber/orange) rather
+     than palette-owned, since a code block's comment/string/number hues
+     aren't meant to track the chosen accent, just to stay readable against
+     whichever background is picked. `--pal-code-keyword` is the exception:
+     it borrows the CURRENT accent's own rose-600 (a shade already tuned for
+     light text-on-page use), so keywords still pick up the accent color. */
+  --pal-code-comment: #94a3b8;
+  --pal-code-string: #047857;
+  --pal-code-number: #0369a1;
+  --pal-code-keyword: var(--pal-rose-600);
 }
 
 /* Minty Fresh */
@@ -259,6 +269,10 @@
   --pal-orange-800: #9a3412;
   --pal-orange-900: #7c2d12;
   --pal-orange-950: #431407;
+  --pal-code-comment: #94a3b8;
+  --pal-code-string: #047857;
+  --pal-code-number: #0369a1;
+  --pal-code-keyword: var(--pal-rose-600);
 }
 
 /* Midnight (dark) */
@@ -266,6 +280,10 @@
   --pal-background: #14121f;
   --pal-foreground: #d3cfe7;
   --pal-surface: #1e1a30;
+  --pal-code-comment: #94a1b8;
+  --pal-code-string: #34d399;
+  --pal-code-number: #38bdf8;
+  --pal-code-keyword: var(--pal-rose-300);
   --pal-amber-50: #08070e;
   --pal-amber-100: #161326;
   --pal-amber-200: #2e2750;
@@ -295,6 +313,10 @@
   --pal-background: #242426;
   --pal-foreground: #dddbd9;
   --pal-surface: #2f2f32;
+  --pal-code-comment: #a3a19e;
+  --pal-code-string: #34d399;
+  --pal-code-number: #38bdf8;
+  --pal-code-keyword: var(--pal-rose-300);
   --pal-amber-50: #0b0a09;
   --pal-amber-100: #1e1d1b;
   --pal-amber-200: #3f3c38;
@@ -324,6 +346,10 @@
   --pal-background: #0a0a0b;
   --pal-foreground: #dcdbda;
   --pal-surface: #17171a;
+  --pal-code-comment: #a3a19e;
+  --pal-code-string: #34d399;
+  --pal-code-number: #38bdf8;
+  --pal-code-keyword: var(--pal-rose-300);
   --pal-amber-50: #0a0a0a;
   --pal-amber-100: #1d1d1c;
   --pal-amber-200: #3d3c3a;
@@ -412,6 +438,10 @@ html {
   --color-orange-800: var(--pal-orange-800);
   --color-orange-900: var(--pal-orange-900);
   --color-orange-950: var(--pal-orange-950);
+  --color-code-comment: var(--pal-code-comment);
+  --color-code-string: var(--pal-code-string);
+  --color-code-number: var(--pal-code-number);
+  --color-code-keyword: var(--pal-code-keyword);
 }
 
 body {
