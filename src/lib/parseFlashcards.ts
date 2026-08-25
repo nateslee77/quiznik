@@ -101,7 +101,20 @@ export function parseFlashcardTextWithChoices(text: string): ParseResult {
       .map((line) => unguard(line).trim())
       .filter(Boolean);
 
-    const [term, ...optionLines] = lines;
+    const [firstLine, ...rest] = lines;
+
+    // A code fence collapses to a single "line" here, but a question stem
+    // often sits on its own line right after it (e.g. "What does this query
+    // return?") with no blank line to separate it from the choices below.
+    // Since it isn't marked with "*", it would otherwise be swallowed as an
+    // unmarked answer choice. Stem lines end in "?"; answer choices don't —
+    // so keep pulling those into the term until the real choices start.
+    let stemEnd = 0;
+    while (stemEnd < rest.length && !rest[stemEnd].startsWith("*") && /\?$/.test(rest[stemEnd])) {
+      stemEnd += 1;
+    }
+    const term = [firstLine, ...rest.slice(0, stemEnd)].join("\n");
+    const optionLines = rest.slice(stemEnd);
     const options = optionLines
       .map((line) => ({ text: line.replace(/^\*\s*/, "").trim(), marked: line.startsWith("*") }))
       .filter((o) => o.text);

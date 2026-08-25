@@ -368,12 +368,13 @@ export function NewSetForm({ folderId }: { folderId?: string | null }) {
               </div>
             ) : (
               <p className="text-xs text-amber-950/60">
-                One card per block, separated by a blank line. First line is the term; the rest are answer
-                choices — mark the correct one with <code className="rounded bg-amber-100 px-1">*</code>{" "}
-                (otherwise the first choice is used). Code fences (
-                <code className="rounded bg-amber-100 px-1">```lang ... ```</code>) can span multiple
-                lines — including blank ones inside the snippet, like the third example below — the parser
-                treats the whole fence as one line automatically.
+                One card per block, separated by a blank line. First line is the term (a question line
+                ending in <code className="rounded bg-amber-100 px-1">?</code> right after it, e.g. under a
+                code block, is kept with it); the rest are answer choices — mark the correct one with{" "}
+                <code className="rounded bg-amber-100 px-1">*</code> (otherwise the first choice is used).
+                Code fences (<code className="rounded bg-amber-100 px-1">```lang ... ```</code>) can span
+                multiple lines — including blank ones inside the snippet, like the third example below —
+                the parser treats the whole fence as one line automatically.
               </p>
             )}
 
